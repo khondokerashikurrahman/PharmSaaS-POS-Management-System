@@ -1,0 +1,74 @@
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
+
+export interface GrnItemRequest {
+  inventoryItemId: number;
+  batchNumber: string;
+  manufactureDate: string;
+  expiryDate: string;
+  quantity: number;
+  purchasePrice: number;
+  sellingPrice: number;
+}
+
+export interface GrnCreateRequest {
+  supplierName: string;
+  purchaseOrderNumber: string;
+  supplierInvoiceNumber: string;
+  receivedDate: string;
+  notes: string;
+  items: GrnItemRequest[];
+}
+
+export interface GrnResponse {
+  id: number;
+  tenantId: number;
+  grnNumber: string;
+  supplierName: string;
+  purchaseOrderNumber: string;
+  supplierInvoiceNumber: string;
+  receivedDate: string;
+  notes: string;
+  status: string;
+  items: Array<{
+    id: number;
+    inventoryItemId: number;
+    medicineName: string;
+    inventoryBatchId: number;
+    batchNumber: string;
+    manufactureDate?: string;
+    expiryDate?: string;
+    quantity: number;
+    purchasePrice: number;
+    sellingPrice: number;
+    lineTotal: number;
+  }>;
+}
+
+@Injectable({ providedIn: 'root' })
+export class GrnApiService {
+  private readonly baseUrl = environment.apiUrl;
+
+  constructor(private http: HttpClient) {}
+
+  create(tenantId: number, request: GrnCreateRequest): Observable<GrnResponse> {
+    return this.http.post<GrnResponse>(
+      `${this.baseUrl}/tenants/${tenantId}/grn`,
+      request
+    );
+  }
+
+  list(tenantId: number): Observable<GrnResponse[]> {
+    return this.http.get<GrnResponse[]>(
+      `${this.baseUrl}/tenants/${tenantId}/grn`
+    );
+  }
+
+  getById(tenantId: number, grnId: number): Observable<GrnResponse> {
+    return this.http.get<GrnResponse>(
+      `${this.baseUrl}/tenants/${tenantId}/grn/${grnId}`
+    );
+  }
+}

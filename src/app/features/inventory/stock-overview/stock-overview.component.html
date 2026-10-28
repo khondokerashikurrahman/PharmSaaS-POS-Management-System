@@ -1,0 +1,505 @@
+<div class="stock-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div>
+      <div class="breadcrumb">
+        <span>Inventory</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Stock Overview</span>
+      </div>
+
+      <h1>Stock Overview</h1>
+
+      <p>
+        Monitor pharmacy inventory, stock value and stock availability.
+      </p>
+    </div>
+
+    <div class="header-date">
+      <i class="bi bi-calendar3"></i>
+      <span>Inventory Summary</span>
+    </div>
+
+  </div>
+
+
+  <!-- SUMMARY CARDS -->
+  <div class="summary-grid">
+
+    <!-- Total Stock -->
+    <div class="summary-card">
+
+      <div class="card-icon blue">
+        <i class="bi bi-boxes"></i>
+      </div>
+
+      <div class="card-content">
+
+        <span>Total Stock</span>
+
+        <strong>
+          {{ totalStock | number }}
+        </strong>
+
+        <small>
+          Units available
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <!-- Stock Value -->
+    <div class="summary-card">
+
+      <div class="card-icon green">
+        <i class="bi bi-cash-stack"></i>
+      </div>
+
+      <div class="card-content">
+
+        <span>Stock Value</span>
+
+        <strong>
+          ৳{{ totalStockValue | number:'1.0-0' }}
+        </strong>
+
+        <small>
+          Purchase value
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <!-- Low Stock -->
+    <div class="summary-card">
+
+      <div class="card-icon orange">
+        <i class="bi bi-exclamation-triangle"></i>
+      </div>
+
+      <div class="card-content">
+
+        <span>Low Stock</span>
+
+        <strong>
+          {{ lowStockCount }}
+        </strong>
+
+        <small>
+          Need replenishment
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <!-- Out of Stock -->
+    <div class="summary-card">
+
+      <div class="card-icon red">
+        <i class="bi bi-x-circle"></i>
+      </div>
+
+      <div class="card-content">
+
+        <span>Out of Stock</span>
+
+        <strong>
+          {{ outOfStockCount }}
+        </strong>
+
+        <small>
+          Currently unavailable
+        </small>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ANALYTICS -->
+  <div class="analytics-grid">
+
+    <!-- CATEGORY STOCK -->
+    <div class="panel">
+
+      <div class="panel-header">
+
+        <div>
+          <h2>Category-wise Stock</h2>
+          <p>Inventory distribution by category</p>
+        </div>
+
+        <i class="bi bi-pie-chart"></i>
+
+      </div>
+
+
+      <div class="category-list">
+
+        <div
+          class="category-row"
+          *ngFor="let category of categoryStock"
+        >
+
+          <div class="category-info">
+
+            <div class="category-name">
+              {{ category.category }}
+            </div>
+
+            <span>
+              {{ category.products }} products
+            </span>
+
+          </div>
+
+
+          <div class="category-stock">
+
+            <strong>
+              {{ category.quantity | number }}
+            </strong>
+
+            <span>units</span>
+
+          </div>
+
+
+          <div class="category-value">
+
+            ৳{{ category.value | number:'1.0-0' }}
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    
+  <div class="empty-state" *ngIf="loading" role="status">
+    <strong>Loading inventory...</strong>
+    <span>Stock information is being loaded from the backend.</span>
+  </div>
+
+  <div class="empty-state" *ngIf="!loading && errorMessage" role="alert">
+    <strong>Inventory could not be loaded</strong>
+    <span>{{ errorMessage }}</span>
+    <button type="button" class="btn btn-primary" (click)="loadStock()">
+      Retry
+    </button>
+  </div>
+
+<!-- STOCK STATUS -->
+    <div class="panel">
+
+      <div class="panel-header">
+
+        <div>
+          <h2>Stock Status</h2>
+          <p>Current inventory health</p>
+        </div>
+
+        <i class="bi bi-activity"></i>
+
+      </div>
+
+
+      <div class="status-summary">
+
+        <div class="status-item">
+
+          <div class="status-icon success">
+            <i class="bi bi-check-circle"></i>
+          </div>
+
+          <div>
+            <strong>{{ inStockCount }}</strong>
+            <span>In Stock</span>
+          </div>
+
+        </div>
+
+
+        <div class="status-item">
+
+          <div class="status-icon warning">
+            <i class="bi bi-exclamation-circle"></i>
+          </div>
+
+          <div>
+            <strong>{{ lowStockCount }}</strong>
+            <span>Low Stock</span>
+          </div>
+
+        </div>
+
+
+        <div class="status-item">
+
+          <div class="status-icon danger">
+            <i class="bi bi-x-circle"></i>
+          </div>
+
+          <div>
+            <strong>{{ outOfStockCount }}</strong>
+            <span>Out of Stock</span>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="health-bar">
+
+        <div class="health-header">
+          <span>Inventory Health</span>
+
+          <strong>
+            {{ inStockCount }}/{{ stockItems.length }}
+          </strong>
+        </div>
+
+        <div class="progress">
+
+          <div
+            class="progress-fill"
+            [style.width.%]="inventoryHealthPercentage"
+          ></div>
+
+        </div>
+
+        <small>
+          Products currently maintaining healthy stock levels
+        </small>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- STOCK TABLE -->
+  <div class="table-panel">
+
+    <div class="table-header">
+
+      <div>
+        <h2>Stock Details</h2>
+
+        <p>
+          Complete overview of medicine inventory
+        </p>
+      </div>
+
+
+      <div class="search-box">
+
+        <i class="bi bi-search"></i>
+
+        <input
+          type="text"
+          placeholder="Search medicine, company..."
+          [(ngModel)]="searchTerm"
+        />
+
+      </div>
+
+    </div>
+
+
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>MEDICINE</th>
+
+            <th>CATEGORY</th>
+
+            <th>COMPANY</th>
+
+            <th>STOCK</th>
+
+            <th>REORDER LEVEL</th>
+
+            <th>STOCK VALUE</th>
+
+            <th>STATUS</th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="let item of filteredStockItems"
+          >
+
+            <!-- MEDICINE -->
+            <td>
+
+              <div class="medicine-cell">
+
+                <div class="medicine-icon">
+                  <i class="bi bi-capsule"></i>
+                </div>
+
+                <div>
+
+                  <strong>
+                    {{ item.medicine }}
+                  </strong>
+
+                  <span>
+                    {{ item.genericName }}
+                  </span>
+
+                </div>
+
+              </div>
+
+            </td>
+
+
+            <!-- CATEGORY -->
+            <td>
+
+              <span class="category-badge">
+                {{ item.category }}
+              </span>
+
+            </td>
+
+
+            <!-- COMPANY -->
+            <td>
+
+              <span class="company-name">
+                {{ item.company }}
+              </span>
+
+            </td>
+
+
+            <!-- STOCK -->
+            <td>
+
+              <div class="stock-cell">
+
+                <strong>
+                  {{ item.stock | number }}
+                </strong>
+
+                <div class="stock-progress">
+
+                  <div
+                    class="stock-progress-fill"
+                    [class.low]="item.status === 'Low Stock'"
+                    [class.empty]="item.status === 'Out of Stock'"
+                    [style.width.%]="getStockPercentage(item)"
+                  ></div>
+
+                </div>
+
+              </div>
+
+            </td>
+
+
+            <!-- REORDER -->
+            <td>
+
+              <span class="reorder-value">
+                {{ item.reorderLevel | number }}
+              </span>
+
+            </td>
+
+
+            <!-- VALUE -->
+            <td>
+
+              <strong class="stock-value">
+                ৳{{ (item.stock * item.purchasePrice) | number:'1.0-0' }}
+              </strong>
+
+            </td>
+
+
+            <!-- STATUS -->
+            <td>
+
+              <span
+                class="status-badge"
+                [ngClass]="getStatusClass(item.status)"
+              >
+
+                <i
+                  class="bi"
+                  [ngClass]="{
+                    'bi-check-circle-fill': item.status === 'In Stock',
+                    'bi-exclamation-circle-fill': item.status === 'Low Stock',
+                    'bi-x-circle-fill': item.status === 'Out of Stock'
+                  }"
+                ></i>
+
+                {{ item.status }}
+
+              </span>
+
+            </td>
+
+          </tr>
+
+
+          <!-- EMPTY -->
+          <tr
+            *ngIf="filteredStockItems.length === 0"
+          >
+
+            <td
+              colspan="7"
+              class="empty-state"
+            >
+
+              <i class="bi bi-search"></i>
+
+              <strong>No stock found</strong>
+
+              <span>
+                Try searching with another medicine or company name.
+              </span>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>

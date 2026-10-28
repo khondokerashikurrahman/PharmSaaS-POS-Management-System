@@ -1,0 +1,520 @@
+.billing-logs-page {
+  padding: 28px;
+  background: #f7f9fc;
+  min-height: calc(100vh - 70px);
+}
+
+
+/* HEADER */
+
+.page-header {
+  margin-bottom: 28px;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-bottom: 8px;
+
+  color: #7b8794;
+  font-size: 13px;
+}
+
+.breadcrumb i {
+  font-size: 10px;
+}
+
+.page-header h1 {
+  margin: 0;
+
+  color: #172033;
+
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.page-header p {
+  margin: 8px 0 0;
+
+  color: #7b8794;
+
+  font-size: 14px;
+}
+
+
+/* SUMMARY */
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+
+  gap: 18px;
+
+  margin-bottom: 24px;
+}
+
+.summary-card {
+  display: flex;
+  align-items: center;
+
+  gap: 15px;
+
+  padding: 20px;
+
+  background: #ffffff;
+
+  border: 1px solid #e8edf3;
+
+  border-radius: 12px;
+}
+
+.summary-icon {
+  width: 48px;
+  height: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+
+  font-size: 21px;
+}
+
+.summary-icon.blue {
+  background: #eaf2ff;
+  color: #3478db;
+}
+
+.summary-icon.green {
+  background: #eaf9f0;
+  color: #20a464;
+}
+
+.summary-icon.orange {
+  background: #fff5e8;
+  color: #ed941c;
+}
+
+.summary-icon.red {
+  background: #fff0f0;
+  color: #d64c4c;
+}
+
+.summary-card span {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: #7b8794;
+
+  font-size: 13px;
+}
+
+.summary-card h2 {
+  margin: 0;
+
+  color: #172033;
+
+  font-size: 23px;
+}
+
+
+/* TOOLBAR */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  padding: 16px;
+
+  margin-bottom: 18px;
+
+  background: #ffffff;
+
+  border: 1px solid #e8edf3;
+
+  border-radius: 12px;
+}
+
+.search-box {
+  position: relative;
+
+  width: 360px;
+}
+
+.search-box i {
+  position: absolute;
+
+  left: 14px;
+  top: 50%;
+
+  transform: translateY(-50%);
+
+  color: #9aa5b1;
+}
+
+.search-box input {
+  width: 100%;
+  height: 42px;
+
+  box-sizing: border-box;
+
+  padding: 0 15px 0 40px;
+
+  border: 1px solid #dfe5ec;
+
+  border-radius: 8px;
+
+  outline: none;
+
+  font-size: 13px;
+}
+
+.search-box input:focus {
+  border-color: #3478db;
+}
+
+
+/* FILTER */
+
+.filter-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.filter-buttons button {
+  padding: 9px 15px;
+
+  background: #ffffff;
+
+  border: 1px solid #dfe5ec;
+
+  border-radius: 7px;
+
+  color: #647181;
+
+  font-size: 13px;
+
+  cursor: pointer;
+}
+
+.filter-buttons button:hover {
+  background: #f4f7fa;
+}
+
+.filter-buttons button.active {
+  background: #3478db;
+
+  border-color: #3478db;
+
+  color: #ffffff;
+}
+
+
+/* TABLE */
+
+.table-card {
+  overflow: hidden;
+
+  background: #ffffff;
+
+  border: 1px solid #e8edf3;
+
+  border-radius: 12px;
+}
+
+.table-header {
+  padding: 20px;
+
+  border-bottom: 1px solid #edf0f4;
+}
+
+.table-header h3 {
+  margin: 0;
+
+  color: #172033;
+
+  font-size: 17px;
+}
+
+.table-header p {
+  margin: 5px 0 0;
+
+  color: #8994a1;
+
+  font-size: 13px;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+
+  min-width: 1200px;
+
+  border-collapse: collapse;
+}
+
+thead {
+  background: #f8fafc;
+}
+
+th {
+  padding: 14px 18px;
+
+  text-align: left;
+
+  color: #687585;
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.3px;
+}
+
+td {
+  padding: 16px 18px;
+
+  border-top: 1px solid #edf0f4;
+
+  color: #344054;
+
+  font-size: 13px;
+}
+
+tbody tr:hover {
+  background: #fafcff;
+}
+
+
+/* LOG */
+
+.log-id,
+.pharmacy-info,
+.activity-info {
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+}
+
+.log-id strong,
+.pharmacy-info strong,
+.activity-info strong {
+  color: #172033;
+
+  font-size: 13px;
+}
+
+.log-id span,
+.pharmacy-info span {
+  color: #8a96a3;
+
+  font-size: 12px;
+}
+
+.activity-info span {
+  max-width: 300px;
+
+  color: #8a96a3;
+
+  font-size: 12px;
+
+  line-height: 1.4;
+}
+
+
+/* AMOUNT */
+
+.amount {
+  color: #172033;
+}
+
+
+/* PERFORMED BY */
+
+.performed-by {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  color: #566474;
+}
+
+.performed-by i {
+  color: #3478db;
+}
+
+
+/* STATUS */
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 7px;
+
+  padding: 6px 10px;
+
+  border-radius: 20px;
+
+  font-size: 12px;
+
+  font-weight: 600;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+}
+
+
+/* SUCCESS */
+
+.status-badge.success {
+  background: #eaf8f0;
+  color: #1e995a;
+}
+
+.status-badge.success .status-dot {
+  background: #1e995a;
+}
+
+
+/* WARNING */
+
+.status-badge.warning {
+  background: #fff6e7;
+  color: #d88912;
+}
+
+.status-badge.warning .status-dot {
+  background: #d88912;
+}
+
+
+/* FAILED */
+
+.status-badge.failed {
+  background: #fff0f0;
+  color: #d64c4c;
+}
+
+.status-badge.failed .status-dot {
+  background: #d64c4c;
+}
+
+
+/* INFO */
+
+.status-badge.info {
+  background: #edf5ff;
+  color: #3478db;
+}
+
+.status-badge.info .status-dot {
+  background: #3478db;
+}
+
+
+/* ACTION */
+
+.view-btn {
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #ffffff;
+
+  border: 1px solid #e0e5eb;
+
+  border-radius: 7px;
+
+  color: #3478db;
+
+  cursor: pointer;
+}
+
+.view-btn:hover {
+  background: #edf5ff;
+}
+
+
+/* EMPTY */
+
+.empty-state {
+  text-align: center;
+
+  padding: 55px 20px !important;
+}
+
+.empty-state i {
+  font-size: 35px;
+
+  color: #aab4bf;
+}
+
+.empty-state h3 {
+  margin: 12px 0 5px;
+
+  color: #344054;
+}
+
+.empty-state p {
+  margin: 0;
+
+  color: #929ca8;
+}
+
+
+/* RESPONSIVE */
+
+@media (max-width: 1100px) {
+
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+}
+
+@media (max-width: 768px) {
+
+  .billing-logs-page {
+    padding: 18px;
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-box {
+    width: 100%;
+  }
+
+  .filter-buttons {
+    overflow-x: auto;
+  }
+
+}

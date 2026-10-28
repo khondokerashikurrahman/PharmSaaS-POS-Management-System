@@ -1,0 +1,260 @@
+<div class="company-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div>
+      <div class="breadcrumb">
+        <span>Inventory</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Companies</span>
+      </div>
+
+      <h1>Company Management</h1>
+      <p>Manage pharmaceutical companies and their supplied medicines.</p>
+    </div>
+
+    <button class="add-btn" (click)="addCompany()">
+      <i class="bi bi-plus-lg"></i>
+      Add Company
+    </button>
+
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger" role="alert">
+    {{ errorMessage }}
+    <button type="button" class="btn btn-sm btn-outline-danger ms-2" (click)="loadCompanies()">Retry</button>
+  </div>
+
+  <!-- STAT CARDS -->
+  <div class="stats-grid">
+
+    <div class="stat-card">
+      <div class="stat-icon blue">
+        <i class="bi bi-building"></i>
+      </div>
+
+      <div>
+        <span>Total Companies</span>
+        <strong>{{ totalCompanies }}</strong>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon green">
+        <i class="bi bi-check-circle"></i>
+      </div>
+
+      <div>
+        <span>Active Companies</span>
+        <strong>{{ activeCompanies }}</strong>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon gray">
+        <i class="bi bi-pause-circle"></i>
+      </div>
+
+      <div>
+        <span>Inactive Companies</span>
+        <strong>{{ inactiveCompanies }}</strong>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon orange">
+        <i class="bi bi-wallet2"></i>
+      </div>
+
+      <div>
+        <span>Company API</span>
+        <strong>Live</strong>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MAIN CARD -->
+  <div class="content-card">
+
+    <!-- FILTER BAR -->
+    <div class="filter-bar">
+
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          placeholder="Search company, contact or phone..."
+        />
+      </div>
+
+      <div class="status-filter">
+        <label>Status</label>
+
+        <select [(ngModel)]="selectedStatus">
+          <option value="All">All Status</option>
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+        </select>
+      </div>
+
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Company</th>
+            <th>Contact Person</th>
+            <th>Phone</th>
+            <th>Medicines</th>
+            <th>Total Purchases</th>
+            <th>Due Amount</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <tr *ngIf="loading">
+            <td colspan="8" class="text-center">Loading companies...</td>
+          </tr>
+
+          <tr
+            *ngFor="let company of filteredCompanies; trackBy: trackByCompanyId">
+
+            <!-- COMPANY -->
+            <td>
+              <div class="company-cell">
+
+                <div class="company-icon">
+                  <i class="bi bi-building"></i>
+                </div>
+
+                <div>
+                  <strong>{{ company.name }}</strong>
+                  <small>{{ company.id }}</small>
+                </div>
+
+              </div>
+            </td>
+
+            <!-- CONTACT -->
+            <td>
+              <span class="contact-name">
+                {{ company.contactPerson }}
+              </span>
+            </td>
+
+            <!-- PHONE -->
+            <td>
+              <span class="phone">
+                <i class="bi bi-telephone"></i>
+                {{ company.phone }}
+              </span>
+            </td>
+
+            <!-- MEDICINES -->
+            <td>
+              <span class="text-muted">Not linked</span>
+            </td>
+
+            <!-- PURCHASES -->
+            <td>
+              <span class="text-muted">Not linked</span>
+            </td>
+
+            <!-- DUE -->
+            <td>
+              <span class="text-muted">Not linked</span>
+            </td>
+
+            <!-- STATUS -->
+            <td>
+              <span
+                class="status-badge"
+                [class.active]="company.status === 'Active'"
+                [class.inactive]="company.status === 'Inactive'">
+
+                <span class="status-dot"></span>
+
+                {{ company.status }}
+
+              </span>
+            </td>
+
+            <!-- ACTIONS -->
+            <td>
+              <div class="actions">
+
+                <button
+                  class="icon-btn view"
+                  title="View Details"
+                  (click)="viewCompany(company)">
+                  <i class="bi bi-eye"></i>
+                </button>
+
+                <button
+                  class="icon-btn edit"
+                  title="Edit Company"
+                  (click)="editCompany(company)">
+                  <i class="bi bi-pencil"></i>
+                </button>
+
+              </div>
+            </td>
+
+          </tr>
+
+          <!-- EMPTY STATE -->
+          <tr *ngIf="!loading && filteredCompanies.length === 0">
+
+            <td colspan="8">
+
+              <div class="empty-state">
+
+                <div class="empty-icon">
+                  <i class="bi bi-building"></i>
+                </div>
+
+                <h3>No companies found</h3>
+
+                <p>
+                  Try changing your search or status filter.
+                </p>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+    <!-- TABLE FOOTER -->
+    <div class="table-footer">
+
+      <span>
+        Showing
+        <strong>{{ filteredCompanies.length }}</strong>
+        of
+        <strong>{{ companies.length }}</strong>
+        companies
+      </span>
+
+    </div>
+
+  </div>
+
+</div>

@@ -1,0 +1,94 @@
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
+
+export interface TenantInventoryItem {
+  categoryId?: number | null;
+  genericId?: number | null;
+  dosageFormId?: number | null;
+  companyId?: number | null;
+
+  productType?: string | null;
+  id: number;
+  tenantId: number;
+  name: string;
+  genericName: string | null;
+  brandName: string | null;
+  strength: string | null;
+  dosageForm: string | null;
+  category: string | null;
+  description?: string | null;
+  sku: string;
+  barcode: string | null;
+  purchasePrice: number;
+  sellingPrice: number;
+  stockQuantity: number;
+  reorderLevel: number;
+  status: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface TenantInventoryItemRequest {
+  categoryId?: number | null;
+  genericId?: number | null;
+  dosageFormId?: number | null;
+  companyId?: number | null;
+
+  productType?: string | null;
+  name: string;
+  genericName: string;
+  brandName: string;
+  strength: string;
+  dosageForm: string;
+  category: string;
+  description: string;
+  sku: string;
+  barcode: string;
+  purchasePrice: number;
+  sellingPrice: number;
+  stockQuantity: number;
+  reorderLevel: number;
+  status: 'ACTIVE' | 'INACTIVE';
+}
+
+@Injectable({ providedIn: 'root' })
+export class TenantInventoryApiService {
+  private readonly baseUrl = environment.apiUrl;
+
+  constructor(private http: HttpClient) {}
+
+  list(tenantId: number): Observable<TenantInventoryItem[]> {
+    return this.http.get<TenantInventoryItem[]>(
+      `${this.baseUrl}/tenants/${tenantId}/inventory/products`
+    );
+  }
+
+  get(tenantId: number, itemId: number): Observable<TenantInventoryItem> {
+    return this.http.get<TenantInventoryItem>(
+      `${this.baseUrl}/tenants/${tenantId}/inventory/products/${itemId}`
+    );
+  }
+
+  create(tenantId: number, request: TenantInventoryItemRequest):
+      Observable<TenantInventoryItem> {
+    return this.http.post<TenantInventoryItem>(
+      `${this.baseUrl}/tenants/${tenantId}/inventory/products`, request
+    );
+  }
+
+  update(tenantId: number, itemId: number,
+      request: TenantInventoryItemRequest): Observable<TenantInventoryItem> {
+    return this.http.put<TenantInventoryItem>(
+      `${this.baseUrl}/tenants/${tenantId}/inventory/products/${itemId}`,
+      request
+    );
+  }
+
+  delete(tenantId: number, itemId: number): Observable<void> {
+    return this.http.delete<void>(
+      `${this.baseUrl}/tenants/${tenantId}/inventory/products/${itemId}`
+    );
+  }
+}

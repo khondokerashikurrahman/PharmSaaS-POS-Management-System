@@ -1,0 +1,316 @@
+<div class="dashboard">
+
+    <!-- Header -->
+    <div class="dashboard-header">
+        <div>
+            <h1>Super Admin Dashboard</h1>
+            <p>Overview of your pharmacy SaaS platform</p>
+        </div>
+
+        <button class="refresh-btn" type="button" (click)="refreshDashboard()">
+    ↻ Refresh
+</button>
+    </div>
+
+
+    <!-- Statistics -->
+    <div class="stats-grid">
+
+        <div class="stat-card" *ngFor="let stat of stats">
+
+            <div class="stat-top">
+                <div>
+                    <p>{{ stat.title }}</p>
+                    <h2>{{ stat.value }}</h2>
+                </div>
+
+                <div class="stat-icon">
+                    {{ stat.icon }}
+                </div>
+            </div>
+
+            <div class="stat-bottom">
+                <span class="change">{{ stat.change }}</span>
+                <span>{{ stat.label }}</span>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Main Grid -->
+    <div class="content-grid">
+
+        <!-- Revenue Chart -->
+        <div class="card revenue-card">
+
+            <div class="card-header">
+                <div>
+                    <h3>Revenue Overview</h3>
+                    <p>Monthly platform revenue</p>
+                </div>
+
+                <select>
+                    <option>Last 6 Months</option>
+                    <option>Last 12 Months</option>
+                    <option>This Year</option>
+                </select>
+            </div>
+
+            <div class="chart">
+
+                <div class="chart-bars">
+                    <div class="bar" style="height: 45%">
+                        <span>$8k</span>
+                    </div>
+
+                    <div class="bar" style="height: 58%">
+                        <span>$11k</span>
+                    </div>
+
+                    <div class="bar" style="height: 52%">
+                        <span>$10k</span>
+                    </div>
+
+                    <div class="bar" style="height: 72%">
+                        <span>$16k</span>
+                    </div>
+
+                    <div class="bar" style="height: 66%">
+                        <span>$14k</span>
+                    </div>
+
+                    <div class="bar active" style="height: 90%">
+                        <span>$24k</span>
+                    </div>
+                </div>
+
+                <div class="chart-labels">
+                    <span>Apr</span>
+                    <span>May</span>
+                    <span>Jun</span>
+                    <span>Jul</span>
+                    <span>Aug</span>
+                    <span>Sep</span>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Subscription -->
+        <div class="card subscription-card">
+
+            <div class="card-header">
+                <div>
+                    <h3>Subscription Plans</h3>
+                    <p>Current plan distribution</p>
+                </div>
+            </div>
+
+            <div class="plan">
+
+                <div class="plan-info">
+                    <span>Premium</span>
+                    <strong>82</strong>
+                </div>
+
+                <div class="progress">
+                    <div style="width: 72%"></div>
+                </div>
+
+            </div>
+
+            <div class="plan">
+
+                <div class="plan-info">
+                    <span>Standard</span>
+                    <strong>76</strong>
+                </div>
+
+                <div class="progress">
+                    <div style="width: 60%"></div>
+                </div>
+
+            </div>
+
+            <div class="plan">
+
+                <div class="plan-info">
+                    <span>Basic</span>
+                    <strong>34</strong>
+                </div>
+
+                <div class="progress">
+                    <div style="width: 35%"></div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Tables -->
+    <div class="tables-grid">
+
+        <!-- Recent Tenants -->
+        <div class="card table-card">
+
+            <div class="card-header">
+                <div>
+                    <h3>Recent Tenants</h3>
+                    <p>Recently registered pharmacies</p>
+                </div>
+
+                <button class="view-btn" routerLink="/super-admin/tenants">
+                    View All
+                </button>
+            </div>
+
+            <div class="table-wrapper">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Pharmacy</th>
+                            <th>Owner</th>
+                            <th>Plan</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        <tr *ngFor="let tenant of recentTenants">
+
+                            <td>
+                                <strong>{{ tenant.pharmacy }}</strong>
+                            </td>
+
+                            <td>{{ tenant.owner }}</td>
+
+                            <td>
+                                <span class="plan-badge">
+                                    {{ tenant.plan }}
+                                </span>
+                            </td>
+
+                            <td>
+                                <span class="status" [class.pending]="tenant.status === 'Pending'">
+                                    {{ tenant.status }}
+                                </span>
+                            </td>
+
+                            <td>{{ tenant.date }}</td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+
+        <!-- Payments -->
+        <div class="card table-card">
+
+            <div class="card-header">
+
+                <div>
+                    <h3>Recent Payments</h3>
+                    <p>Latest subscription payments</p>
+                </div>
+
+                <button class="view-btn" routerLink="/super-admin/billing">
+                    View All
+                </button>
+
+            </div>
+
+            <div class="payment-list">
+
+                <div class="payment" *ngFor="let payment of recentPayments">
+
+                    <div class="payment-icon">
+                        $
+                    </div>
+
+                    <div class="payment-info">
+                        <strong>{{ payment.pharmacy }}</strong>
+                        <span>{{ payment.plan }} · {{ payment.date }}</span>
+                    </div>
+
+                    <strong class="amount">
+                        {{ payment.amount }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Quick Actions -->
+
+    <div class="card quick-actions">
+
+        <div class="card-header">
+
+            <div>
+                <h3>Quick Actions</h3>
+                <p>Frequently used administration tools</p>
+            </div>
+
+        </div>
+
+        <div class="actions">
+
+            <button routerLink="/super-admin/tenants">
+                <span>🏪</span>
+                <div>
+                    <strong>Add Tenant</strong>
+                    <small>Register a new pharmacy</small>
+                </div>
+            </button>
+
+            <button routerLink="/super-admin/plans">
+                <span>💳</span>
+                <div>
+                    <strong>Manage Plans</strong>
+                    <small>Create or edit subscription plans</small>
+                </div>
+            </button>
+
+            <button routerLink="/reports">
+                <span>📊</span>
+                <div>
+                    <strong>View Reports</strong>
+                    <small>Platform performance reports</small>
+                </div>
+            </button>
+
+            <button routerLink="/super-admin/billing">
+                <span>💰</span>
+                <div>
+                    <strong>Billing Logs</strong>
+                    <small>Check payment transactions</small>
+                </div>
+            </button>
+
+        </div>
+
+    </div>
+
+</div>

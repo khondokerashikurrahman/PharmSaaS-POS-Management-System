@@ -1,0 +1,224 @@
+<div class="public-layout">
+
+  <!-- ================= NAVBAR ================= -->
+  <header class="public-navbar">
+
+    <div class="navbar-container">
+
+      <!-- LOGO -->
+      <a routerLink="/" class="brand">
+        <div class="brand-icon">
+          <i class="bi bi-capsule"></i>
+        </div>
+
+        <div class="brand-text">
+          <span class="brand-name">PharmSaaS</span>
+          <span class="brand-tagline">Pharmacy Management System</span>
+        </div>
+      </a>
+
+      <!-- NAVIGATION -->
+      <nav class="nav-menu">
+
+        <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+          Home
+        </a>
+
+        <!-- Features → Landing page section -->
+        <a routerLink="/features" routerLinkActive="active">
+          Features
+        </a>
+
+        <a routerLink="/pricing" routerLinkActive="active">
+          Pricing
+        </a>
+
+        <a routerLink="/about" routerLinkActive="active">
+          About
+        </a>
+
+        <a routerLink="/contact" routerLinkActive="active">
+          Contact
+        </a>
+
+      </nav>
+
+      <!-- ACTIONS -->
+      <div class="navbar-actions">
+
+        <a routerLink="/login" class="login-btn">
+          Login
+        </a>
+
+        <a routerLink="/register" class="get-started-btn">
+          Get Started
+        </a>
+
+      </div>
+
+    </div>
+
+  </header>
+
+
+  <!-- ================= MAIN CONTENT ================= -->
+  <main class="public-content">
+
+    <router-outlet></router-outlet>
+
+  </main>
+
+
+  <!-- ================= FOOTER ================= -->
+  <!-- FOOTER -->
+<footer class="public-footer">
+
+  <div class="footer-container">
+
+    <!-- BRAND -->
+    <div class="footer-brand">
+
+      <div class="footer-logo">
+        <div class="footer-logo-icon">
+          <i class="bi bi-capsule"></i>
+        </div>
+
+        <div>
+          <strong>PharmSaaS</strong>
+          <span>Pharmacy Management Platform</span>
+        </div>
+      </div>
+
+      <p>
+        A modern SaaS and POS management platform designed
+        to simplify pharmacy operations, improve efficiency
+        and support business growth.
+      </p>
+
+      <div class="footer-trust">
+        <i class="bi bi-shield-check"></i>
+        Secure & Organized Pharmacy Management
+      </div>
+
+    </div>
+
+
+    <!-- PRODUCT -->
+    <div class="footer-column">
+
+      <h4>Product</h4>
+
+      <a routerLink="/features" routerLinkActive="active">
+        Features
+      </a>
+
+      <a routerLink="/pricing" routerLinkActive="active">
+        Pricing Plans
+      </a>
+
+      <a routerLink="/register" routerLinkActive="active">
+        Get Started
+      </a>
+
+      <a routerLink="/login" routerLinkActive="active">
+        Login
+      </a>
+
+    </div>
+
+
+    <!-- PHARMACY -->
+    <div class="footer-column">
+
+      <h4>Pharmacy Solutions</h4>
+
+      <a (click)="goToFeatures()">
+        Smart POS
+      </a>
+
+      <a (click)="goToFeatures()">
+        Inventory Management
+      </a>
+
+      <a (click)="goToFeatures()">
+        Procurement
+      </a>
+
+      <a (click)="goToFeatures()">
+        Reports & Analytics
+      </a>
+
+    </div>
+
+
+    <!-- COMPANY -->
+    <div class="footer-column">
+
+      <h4>Company</h4>
+
+      <a routerLink="/">
+        Home
+      </a>
+
+      <a (click)="goToFeatures()">
+        Features
+      </a>
+
+      <a routerLink="/pricing">
+        Pricing
+      </a>
+
+      <a href="#contact">
+        Contact
+      </a>
+
+    </div>
+
+
+    <!-- ACCOUNT -->
+    <div class="footer-column">
+
+      <h4>Account</h4>
+
+      <a routerLink="/login">
+        Sign In
+      </a>
+
+      <a routerLink="/register">
+        Create Account
+      </a>
+
+      <a routerLink="/pricing">
+        Subscription Plans
+      </a>
+
+    </div>
+
+  </div>
+
+
+  <!-- FOOTER BOTTOM -->
+
+  <div class="footer-bottom">
+
+    <div>
+      © 2026 PharmSaaS. All rights reserved.
+    </div>
+
+    <div class="footer-bottom-links">
+
+      <a href="#">
+        Privacy Policy
+      </a>
+
+      <a href="#">
+        Terms & Conditions
+      </a>
+
+    </div>
+
+  </div>
+
+</footer>
+
+</div>

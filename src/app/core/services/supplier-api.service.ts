@@ -1,0 +1,75 @@
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
+
+export interface SupplierRequest {
+  name: string;
+  companyName?: string;
+  contactPerson?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  openingBalance?: number;
+  creditLimit?: number;
+  status?: 'Active' | 'Inactive' | 'Blocked';
+}
+
+export interface SupplierResponse {
+  id: number;
+  tenantId: number;
+  supplierCode: string;
+  name: string;
+  companyName?: string | null;
+  contactPerson?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  address?: string | null;
+  openingBalance: number;
+  creditLimit: number;
+  status: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+@Injectable({ providedIn: 'root' })
+export class SupplierApiService {
+  private readonly baseUrl = environment.apiUrl;
+
+  constructor(private readonly http: HttpClient) {}
+
+  list(tenantId: number): Observable<SupplierResponse[]> {
+    return this.http.get<SupplierResponse[]>(
+      `${this.baseUrl}/tenants/${tenantId}/suppliers`
+    );
+  }
+
+  getById(tenantId: number, supplierId: number): Observable<SupplierResponse> {
+    return this.http.get<SupplierResponse>(
+      `${this.baseUrl}/tenants/${tenantId}/suppliers/${supplierId}`
+    );
+  }
+
+  create(tenantId: number, request: SupplierRequest): Observable<SupplierResponse> {
+    return this.http.post<SupplierResponse>(
+      `${this.baseUrl}/tenants/${tenantId}/suppliers`, request
+    );
+  }
+
+  update(
+    tenantId: number,
+    supplierId: number,
+    request: SupplierRequest
+  ): Observable<SupplierResponse> {
+    return this.http.put<SupplierResponse>(
+      `${this.baseUrl}/tenants/${tenantId}/suppliers/${supplierId}`, request
+    );
+  }
+
+  deactivate(tenantId: number, supplierId: number): Observable<SupplierResponse> {
+    return this.http.patch<SupplierResponse>(
+      `${this.baseUrl}/tenants/${tenantId}/suppliers/${supplierId}/deactivate`,
+      {}
+    );
+  }
+}

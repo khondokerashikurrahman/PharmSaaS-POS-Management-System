@@ -1,0 +1,339 @@
+
+<div class="registration-page">
+
+  <div class="registration-container">
+
+    <!-- Brand / Header -->
+    <div class="registration-header">
+      <a routerLink="/" class="brand">
+        <span class="brand-icon">
+          <i class="bi bi-capsule"></i>
+        </span>
+        <span>Pharm<span class="brand-highlight">SaaS</span></span>
+      </a>
+
+      <h1>Register Your Pharmacy</h1>
+      <p>
+        Create your pharmacy account and manage your business
+        with PharmSaaS.
+      </p>
+    </div>
+
+    <!-- Registration Form -->
+    <form
+      #registrationForm="ngForm"
+      (ngSubmit)="register()"
+      class="registration-form"
+    >
+
+      <!-- Pharmacy Information -->
+      <section class="form-section">
+
+        <div class="section-heading">
+          <span class="section-icon">
+            <i class="bi bi-shop"></i>
+          </span>
+
+          <div>
+            <h2>Pharmacy Information</h2>
+            <p>Enter your pharmacy details.</p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="pharmacyName">
+            Pharmacy Name <span class="required">*</span>
+          </label>
+
+          <input
+            id="pharmacyName"
+            type="text"
+            name="pharmacyName"
+            [(ngModel)]="pharmacyName"
+            #pharmacyNameField="ngModel"
+            placeholder="Enter your pharmacy name"
+            required
+            maxlength="150"
+            autocomplete="organization"
+          />
+
+          <small
+            class="field-error"
+            *ngIf="pharmacyNameField.invalid &&
+                   (pharmacyNameField.dirty ||
+                    pharmacyNameField.touched)"
+          >
+            Pharmacy name is required.
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label for="address">Pharmacy Address</label>
+
+          <textarea
+            id="address"
+            name="address"
+            [(ngModel)]="address"
+            placeholder="Enter your pharmacy address"
+            rows="3"
+            maxlength="5000"
+            autocomplete="street-address"
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+
+          <input
+            id="phone"
+            type="tel"
+            name="phone"
+            [(ngModel)]="phone"
+            placeholder="01XXXXXXXXX"
+            maxlength="30"
+            autocomplete="tel"
+          />
+        </div>
+
+      </section>
+
+      <!-- Owner Information -->
+      <section class="form-section">
+
+        <div class="section-heading">
+          <span class="section-icon">
+            <i class="bi bi-person-circle"></i>
+          </span>
+
+          <div>
+            <h2>Owner Information</h2>
+            <p>Create your pharmacy owner account.</p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="ownerName">
+            Owner Full Name <span class="required">*</span>
+          </label>
+
+          <input
+            id="ownerName"
+            type="text"
+            name="ownerName"
+            [(ngModel)]="ownerName"
+            #ownerNameField="ngModel"
+            placeholder="Enter your full name"
+            required
+            maxlength="150"
+            autocomplete="name"
+          />
+
+          <small
+            class="field-error"
+            *ngIf="ownerNameField.invalid &&
+                   (ownerNameField.dirty ||
+                    ownerNameField.touched)"
+          >
+            Owner name is required.
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label for="email">
+            Email Address <span class="required">*</span>
+          </label>
+
+          <input
+            id="email"
+            type="email"
+            name="email"
+            [(ngModel)]="email"
+            #emailField="ngModel"
+            placeholder="you@example.com"
+            required
+            email
+            maxlength="255"
+            autocomplete="email"
+          />
+
+          <small
+            class="field-error"
+            *ngIf="emailField.invalid &&
+                   (emailField.dirty || emailField.touched)"
+          >
+            Please enter a valid email address.
+          </small>
+        </div>
+
+      </section>
+
+      <!-- Security -->
+      <section class="form-section">
+
+        <div class="section-heading">
+          <span class="section-icon">
+            <i class="bi bi-shield-lock"></i>
+          </span>
+
+          <div>
+            <h2>Account Security</h2>
+            <p>Choose a secure password for your account.</p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">
+            Password <span class="required">*</span>
+          </label>
+
+          <input
+            id="password"
+            type="password"
+            name="password"
+            [(ngModel)]="password"
+            #passwordField="ngModel"
+            placeholder="Create a password"
+            required
+            minlength="8"
+            maxlength="72"
+            autocomplete="new-password"
+          />
+
+          <small class="field-hint">
+            Use at least 8 characters.
+          </small>
+
+          <small
+            class="field-error"
+            *ngIf="passwordField.invalid &&
+                   (passwordField.dirty ||
+                    passwordField.touched)"
+          >
+            Password must contain between 8 and 72 characters.
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword">
+            Confirm Password <span class="required">*</span>
+          </label>
+
+          <input
+            id="confirmPassword"
+            type="password"
+            name="confirmPassword"
+            [(ngModel)]="confirmPassword"
+            #confirmPasswordField="ngModel"
+            placeholder="Enter your password again"
+            required
+            autocomplete="new-password"
+          />
+
+          <small
+            class="field-error"
+            *ngIf="confirmPasswordField.touched &&
+                   confirmPassword !== password"
+          >
+            Passwords do not match.
+          </small>
+        </div>
+
+      </section>
+
+      <!-- Subscription Plan -->
+      <section class="form-section plan-section">
+
+        <div class="section-heading">
+          <span class="section-icon">
+            <i class="bi bi-box-seam"></i>
+          </span>
+
+          <div>
+            <h2>Selected Plan</h2>
+            <p>Your selected subscription plan.</p>
+          </div>
+        </div>
+
+        <div class="selected-plan">
+          <div class="plan-info">
+            <span class="plan-label">Current Plan</span>
+            <strong>{{ selectedPlan }}</strong>
+          </div>
+
+          <i class="bi bi-check-circle-fill plan-check"></i>
+        </div>
+
+      </section>
+
+      <!-- Terms -->
+      <div class="terms-section">
+        <label class="terms-label">
+          <input
+            type="checkbox"
+            name="termsAccepted"
+            [(ngModel)]="termsAccepted"
+            required
+          />
+
+          <span>
+            I agree to the
+            <a routerLink="/terms">Terms and Conditions</a>
+            and
+            <a routerLink="/privacy">Privacy Policy</a>.
+          </span>
+        </label>
+      </div>
+
+      <!-- Error Message -->
+      <div
+        class="alert alert-error"
+        *ngIf="errorMessage"
+        role="alert"
+      >
+        <i class="bi bi-exclamation-circle"></i>
+        <span>{{ errorMessage }}</span>
+      </div>
+
+      <!-- Success Message -->
+      <div
+        class="alert alert-success"
+        *ngIf="successMessage"
+        role="status"
+      >
+        <i class="bi bi-check-circle"></i>
+        <span>{{ successMessage }}</span>
+      </div>
+
+      <!-- Submit -->
+      <button
+        type="submit"
+        class="register-button"
+        [disabled]="loading || !registrationForm.valid"
+      >
+        <span *ngIf="!loading">
+          Create Pharmacy Account
+          <i class="bi bi-arrow-right"></i>
+        </span>
+
+        <span *ngIf="loading">
+          <i class="bi bi-arrow-repeat spinning"></i>
+          Creating Account...
+        </span>
+      </button>
+
+      <p class="login-link">
+        Already have an account?
+        <a routerLink="/login">Sign in</a>
+      </p>
+
+    </form>
+
+    <!-- Footer -->
+    <div class="registration-footer">
+      <i class="bi bi-shield-check"></i>
+      Your account information is protected.
+    </div>
+
+  </div>
+
+</div>

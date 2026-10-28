@@ -1,0 +1,396 @@
+<div class="supplier-details-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div>
+      <div class="breadcrumb">
+        <span>Stakeholders</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Suppliers</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Supplier Details</span>
+      </div>
+
+      <h1>Supplier Details</h1>
+      <p>View supplier information, purchase history and account summary.</p>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn btn-light" (click)="goBack()">
+        <i class="bi bi-arrow-left"></i>
+        Back
+      </button>
+
+      <button class="btn btn-outline" (click)="printDetails()">
+        <i class="bi bi-printer"></i>
+        Print
+      </button>
+
+      <button class="btn btn-primary" (click)="openLedger()">
+        <i class="bi bi-journal-text"></i>
+        View Ledger
+      </button>
+    </div>
+
+  </div>
+
+  <!-- CONTENT -->
+  <ng-container *ngIf="supplier">
+
+    <!-- PROFILE CARD -->
+    <div class="profile-card">
+
+      <div class="supplier-avatar">
+        {{ supplier.name.charAt(0) }}
+      </div>
+
+      <div class="supplier-main-info">
+
+        <div class="name-row">
+          <h2>{{ supplier.name }}</h2>
+
+          <span
+            class="status-badge"
+            [ngClass]="getStatusClass(supplier.status)">
+            {{ supplier.status }}
+          </span>
+        </div>
+
+        <p class="supplier-id">
+          Supplier ID: {{ supplier.id }}
+        </p>
+
+        <p class="member-since">
+          <i class="bi bi-calendar3"></i>
+          Supplier since {{ supplier.memberSince }}
+        </p>
+
+      </div>
+
+      <button
+        class="edit-btn"
+        (click)="editSupplier()">
+
+        <i class="bi bi-pencil"></i>
+        Edit Supplier
+
+      </button>
+
+    </div>
+
+    <!-- SUMMARY CARDS -->
+    <div class="summary-grid">
+
+      <div class="summary-card">
+
+        <div class="summary-icon purchase">
+          <i class="bi bi-cart-check"></i>
+        </div>
+
+        <div>
+          <span>Total Purchases</span>
+          <strong>
+            ৳{{ supplier.totalPurchases | number:'1.0-0' }}
+          </strong>
+          <small>{{ supplier.totalOrders }} purchase orders</small>
+        </div>
+
+      </div>
+
+      <div class="summary-card">
+
+        <div class="summary-icon paid">
+          <i class="bi bi-check-circle"></i>
+        </div>
+
+        <div>
+          <span>Total Paid</span>
+          <strong>
+            ৳{{ supplier.totalPaid | number:'1.0-0' }}
+          </strong>
+          <small>Paid to supplier</small>
+        </div>
+
+      </div>
+
+      <div class="summary-card">
+
+        <div class="summary-icon due">
+          <i class="bi bi-wallet2"></i>
+        </div>
+
+        <div>
+          <span>Payable Due</span>
+          <strong>
+            ৳{{ supplier.dueAmount | number:'1.0-0' }}
+          </strong>
+
+          <small
+            [class.no-due]="supplier.dueAmount === 0">
+            {{
+              supplier.dueAmount === 0
+                ? 'Account is clear'
+                : 'Outstanding amount'
+            }}
+          </small>
+
+        </div>
+
+      </div>
+
+      <div class="summary-card">
+
+        <div class="summary-icon orders">
+          <i class="bi bi-box-seam"></i>
+        </div>
+
+        <div>
+          <span>Last Purchase</span>
+          <strong class="date-value">
+            {{ supplier.lastPurchase }}
+          </strong>
+          <small>Latest purchase order</small>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- INFORMATION GRID -->
+    <div class="information-grid">
+
+      <!-- CONTACT INFORMATION -->
+      <div class="content-card">
+
+        <div class="card-header">
+          <div>
+            <h3>Supplier Information</h3>
+            <p>Basic supplier contact information.</p>
+          </div>
+
+          <i class="bi bi-building"></i>
+        </div>
+
+        <div class="info-list">
+
+          <div class="info-item">
+            <span class="info-label">
+              <i class="bi bi-person"></i>
+              Contact Person
+            </span>
+
+            <strong>
+              {{ supplier.contactPerson }}
+            </strong>
+          </div>
+
+          <div class="info-item">
+            <span class="info-label">
+              <i class="bi bi-telephone"></i>
+              Phone
+            </span>
+
+            <strong>
+              {{ supplier.phone }}
+            </strong>
+          </div>
+
+          <div class="info-item">
+            <span class="info-label">
+              <i class="bi bi-envelope"></i>
+              Email
+            </span>
+
+            <strong>
+              {{ supplier.email }}
+            </strong>
+          </div>
+
+          <div class="info-item">
+            <span class="info-label">
+              <i class="bi bi-geo-alt"></i>
+              Address
+            </span>
+
+            <strong>
+              {{ supplier.address }}
+            </strong>
+          </div>
+
+          <div class="info-item">
+            <span class="info-label">
+              <i class="bi bi-toggle-on"></i>
+              Account Status
+            </span>
+
+            <span
+              class="status-badge"
+              [ngClass]="getStatusClass(supplier.status)">
+              {{ supplier.status }}
+            </span>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ACCOUNT SUMMARY -->
+      <div class="content-card account-card">
+
+        <div class="card-header">
+          <div>
+            <h3>Account Summary</h3>
+            <p>Supplier payment overview.</p>
+          </div>
+
+          <i class="bi bi-bar-chart"></i>
+        </div>
+
+        <div class="account-summary">
+
+          <div class="account-row">
+            <span>Total Purchases</span>
+            <strong>
+              ৳{{ supplier.totalPurchases | number:'1.0-0' }}
+            </strong>
+          </div>
+
+          <div class="account-row">
+            <span>Total Paid</span>
+            <strong class="paid-text">
+              ৳{{ supplier.totalPaid | number:'1.0-0' }}
+            </strong>
+          </div>
+
+          <div class="account-row due-row">
+            <span>Payable Due</span>
+            <strong class="due-text">
+              ৳{{ supplier.dueAmount | number:'1.0-0' }}
+            </strong>
+          </div>
+
+          <div class="account-row">
+            <span>Total Orders</span>
+            <strong>
+              {{ supplier.totalOrders }}
+            </strong>
+          </div>
+
+        </div>
+
+        <button
+          class="ledger-btn"
+          (click)="openLedger()">
+
+          <i class="bi bi-journal-text"></i>
+          Open Supplier Ledger
+
+          <i class="bi bi-arrow-right"></i>
+
+        </button>
+
+      </div>
+
+    </div>
+
+    <!-- PURCHASE HISTORY -->
+    <div class="content-card purchase-card">
+
+      <div class="card-header">
+
+        <div>
+          <h3>Purchase History</h3>
+          <p>Recent purchase orders from this supplier.</p>
+        </div>
+
+        <span class="record-count">
+          {{ supplier.purchases.length }} Records
+        </span>
+
+      </div>
+
+      <div class="table-wrapper">
+
+        <table>
+
+          <thead>
+            <tr>
+              <th>INVOICE</th>
+              <th>DATE</th>
+              <th>ITEMS</th>
+              <th>AMOUNT</th>
+              <th>PAID</th>
+              <th>DUE</th>
+              <th>STATUS</th>
+            </tr>
+          </thead>
+
+          <tbody>
+
+            <tr *ngFor="let purchase of supplier.purchases">
+
+              <td>
+                <span class="invoice-number">
+                  {{ purchase.invoice }}
+                </span>
+              </td>
+
+              <td>
+                {{ purchase.date }}
+              </td>
+
+              <td>
+                {{ purchase.items }}
+              </td>
+
+              <td>
+                <strong>
+                  ৳{{ purchase.amount | number:'1.0-0' }}
+                </strong>
+              </td>
+
+              <td class="paid-amount">
+                ৳{{ purchase.paid | number:'1.0-0' }}
+              </td>
+
+              <td
+                [class.no-due-text]="purchase.due === 0"
+                [class.due-amount]="purchase.due > 0">
+
+                ৳{{ purchase.due | number:'1.0-0' }}
+
+              </td>
+
+              <td>
+                <span
+                  class="purchase-status"
+                  [ngClass]="getPurchaseStatusClass(purchase.status)">
+
+                  <i
+                    class="bi"
+                    [ngClass]="
+                      purchase.status === 'Paid'
+                        ? 'bi-check-circle-fill'
+                        : 'bi-clock-fill'
+                    ">
+                  </i>
+
+                  {{ purchase.status }}
+
+                </span>
+              </td>
+
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  </ng-container>
+
+</div>

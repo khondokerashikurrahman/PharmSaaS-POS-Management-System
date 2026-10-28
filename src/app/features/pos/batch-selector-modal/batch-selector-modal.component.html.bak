@@ -1,0 +1,179 @@
+<div
+  class="modal-backdrop"
+  *ngIf="visible"
+  (click)="close()">
+
+  <div
+    class="batch-modal"
+    (click)="$event.stopPropagation()">
+
+    <!-- HEADER -->
+    <div class="modal-header">
+
+      <div class="header-info">
+
+        <div class="header-icon">
+          <i class="bi bi-box-seam"></i>
+        </div>
+
+        <div>
+          <h2>Select Batch</h2>
+
+          <p *ngIf="product">
+            {{ product.name }}
+          </p>
+        </div>
+
+      </div>
+
+      <button
+        type="button"
+        class="close-btn"
+        (click)="close()">
+
+        <i class="bi bi-x-lg"></i>
+
+      </button>
+
+    </div>
+
+
+    <!-- FEFO INFO -->
+    <div class="fefo-info">
+
+      <div class="fefo-icon">
+        <i class="bi bi-shield-check"></i>
+      </div>
+
+      <div>
+
+        <strong>FEFO Recommendation</strong>
+
+        <p>
+          Batches are sorted by earliest expiry date.
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <!-- BATCH LIST -->
+    <div class="batch-list">
+
+      <div
+        class="batch-card"
+        *ngFor="let batch of sortedBatches">
+
+        <div class="batch-main">
+
+          <div class="batch-icon">
+            <i class="bi bi-box"></i>
+          </div>
+
+          <div class="batch-info">
+
+            <h3>
+              {{ batch.batchNumber }}
+            </h3>
+
+            <div class="batch-meta">
+
+              <span>
+                <i class="bi bi-calendar3"></i>
+                MFG:
+                {{ batch.manufacturingDate | date:'dd MMM yyyy' }}
+              </span>
+
+              <span>
+                <i class="bi bi-calendar-x"></i>
+                EXP:
+                {{ batch.expiryDate | date:'dd MMM yyyy' }}
+              </span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="batch-stock">
+
+          <span>Available Stock</span>
+
+          <strong>
+            {{ batch.availableQuantity }}
+          </strong>
+
+        </div>
+
+
+        <div class="batch-status">
+
+          <span
+            class="status-badge"
+            [ngClass]="getExpiryClass(batch)">
+
+            {{ getExpiryStatus(batch) }}
+
+          </span>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="select-btn"
+          (click)="selectBatch(batch)">
+
+          <i class="bi bi-check2"></i>
+
+          Select
+
+        </button>
+
+      </div>
+
+
+      <!-- EMPTY -->
+      <div
+        class="empty-state"
+        *ngIf="sortedBatches.length === 0">
+
+        <i class="bi bi-box-seam"></i>
+
+        <h3>No Available Batch</h3>
+
+        <p>
+          There is no available stock for this product.
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <!-- FOOTER -->
+    <div class="modal-footer">
+
+      <span>
+        <i class="bi bi-info-circle"></i>
+
+        Select a batch to continue adding the product.
+      </span>
+
+      <button
+        type="button"
+        class="cancel-btn"
+        (click)="close()">
+
+        Cancel
+
+      </button>
+
+    </div>
+
+  </div>
+
+</div>

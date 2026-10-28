@@ -1,0 +1,349 @@
+
+<div class="purchase-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div>
+      <div class="breadcrumb">
+        <span>Procurement</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Purchase Orders</span>
+      </div>
+
+      <h1>Purchase Orders</h1>
+
+      <p>
+        Create, manage and track pharmacy purchase orders.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="primary-btn"
+      (click)="createPurchaseOrder()"
+    >
+      <i class="bi bi-plus-lg"></i>
+      New Purchase Order
+    </button>
+
+  </div>
+
+
+  <div *ngIf="loading" class="form-card" role="status">
+    Loading Purchase Orders...
+  </div>
+  <div *ngIf="errorMessage" class="form-card" role="alert">
+    {{ errorMessage }}
+    <button type="button" (click)="loadOrders()">Retry</button>
+  </div>
+
+  <!-- SUMMARY CARDS -->
+  <div class="summary-grid">
+
+    <div class="summary-card">
+      <div class="summary-icon blue">
+        <i class="bi bi-file-earmark-text"></i>
+      </div>
+
+      <div class="summary-content">
+        <span>Total Orders</span>
+        <strong>{{ totalOrders }}</strong>
+        <small>All purchase orders</small>
+      </div>
+    </div>
+
+
+    <div class="summary-card">
+      <div class="summary-icon orange">
+        <i class="bi bi-hourglass-split"></i>
+      </div>
+
+      <div class="summary-content">
+        <span>Pending</span>
+        <strong>{{ pendingOrders }}</strong>
+        <small>Awaiting approval</small>
+      </div>
+    </div>
+
+
+    <div class="summary-card">
+      <div class="summary-icon green">
+        <i class="bi bi-check-circle"></i>
+      </div>
+
+      <div class="summary-content">
+        <span>Approved</span>
+        <strong>{{ approvedOrders }}</strong>
+        <small>Approved orders</small>
+      </div>
+    </div>
+
+
+    <div class="summary-card">
+      <div class="summary-icon purple">
+        <i class="bi bi-box-seam"></i>
+      </div>
+
+      <div class="summary-content">
+        <span>Completed</span>
+        <strong>{{ completedOrders }}</strong>
+        <small>Received orders</small>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- PURCHASE VALUE -->
+  <div class="value-card">
+
+    <div class="value-left">
+      <div class="value-icon">
+        <i class="bi bi-currency-dollar"></i>
+      </div>
+
+      <div>
+        <span>Total Purchase Value</span>
+        <strong>
+          ৳{{ totalPurchaseValue | number:'1.0-0' }}
+        </strong>
+      </div>
+    </div>
+
+    <div class="value-info">
+      <i class="bi bi-info-circle"></i>
+      Current purchase order value
+    </div>
+
+  </div>
+
+
+  <!-- TABLE CARD -->
+  <div class="table-card">
+
+    <!-- TABLE HEADER -->
+    <div class="table-header">
+
+      <div>
+        <h2>Purchase Order List</h2>
+        <p>
+          {{ filteredOrders.length }} order(s) found
+        </p>
+      </div>
+
+      <div class="filters">
+
+        <!-- SEARCH -->
+        <div class="search-box">
+          <i class="bi bi-search"></i>
+
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            placeholder="Search PO or supplier..."
+          />
+        </div>
+
+
+        <!-- STATUS -->
+        <div class="status-filter">
+
+          <select [(ngModel)]="selectedStatus">
+
+            <option value="All">
+              All Status
+            </option>
+
+            <option value="Draft">
+              Draft
+            </option>
+
+            <option value="Pending">
+              Pending
+            </option>
+
+            <option value="Approved">
+              Approved
+            </option>
+
+            <option value="Completed">
+              Completed
+            </option>
+
+            <option value="Cancelled">
+              Cancelled
+            </option>
+
+          </select>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- TABLE -->
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>PO NUMBER</th>
+            <th>SUPPLIER</th>
+            <th>ORDER DATE</th>
+            <th>EXPECTED DATE</th>
+            <th>ITEMS</th>
+            <th>TOTAL</th>
+            <th>STATUS</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="
+              let order of filteredOrders;
+              trackBy: trackByOrderId
+            "
+          >
+
+            <!-- PO NUMBER -->
+            <td>
+              <span class="po-number">
+                {{ order.id }}
+              </span>
+            </td>
+
+
+            <!-- SUPPLIER -->
+            <td>
+              <div class="supplier-cell">
+
+                <div class="supplier-icon">
+                  <i class="bi bi-building"></i>
+                </div>
+
+                <div>
+                  <strong>
+                    {{ order.supplier }}
+                  </strong>
+
+                  <span>
+                    Pharmaceutical Supplier
+                  </span>
+                </div>
+
+              </div>
+            </td>
+
+
+            <!-- ORDER DATE -->
+            <td>
+              <span class="date-text">
+                {{ order.date }}
+              </span>
+            </td>
+
+
+            <!-- EXPECTED DATE -->
+            <td>
+              <span class="date-text">
+                {{ order.expectedDate }}
+              </span>
+            </td>
+
+
+            <!-- ITEMS -->
+            <td>
+              <span class="items-count">
+                {{ order.items }} items
+              </span>
+            </td>
+
+
+            <!-- TOTAL -->
+            <td>
+              <strong class="total-amount">
+                ৳{{ order.total | number:'1.0-0' }}
+              </strong>
+            </td>
+
+
+            <!-- STATUS -->
+            <td>
+              <span
+                class="status-badge"
+                [ngClass]="getStatusClass(order.status)"
+              >
+                <span class="status-dot"></span>
+                {{ order.status }}
+              </span>
+            </td>
+
+
+            <!-- ACTION -->
+            <td>
+
+              <div class="action-buttons">
+
+                <button
+                  type="button"
+                  class="icon-btn view"
+                  title="View"
+                  (click)="viewOrder(order)"
+                >
+                  <i class="bi bi-eye"></i>
+                </button>
+
+                <button
+                  type="button"
+                  class="icon-btn edit"
+                  title="Edit"
+                  (click)="editOrder(order)"
+                >
+                  <i class="bi bi-pencil"></i>
+                </button>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+
+          <!-- EMPTY STATE -->
+          <tr *ngIf="filteredOrders.length === 0">
+
+            <td
+              colspan="8"
+              class="empty-state"
+            >
+
+              <div class="empty-icon">
+                <i class="bi bi-file-earmark-x"></i>
+              </div>
+
+              <h3>No Purchase Orders Found</h3>
+
+              <p>
+                Try changing your search or filter.
+              </p>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>

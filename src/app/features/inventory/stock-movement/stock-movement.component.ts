@@ -1,0 +1,330 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+
+import {
+  InventoryMovementApiService,
+  InventoryMovementResponse
+} from '../../../core/services/inventory-movement-api.service';
+
+type MovementType =
+  | 'Sale'
+  | 'Purchase'
+  | 'Return'
+  | 'Transfer' | 'Transfer Loss'
+  | 'Adjustment'
+  | 'Allocation' | 'Other';
+
+interface StockMovement {
+  id: string;
+  date: string;
+  medicineId: number;
+  medicineName: string;
+  batchNumber: string;
+  type: MovementType;
+  quantity: number;
+  fromLocation: string;
+  toLocation: string;
+  reference: string;
+  user: string;
+  reason: string;
+  quantityAfter: number | null;
+  storeId?: number | null;
+  storeName?: string | null;
+
+}
+
+@Component({
+  selector: 'app-stock-movement',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  templateUrl: './stock-movement.component.html',
+  styleUrl: './stock-movement.component.scss'
+})
+export class StockMovementComponent implements OnInit {
+  constructor(
+    private readonly movementApi: InventoryMovementApiService,
+    private readonly router: Router
+  ) {}
+
+  searchTerm = '';
+  selectedType = 'All';
+  loading = false;
+  errorMessage = '';
+  movements: StockMovement[] = [];
+
+  movementTypes = [
+    'All',
+    'Sale',
+    'Purchase',
+    'Return',
+    'Transfer', 'Transfer Loss',
+    'Adjustment',
+    'Allocation',
+    'Other'
+  ];
+
+  ngOnInit(): void {
+    this.loadMovements();
+  }
+
+  loadMovements(): void {
+    const tenantId = Number(localStorage.getItem('tenantId'));
+
+    if (!Number.isSafeInteger(tenantId) || tenantId <= 0) {
+      this.movements = [];
+      this.errorMessage = 'Tenant ID not found. Please log in again.';
+      return;
+    }
+
+    this.loading = true;
+    this.errorMessage = '';
+
+    this.movementApi.list(tenantId).subscribe({
+      next: records => {
+        this.movements = (Array.isArray(records) ? records : [])
+          .map(record => this.mapMovement(record))
+          .sort((a, b) => {
+            const dateA = a.date ? new Date(a.date).getTime() : 0;
+            const dateB = b.date ? new Date(b.date).getTime() : 0;
+            return dateB - dateA;
+          });
+
+        this.loading = false;
+      },
+      error: error => {
+        console.error('Failed to load inventory movement ledger:', error);
+        this.movements = [];
+        this.loading = false;
+        this.errorMessage =
+          error?.error?.message ||
+          'Could not load inventory movement ledger. Check your login and backend connection.';
+      }
+    });
+  }
+
+  private mapMovement(record: InventoryMovementResponse): StockMovement {
+    const movement = String(record.movementType || '').toUpperCase();
+    const referenceType = String(record.referenceType || '').toUpperCase();
+    const quantity = Number(record.quantityChange || 0);
+
+    let type: MovementType;
+
+    if (movement === 'TRANSFER_LOSS') {
+      type = 'Transfer Loss';
+    } else if (movement === 'SALE') {
+      type = 'Sale';
+    } else if (movement === 'RETURN_RESTOCKED') {
+      type = 'Return';
+    } else if (
+      movement.startsWith('TRANSFER') ||
+      referenceType === 'BRANCH_TRANSFER'
+    ) {
+      type = 'Transfer';
+    } else if (
+      movement === 'GRN_RECEIVED' ||
+      (movement === 'STOCK_IN' && referenceType !== 'STOCK_REQUEST')
+    ) {
+      type = 'Purchase';
+    } else if (
+      movement === 'STOCK_OUT' ||
+      movement === 'STOCK_IN' ||
+      movement === 'ADJUSTMENT'
+    ) {
+      type = 'Adjustment';
+    } else if (movement === 'STORE_ALLOCATION' || referenceType === 'STORE_ALLOCATION') {
+      type = 'Allocation';
+    } else {
+      type = 'Other';
+    }
+
+    let fromLocation = '—';
+    let toLocation = '—';
+
+    switch (movement) {
+      case 'SALE':
+        fromLocation = 'Inventory';
+        toLocation = 'Customer';
+        break;
+
+      case 'RETURN_RESTOCKED':
+        fromLocation = 'Quarantine';
+        toLocation = 'Sellable Inventory';
+        break;
+
+      case 'GRN_RECEIVED':
+        fromLocation = 'Supplier';
+        toLocation = 'Inventory';
+        break;
+
+      case 'STOCK_IN':
+        if (referenceType === 'STOCK_REQUEST') {
+          fromLocation = 'Approved stock request';
+          toLocation = 'Inventory';
+        } else {
+          fromLocation = 'Stock receipt';
+          toLocation = 'Inventory';
+        }
+        break;
+
+      case 'STOCK_OUT':
+        fromLocation = 'Inventory';
+        toLocation = 'Stock-out';
+        break;
+
+      case 'TRANSFER_OUT':
+        fromLocation = 'Source location';
+        toLocation = 'Transfer';
+        break;
+
+      case 'TRANSFER_IN':
+        fromLocation = 'Transfer';
+        toLocation = 'Destination location';
+        break;
+
+      default:
+        if (quantity < 0) {
+          fromLocation = 'Inventory';
+          toLocation = 'Stock decrease';
+        } else if (quantity > 0) {
+          fromLocation = 'Stock increase';
+          toLocation = 'Inventory';
+        }
+    }
+
+    return {
+      id: String(record.id),
+      date: record.createdAt || '',
+      medicineId: Number(record.productId || 0),
+      medicineName: record.productName || 'Unknown medicine',
+      batchNumber: record.batchNumber || 'N/A',
+      type,
+      storeId: record.storeId ?? null,
+      storeName: record.storeName ?? null,
+      // Keep the sign: negative means stock out, positive means stock in.
+      quantity,
+      fromLocation,
+      toLocation,
+      reference: record.referenceNumber ||
+        `${record.referenceType || movement || 'MOVEMENT'}-${record.referenceId ?? record.id}`,
+      user: record.actorUserId != null
+        ? `User #${record.actorUserId}`
+        : 'Not recorded',
+      reason: record.reason || '',
+      quantityAfter: record.quantityAfter == null
+        ? null
+        : Number(record.quantityAfter)
+    };
+  }
+
+  get filteredMovements(): StockMovement[] {
+    const term = this.searchTerm.toLowerCase().trim();
+
+    return this.movements.filter(movement => {
+      const matchesSearch =
+        !term ||
+        movement.medicineName.toLowerCase().includes(term) ||
+        movement.batchNumber.toLowerCase().includes(term) ||
+        movement.reference.toLowerCase().includes(term) ||
+        movement.user.toLowerCase().includes(term) ||
+        movement.reason.toLowerCase().includes(term) ||
+        movement.type.toLowerCase().includes(term) || (movement.storeName || '').toLowerCase().includes(term);
+
+      const matchesType =
+        this.selectedType === 'All' ||
+        movement.type === this.selectedType;
+
+      return matchesSearch && matchesType;
+    });
+  }
+
+  get totalMovements(): number {
+    return this.movements.length;
+  }
+
+  get totalSaleQuantity(): number {
+    return this.movements
+      .filter(movement => movement.type === 'Sale')
+      .reduce((total, movement) => total + Math.abs(movement.quantity), 0);
+  }
+
+  get totalPurchaseQuantity(): number {
+    return this.movements
+      .filter(movement => movement.type === 'Purchase')
+      .reduce((total, movement) => total + Math.max(0, movement.quantity), 0);
+  }
+
+  get totalTransferQuantity(): number {
+    return this.movements
+      .filter(movement => movement.type === 'Transfer')
+      .reduce((total, movement) => total + Math.abs(movement.quantity), 0);
+  }
+
+  get totalReturnQuantity(): number {
+    return this.movements
+      .filter(movement => movement.type === 'Return')
+      .reduce((total, movement) => total + Math.max(0, movement.quantity), 0);
+  }
+
+  selectType(type: string): void {
+    this.selectedType = type;
+  }
+
+  getMovementClass(type: MovementType): string {
+    switch (type) {
+      case 'Sale': return 'sale';
+      case 'Purchase': return 'purchase';
+      case 'Return': return 'return';
+      case 'Transfer': return 'transfer';
+      case 'Adjustment': return 'adjustment';
+      case 'Transfer Loss':
+        return 'adjustment';
+
+      default: return '';
+    }
+  }
+
+  getMovementIcon(type: MovementType): string {
+    switch (type) {
+      case 'Sale': return 'bi-arrow-up-right';
+      case 'Purchase': return 'bi-arrow-down-left';
+      case 'Return': return 'bi-arrow-return-left';
+      case 'Transfer': return 'bi-arrow-left-right';
+      case 'Adjustment': return 'bi-sliders';
+      case 'Transfer Loss':
+        return 'bi-sliders';
+
+      default: return 'bi-circle';
+    }
+  }
+
+  formatDate(date: string): string {
+    if (!date) return '—';
+
+    const parsed = new Date(date);
+    if (Number.isNaN(parsed.getTime())) return '—';
+
+    return parsed.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
+  }
+
+  formatTime(date: string): string {
+    if (!date) return '—';
+
+    const parsed = new Date(date);
+    if (Number.isNaN(parsed.getTime())) return '—';
+
+    return parsed.toLocaleTimeString('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  goBack(): void {
+    this.router.navigate(['/app/inventory/medicines']);
+  }
+}

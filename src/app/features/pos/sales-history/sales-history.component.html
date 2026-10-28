@@ -1,0 +1,371 @@
+<div class="sales-history-page">
+
+  <!-- HEADER -->
+  <div class="page-header">
+
+    <div>
+      <div class="breadcrumb">
+        <span>Pharmacy</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>POS</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Sales History</span>
+      </div>
+
+      <h1>Sales History</h1>
+
+      <p>
+        View and manage all completed pharmacy sales.
+      </p>
+    </div>
+
+  </div>
+
+
+  <!-- STAT CARDS -->
+  <div class="stats-grid">
+
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="bi bi-receipt"></i>
+      </div>
+
+      <div>
+        <span>Total Sales</span>
+        <strong>{{ totalSales }}</strong>
+      </div>
+    </div>
+
+
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="bi bi-calendar-check"></i>
+      </div>
+
+      <div>
+        <span>Today's Sales</span>
+        <strong>{{ todaySales }}</strong>
+      </div>
+    </div>
+
+
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="bi bi-cash-stack"></i>
+      </div>
+
+      <div>
+        <span>Total Revenue</span>
+        <strong>
+          ৳{{ totalRevenue | number:'1.2-2' }}
+        </strong>
+      </div>
+    </div>
+
+
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="bi bi-graph-up-arrow"></i>
+      </div>
+
+      <div>
+        <span>Today's Revenue</span>
+        <strong>
+          ৳{{ todayRevenue | number:'1.2-2' }}
+        </strong>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- FILTER CARD -->
+  <div class="filter-card">
+
+    <div class="search-box">
+
+      <i class="bi bi-search"></i>
+
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        placeholder="Search invoice or customer..."
+      />
+
+    </div>
+
+
+    <select
+      [(ngModel)]="paymentFilter">
+
+      <option value="All">
+        All Payments
+      </option>
+
+      <option value="Cash">
+        Cash
+      </option>
+
+      <option value="Card">
+        Card
+      </option>
+
+      <option value="Mobile">
+        Mobile
+      </option>
+
+    </select>
+
+
+    <select
+      [(ngModel)]="statusFilter">
+
+      <option value="All">
+        All Status
+      </option>
+
+      <option value="Completed">
+        Completed
+      </option>
+
+      <option value="Partially Refunded">
+        Partially Refunded
+      </option>
+
+      <option value="Refunded">
+        Refunded
+      </option>
+
+    </select>
+
+
+    <button
+      type="button"
+      class="clear-filter-btn"
+      (click)="clearFilters()">
+
+      <i class="bi bi-arrow-counterclockwise"></i>
+
+      Reset
+
+    </button>
+
+  </div>
+
+
+  <!-- SALES TABLE -->
+  <div class="table-card">
+
+    <div class="table-header">
+
+      <div>
+        <h2>Recent Sales</h2>
+
+        <span>
+          {{ filteredSales.length }} transaction(s)
+        </span>
+      </div>
+
+    </div>
+
+
+    <div
+      class="empty-state"
+      *ngIf="filteredSales.length === 0">
+
+      <div class="empty-icon">
+        <i class="bi bi-receipt"></i>
+      </div>
+
+      <h3>No sales found</h3>
+
+      <p>
+        Completed sales from the POS Terminal will appear here.
+      </p>
+
+    </div>
+
+
+    <div
+      class="table-wrapper"
+      *ngIf="filteredSales.length > 0">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>Invoice</th>
+
+            <th>Date</th>
+
+            <th>Customer</th>
+
+            <th>Items</th>
+
+            <th>Payment</th>
+
+            <th>Total</th>
+
+            <th>Status</th>
+
+            <th>Action</th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="let sale of filteredSales">
+
+            <td>
+
+              <div class="invoice-cell">
+
+                <strong>
+                  {{ sale.invoice }}
+                </strong>
+
+              </div>
+
+            </td>
+
+
+            <td>
+              {{ sale.date }}
+            </td>
+
+
+            <td>
+
+              <div class="customer-cell">
+
+                <i class="bi bi-person-circle"></i>
+
+                <span>
+                  {{ sale.customer }}
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <td>
+
+              <span class="items-badge">
+                {{ sale.items }}
+              </span>
+
+            </td>
+
+
+            <td>
+
+              <span
+                class="payment-badge"
+                [class.cash]="sale.payment === 'Cash'"
+                [class.card]="sale.payment === 'Card'"
+                [class.mobile]="sale.payment === 'Mobile'">
+
+                <i
+                  class="bi"
+                  [class.bi-cash-stack]="sale.payment === 'Cash'"
+                  [class.bi-credit-card]="sale.payment === 'Card'"
+                  [class.bi-phone]="sale.payment === 'Mobile'">
+                </i>
+
+                {{ sale.payment }}
+
+              </span>
+
+            </td>
+
+
+            <td>
+
+              <strong class="total-amount">
+                ৳{{ sale.total | number:'1.2-2' }}
+              </strong>
+
+            </td>
+
+
+            <td>
+
+              <span
+                class="status-badge"
+                [class.completed]="sale.status === 'Completed'"
+                [class.refunded]="sale.status === 'Refunded' || sale.status === 'Partially Refunded'">
+
+                <i
+                  class="bi"
+                  [class.bi-check-circle]="sale.status === 'Completed'"
+                  [class.bi-arrow-return-left]="sale.status === 'Refunded' || sale.status === 'Partially Refunded'">
+                </i>
+
+                {{ sale.status }}
+
+              </span>
+
+            </td>
+
+
+            <td>
+
+              <button
+                type="button"
+                class="view-btn"
+                (click)="viewInvoice(sale)">
+
+                <i class="bi bi-eye"></i>
+
+                View
+
+              </button>
+
+              <button
+                type="button"
+                class="view-btn"
+                (click)="refundSale(sale)"
+                [disabled]="sale.status === 'Refunded'">
+
+                <i class="bi bi-arrow-return-left"></i>
+                Return
+
+              </button>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+
+  <!-- INVOICE RECEIPT -->
+  <app-invoice-receipt
+    [visible]="showInvoiceReceipt"
+    [receipt]="selectedSale ? getReceiptData(selectedSale) : null"
+    (closed)="closeInvoice()">
+  </app-invoice-receipt>
+
+
+
+  <app-return-sale
+    *ngIf="showReturnModal && returnTarget"
+    [sale]="returnTarget"
+    [processing]="processingReturn"
+    (closed)="closeReturnModal()"
+    (returned)="completeReturn($event)">
+  </app-return-sale>
+</div>

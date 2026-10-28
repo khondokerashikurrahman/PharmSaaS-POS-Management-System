@@ -1,0 +1,204 @@
+<div class="login-page">
+
+  <div class="login-container">
+
+    <!-- ==========================================
+         LEFT SIDE - BRAND
+    =========================================== -->
+
+    <div class="login-brand">
+
+      <div class="brand-logo">
+        💊
+      </div>
+
+      <h1>PharmSaaS</h1>
+
+      <p>
+        Pharmacy Management<br>
+        &amp; POS System
+      </p>
+
+      <div class="brand-features">
+
+        <div>
+          ✓ Smart Pharmacy Management
+        </div>
+
+        <div>
+          ✓ Point of Sale (POS)
+        </div>
+
+        <div>
+          ✓ Inventory &amp; Batch Tracking
+        </div>
+
+        <div>
+          ✓ Sales &amp; Business Reports
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- ==========================================
+         RIGHT SIDE - LOGIN FORM
+    =========================================== -->
+
+    <div class="login-form-section">
+
+      <div class="login-card">
+
+        <!-- Mobile Logo -->
+
+        <div class="mobile-logo">
+          💊
+        </div>
+
+
+        <!-- Heading -->
+
+        <h2>
+          Welcome Back
+        </h2>
+
+        <p class="subtitle">
+          Sign in to your PharmSaaS account
+        </p>
+
+
+        <!-- ======================================
+             ERROR MESSAGE
+        ======================================= -->
+
+        <div class="error-message" *ngIf="errorMessage" role="alert">
+          {{ errorMessage }}
+        </div>
+
+
+        <!-- ======================================
+             LOGIN FORM
+        ======================================= -->
+
+        <form #loginForm="ngForm" (ngSubmit)="login()" novalidate>
+
+          <!-- ====================================
+               EMAIL
+          ===================================== -->
+
+          <div class="form-group">
+
+            <label for="email">
+              Email Address
+            </label>
+
+            <input id="email" type="email" name="email" [(ngModel)]="email" placeholder="Enter your email"
+              autocomplete="email" required>
+
+          </div>
+
+
+          <!-- ====================================
+               PASSWORD
+          ===================================== -->
+
+          <div class="form-group">
+
+            <div class="password-label">
+
+              <label for="password">
+                Password
+              </label>
+
+              <!-- No href="#" -->
+              <button type="button" class="forgot-password" (click)="forgotPassword()">
+                Forgot Password?
+              </button>
+
+            </div>
+
+
+            <div class="password-input">
+
+              <input id="password" [type]="showPassword ? 'text' : 'password'" name="password" [(ngModel)]="password"
+                placeholder="Enter your password" autocomplete="current-password" required>
+
+              <!-- Password Toggle -->
+
+              <button type="button" class="password-toggle" (click)="togglePassword()">
+                {{ showPassword ? 'Hide' : 'Show' }}
+              </button>
+
+            </div>
+
+          </div>
+
+
+          <!-- ====================================
+               REMEMBER ME
+          ===================================== -->
+
+          <div class="remember-row">
+
+            <label>
+
+              <input type="checkbox" name="rememberMe" [(ngModel)]="rememberMe">
+
+              <span>
+                Remember me
+              </span>
+
+            </label>
+
+          </div>
+
+
+          <!-- ====================================
+               LOGIN BUTTON
+          ===================================== -->
+          <button type="submit" class="login-btn" [disabled]="loginForm.invalid || isLoading">
+            {{ isLoading ? 'Signing In...' : 'Sign In' }}
+          </button>
+
+        </form>
+
+
+        <!-- ======================================
+             DEMO ACCOUNTS
+        ======================================= -->
+
+        <div class="demo-info">
+
+          <strong>
+            Demo Accounts
+          </strong>
+
+          <p>
+            <strong>Super Admin:</strong><br>
+            admin&#64;pharmsaas.com / 123456
+          </p>
+
+          <p>
+            <strong>Tenant Admin:</strong><br>
+            pharmacy&#64;pharmsaas.com / 123456
+          </p>
+
+        </div>
+
+
+        <!-- ======================================
+             FOOTER
+        ======================================= -->
+
+        <div class="login-footer">
+          © 2026 PharmSaaS. All rights reserved.
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

@@ -1,0 +1,134 @@
+/* =================================================
+   PHARMACY APP CONTAINER
+================================================= */
+
+.app-container {
+  width: 100%;
+  min-height: 100vh;
+
+  background: #4f7295;
+
+  box-sizing: border-box;
+}
+
+
+/* =================================================
+   MAIN CONTENT
+================================================= */
+
+.main-content {
+  width: calc(100% - 250px);
+  min-height: 100vh;
+
+  margin-left: 250px;
+
+  display: flex;
+  flex-direction: column;
+
+  box-sizing: border-box;
+
+  transition:
+    margin-left 0.25s ease,
+    width 0.25s ease;
+}
+
+
+/* =================================================
+   SIDEBAR COLLAPSED
+================================================= */
+
+.app-container.sidebar-collapsed .main-content {
+
+  width: calc(100% - 78px);
+
+  margin-left: 78px;
+
+}
+
+
+/* =================================================
+   PAGE CONTENT
+================================================= */
+
+.content-body {
+  width: 100%;
+
+  flex: 1;
+
+  min-width: 0;
+
+  box-sizing: border-box;
+}
+
+
+/* =================================================
+   RESPONSIVE
+================================================= */
+
+@media (max-width: 900px) {
+
+  .main-content {
+
+    width: calc(100% - 230px);
+
+    margin-left: 230px;
+
+  }
+
+
+  .app-container.sidebar-collapsed
+  .main-content {
+
+    width: calc(100% - 72px);
+
+    margin-left: 72px;
+
+  }
+
+}
+
+
+@media (max-width: 700px) {
+
+  .main-content {
+
+    width: calc(100% - 220px);
+
+    margin-left: 220px;
+
+  }
+
+
+  .app-container.sidebar-collapsed
+  .main-content {
+
+    width: calc(100% - 72px);
+
+    margin-left: 72px;
+
+  }
+
+}
+
+
+@media (max-width: 600px) {
+
+  .main-content {
+
+    width: calc(100% - 210px);
+
+    margin-left: 210px;
+
+  }
+
+
+  .app-container.sidebar-collapsed
+  .main-content {
+
+    width: calc(100% - 70px);
+
+    margin-left: 70px;
+
+  }
+
+}

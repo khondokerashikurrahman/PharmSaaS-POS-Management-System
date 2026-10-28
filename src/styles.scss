@@ -1,1 +1,60 @@
-/* You can add global styles to this file, and also import other style files */
+@media print {
+
+  body.receipt-printing * {
+    visibility: hidden !important;
+  }
+
+  body.receipt-printing
+  app-invoice-receipt,
+  body.receipt-printing
+  app-invoice-receipt * {
+    visibility: visible !important;
+  }
+
+  body.receipt-printing
+  .receipt-overlay {
+    position: static !important;
+    inset: auto !important;
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+  }
+
+  body.receipt-printing
+  .receipt-modal {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+
+  body.receipt-printing
+  .receipt-header,
+  body.receipt-printing
+  .receipt-actions {
+    display: none !important;
+  }
+
+  body.receipt-printing
+  .receipt-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 10mm !important;
+    box-sizing: border-box !important;
+  }
+
+  @page {
+    margin: 10mm;
+  }
+}/* You can add global styles to this file, and also import other style files */

@@ -1,0 +1,372 @@
+<div class="transfer-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div>
+      <div class="breadcrumb">
+        <span>Pharmacy</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Branch Transfer</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Transfer List</span>
+      </div>
+
+      <h1>Branch Transfers</h1>
+      <p>Manage stock transfers between pharmacy branches.</p>
+    </div>
+
+    <button class="btn-primary" (click)="createTransfer()">
+      <i class="bi bi-plus-lg"></i>
+      New Transfer
+    </button>
+
+  </div>
+
+
+  <!-- SUMMARY CARDS -->
+  <div class="summary-grid">
+
+    <div class="summary-card">
+      <div class="summary-icon blue">
+        <i class="bi bi-arrow-left-right"></i>
+      </div>
+
+      <div class="summary-content">
+        <span>Total Transfers</span>
+        <strong>{{ totalTransfers }}</strong>
+        <small>All transfer requests</small>
+      </div>
+    </div>
+
+
+    <div class="summary-card">
+      <div class="summary-icon orange">
+        <i class="bi bi-hourglass-split"></i>
+      </div>
+
+      <div class="summary-content">
+        <span>Pending</span>
+        <strong>{{ pendingTransfers }}</strong>
+        <small>Awaiting approval</small>
+      </div>
+    </div>
+
+
+    <div class="summary-card">
+      <div class="summary-icon purple">
+        <i class="bi bi-truck"></i>
+      </div>
+
+      <div class="summary-content">
+        <span>In Transit</span>
+        <strong>{{ inTransitTransfers }}</strong>
+        <small>Currently moving</small>
+      </div>
+    </div>
+
+
+    <div class="summary-card">
+      <div class="summary-icon green">
+        <i class="bi bi-check-circle"></i>
+      </div>
+
+      <div class="summary-content">
+        <span>Received</span>
+        <strong>{{ receivedTransfers }}</strong>
+        <small>Successfully received</small>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- TRANSFER QUANTITY INFO -->
+  <div class="quantity-card">
+
+    <div class="quantity-icon">
+      <i class="bi bi-box-seam"></i>
+    </div>
+
+    <div>
+      <span>Total Transferred Quantity</span>
+      <strong>{{ totalQuantity | number }}</strong>
+      <small>Units across all transfer records</small>
+    </div>
+
+  </div>
+
+
+  <!-- FILTER SECTION -->
+  <div class="content-card">
+
+    <div class="filter-header">
+
+      <div>
+        <h2>Transfer Records</h2>
+        <p>Search and manage branch stock transfers.</p>
+      </div>
+
+    </div>
+
+
+    <div class="filter-row">
+
+      <!-- SEARCH -->
+      <div class="search-box">
+
+        <i class="bi bi-search"></i>
+
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          placeholder="Search transfer ID, branch or requester..."
+        />
+
+      </div>
+
+
+      <!-- STATUS FILTER -->
+      <div class="status-filter">
+
+        <label>Status</label>
+
+        <select [(ngModel)]="selectedStatus">
+
+          <option value="All">All Status</option>
+          <option value="Draft">Draft</option>
+          <option value="Pending">Pending</option>
+          <option value="Approved">Approved</option>
+          <option value="In Transit">In Transit</option>
+          <option value="Received">Received</option>
+          <option value="Cancelled">Cancelled</option>
+
+        </select>
+
+      </div>
+
+    </div>
+
+
+    <!-- TABLE -->
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Transfer ID</th>
+            <th>From Branch</th>
+            <th>To Branch</th>
+            <th>Date</th>
+            <th>Items</th>
+            <th>Total Qty</th>
+            <th>Requested By</th>
+            <th>Status</th>
+            <th class="action-column">Action</th>
+          </tr>
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="
+              let transfer of filteredTransfers;
+              trackBy: trackByTransferId
+            "
+          >
+
+            <!-- TRANSFER ID -->
+            <td>
+              <div class="transfer-id">
+
+                <div class="transfer-icon">
+                  <i class="bi bi-arrow-left-right"></i>
+                </div>
+
+                <div>
+                  <strong>{{ transfer.id }}</strong>
+                  <span>Stock Transfer</span>
+                </div>
+
+              </div>
+            </td>
+
+
+            <!-- FROM -->
+            <td>
+              <div class="branch-info">
+
+                <i class="bi bi-building"></i>
+
+                <span>
+                  {{ transfer.fromBranch }}
+                </span>
+
+              </div>
+            </td>
+
+
+            <!-- TO -->
+            <td>
+              <div class="branch-info destination">
+
+                <i class="bi bi-geo-alt"></i>
+
+                <span>
+                  {{ transfer.toBranch }}
+                </span>
+
+              </div>
+            </td>
+
+
+            <!-- DATE -->
+            <td>
+              <span class="date-text">
+                {{ transfer.transferDate }}
+              </span>
+            </td>
+
+
+            <!-- ITEMS -->
+            <td>
+              <span class="number-value">
+                {{ transfer.items }}
+              </span>
+            </td>
+
+
+            <!-- QUANTITY -->
+            <td>
+              <span class="quantity-value">
+                {{ transfer.totalQty | number }}
+              </span>
+            </td>
+
+
+            <!-- REQUESTED BY -->
+            <td>
+              <div class="requester">
+
+                <div class="avatar">
+                  {{ transfer.requestedBy.charAt(0) }}
+                </div>
+
+                <span>
+                  {{ transfer.requestedBy }}
+                </span>
+
+              </div>
+            </td>
+
+
+            <!-- STATUS -->
+            <td>
+
+              <span
+                class="status-badge"
+                [ngClass]="getStatusClass(transfer.status)"
+              >
+                <span class="status-dot"></span>
+                {{ transfer.status }}
+              </span>
+
+            </td>
+
+
+            <!-- ACTION -->
+            <td>
+
+              <div class="action-buttons">
+
+                <button
+                  class="action-btn view"
+                  title="View Transfer"
+                  (click)="viewTransfer(transfer)"
+                >
+                  <i class="bi bi-eye"></i>
+                </button>
+
+
+                <button
+                  *ngIf="
+                    transfer.status === 'Draft' ||
+                    transfer.status === 'Pending'
+                  "
+                  class="action-btn edit"
+                  title="Edit Transfer"
+                  (click)="editTransfer(transfer)"
+                >
+                  <i class="bi bi-pencil"></i>
+                </button>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+
+          <!-- EMPTY STATE -->
+          <tr *ngIf="filteredTransfers.length === 0">
+
+            <td colspan="9">
+
+              <div class="empty-state">
+
+                <div class="empty-icon">
+                  <i class="bi bi-arrow-left-right"></i>
+                </div>
+
+                <h3>No transfers found</h3>
+
+                <p>
+                  No branch transfer records match your current search
+                  or filter.
+                </p>
+
+                <button
+                  class="btn-secondary"
+                  (click)="searchTerm = ''; selectedStatus = 'All'"
+                >
+                  Clear Filters
+                </button>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    <!-- TABLE FOOTER -->
+    <div
+      class="table-footer"
+      *ngIf="filteredTransfers.length > 0"
+    >
+
+      <span>
+        Showing
+        <strong>{{ filteredTransfers.length }}</strong>
+        of
+        <strong>{{ totalTransfers }}</strong>
+        transfers
+      </span>
+
+      <span class="footer-info">
+        Branch stock movement management
+      </span>
+
+    </div>
+
+  </div>
+
+</div>

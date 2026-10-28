@@ -1,0 +1,513 @@
+<div class="purchase-details-page">
+
+  <!-- =========================
+       PAGE HEADER
+  ========================== -->
+  <div class="page-header">
+
+    <div>
+      <div class="breadcrumb">
+        <span>Procurement</span>
+        <i class="bi bi-chevron-right"></i>
+
+        <span>Purchase Orders</span>
+        <i class="bi bi-chevron-right"></i>
+
+        <span>Purchase Order Details</span>
+      </div>
+
+      <div class="title-row">
+
+        <div>
+          <h1>Purchase Order Details</h1>
+
+          <p>
+            Review purchase order information, items and payment details.
+          </p>
+        </div>
+
+        <span
+          class="status-badge"
+          [ngClass]="getStatusClass(purchaseOrder.status)"
+        >
+          {{ purchaseOrder.status }}
+        </span>
+
+      </div>
+    </div>
+
+
+    <!-- HEADER ACTIONS -->
+    <div class="header-actions">
+
+      <button
+        type="button"
+        class="secondary-btn"
+        (click)="backToOrders()"
+      >
+        <i class="bi bi-arrow-left"></i>
+        Back
+      </button>
+
+      <button
+        type="button"
+        class="secondary-btn"
+        (click)="printPurchaseOrder()"
+      >
+        <i class="bi bi-printer"></i>
+        Print
+      </button>
+
+      <button
+        type="button"
+        class="edit-btn"
+        (click)="editOrder()"
+      >
+        <i class="bi bi-pencil"></i>
+        Edit
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- =========================
+       PO OVERVIEW
+  ========================== -->
+  <div class="overview-card">
+
+    <div class="overview-item">
+
+      <div class="overview-icon blue">
+        <i class="bi bi-file-earmark-text"></i>
+      </div>
+
+      <div>
+        <span>Purchase Order</span>
+        <strong>{{ purchaseOrder.id }}</strong>
+      </div>
+
+    </div>
+
+
+    <div class="overview-item">
+
+      <div class="overview-icon green">
+        <i class="bi bi-building"></i>
+      </div>
+
+      <div>
+        <span>Supplier</span>
+        <strong>{{ purchaseOrder.supplier }}</strong>
+      </div>
+
+    </div>
+
+
+    <div class="overview-item">
+
+      <div class="overview-icon orange">
+        <i class="bi bi-calendar3"></i>
+      </div>
+
+      <div>
+        <span>Order Date</span>
+        <strong>{{ purchaseOrder.orderDate }}</strong>
+      </div>
+
+    </div>
+
+
+    <div class="overview-item">
+
+      <div class="overview-icon purple">
+        <i class="bi bi-calendar-check"></i>
+      </div>
+
+      <div>
+        <span>Expected Delivery</span>
+        <strong>{{ purchaseOrder.expectedDate }}</strong>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =========================
+       MAIN CONTENT
+  ========================== -->
+  <div class="details-layout">
+
+
+    <!-- =========================
+         LEFT CONTENT
+    ========================== -->
+    <div class="main-content">
+
+
+      <!-- SUPPLIER INFORMATION -->
+      <div class="details-card">
+
+        <div class="card-header">
+
+          <div class="header-icon blue">
+            <i class="bi bi-building"></i>
+          </div>
+
+          <div>
+            <h2>Supplier Information</h2>
+            <p>Supplier details for this purchase order.</p>
+          </div>
+
+        </div>
+
+
+        <div class="supplier-content">
+
+          <div class="supplier-avatar">
+            <i class="bi bi-building"></i>
+          </div>
+
+          <div class="supplier-main">
+
+            <h3>{{ purchaseOrder.supplier }}</h3>
+
+            <span class="supplier-label">
+              Pharmaceutical Supplier
+            </span>
+
+          </div>
+
+
+          <div class="supplier-contact">
+
+            <div>
+              <i class="bi bi-telephone"></i>
+              <span>{{ purchaseOrder.supplierContact }}</span>
+            </div>
+
+            <div>
+              <i class="bi bi-envelope"></i>
+              <span>{{ purchaseOrder.supplierEmail }}</span>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- ORDER INFORMATION -->
+      <div class="details-card">
+
+        <div class="card-header">
+
+          <div class="header-icon purple">
+            <i class="bi bi-info-circle"></i>
+          </div>
+
+          <div>
+            <h2>Order Information</h2>
+            <p>Basic information about this purchase order.</p>
+          </div>
+
+        </div>
+
+
+        <div class="info-grid">
+
+          <div class="info-item">
+            <span>PO Number</span>
+            <strong>{{ purchaseOrder.id }}</strong>
+          </div>
+
+          <div class="info-item">
+            <span>Order Date</span>
+            <strong>{{ purchaseOrder.orderDate }}</strong>
+          </div>
+
+          <div class="info-item">
+            <span>Expected Delivery</span>
+            <strong>{{ purchaseOrder.expectedDate }}</strong>
+          </div>
+
+          <div class="info-item">
+            <span>Payment Terms</span>
+            <strong>{{ purchaseOrder.paymentTerms }}</strong>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- ORDER ITEMS -->
+      <div class="details-card items-card">
+
+        <div class="card-header">
+
+          <div class="header-icon green">
+            <i class="bi bi-capsule"></i>
+          </div>
+
+          <div>
+            <h2>Order Items</h2>
+            <p>
+              {{ purchaseOrder.items.length }} medicines in this purchase order.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="table-wrapper">
+
+          <table class="items-table">
+
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>MEDICINE</th>
+                <th>BATCH</th>
+                <th>QUANTITY</th>
+                <th>UNIT PRICE</th>
+                <th>TOTAL</th>
+              </tr>
+            </thead>
+
+
+            <tbody>
+
+              <tr
+                *ngFor="let item of purchaseOrder.items; let i = index"
+              >
+
+                <td class="serial">
+                  {{ i + 1 }}
+                </td>
+
+
+                <td>
+
+                  <div class="medicine-cell">
+
+                    <div class="medicine-icon">
+                      <i class="bi bi-capsule"></i>
+                    </div>
+
+                    <div>
+                      <strong>{{ item.medicine }}</strong>
+                      <span>Medicine</span>
+                    </div>
+
+                  </div>
+
+                </td>
+
+
+                <td>
+                  <span class="batch-number">
+                    {{ item.batch }}
+                  </span>
+                </td>
+
+
+                <td>
+                  <strong>{{ item.quantity }}</strong>
+                </td>
+
+
+                <td>
+                  ৳{{ item.unitPrice | number:'1.0-0' }}
+                </td>
+
+
+                <td>
+
+                  <strong class="item-total">
+                    ৳{{ item.total | number:'1.0-0' }}
+                  </strong>
+
+                </td>
+
+              </tr>
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+
+      <!-- NOTES -->
+      <div class="details-card">
+
+        <div class="card-header">
+
+          <div class="header-icon gray">
+            <i class="bi bi-chat-left-text"></i>
+          </div>
+
+          <div>
+            <h2>Additional Notes</h2>
+            <p>Notes attached to this purchase order.</p>
+          </div>
+
+        </div>
+
+
+        <div class="notes-box">
+
+          <i class="bi bi-info-circle"></i>
+
+          <p>
+            {{ purchaseOrder.notes }}
+          </p>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- =========================
+         RIGHT SIDEBAR
+    ========================== -->
+    <div class="right-sidebar">
+
+
+      <!-- SUMMARY -->
+      <div class="summary-card">
+
+        <div class="summary-header">
+
+          <div>
+            <h2>Order Summary</h2>
+            <span>{{ purchaseOrder.id }}</span>
+          </div>
+
+          <i class="bi bi-receipt"></i>
+
+        </div>
+
+
+        <div class="summary-divider"></div>
+
+
+        <div class="summary-row">
+          <span>Total Items</span>
+          <strong>{{ purchaseOrder.items.length }}</strong>
+        </div>
+
+
+        <div class="summary-row">
+          <span>Total Quantity</span>
+          <strong>{{ totalItems }}</strong>
+        </div>
+
+
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <strong>
+            ৳{{ subtotal | number:'1.0-0' }}
+          </strong>
+        </div>
+
+
+        <div class="summary-row">
+          <span>Tax (5%)</span>
+          <strong>
+            ৳{{ tax | number:'1.0-0' }}
+          </strong>
+        </div>
+
+
+        <div class="summary-divider"></div>
+
+
+        <div class="grand-total">
+
+          <span>Grand Total</span>
+
+          <strong>
+            ৳{{ grandTotal | number:'1.0-0' }}
+          </strong>
+
+        </div>
+
+
+        <div class="payment-term">
+
+          <i class="bi bi-credit-card"></i>
+
+          <div>
+            <span>Payment Terms</span>
+            <strong>{{ purchaseOrder.paymentTerms }}</strong>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- STATUS CARD -->
+      <div class="status-card">
+
+        <div class="status-card-header">
+          <i class="bi bi-check-circle"></i>
+
+          <div>
+            <h3>Order Status</h3>
+            <span>Current purchase order status</span>
+          </div>
+        </div>
+
+
+        <div
+          class="large-status"
+          [ngClass]="getStatusClass(purchaseOrder.status)"
+        >
+          {{ purchaseOrder.status }}
+        </div>
+
+
+        <p>
+          This purchase order has been reviewed and is ready for the next
+          procurement step.
+        </p>
+
+      </div>
+
+
+      <!-- ACTION CARD -->
+      <div class="action-card">
+
+        <h3>Next Step</h3>
+
+        <p>
+          Once the medicines arrive, create a Goods Received Note (GRN)
+          to update your inventory.
+        </p>
+
+        <button
+          type="button"
+          class="grn-btn"
+          (click)="createGRN()"
+        >
+          <i class="bi bi-box-seam"></i>
+          Create GRN
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

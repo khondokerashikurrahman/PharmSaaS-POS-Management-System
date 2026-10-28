@@ -1,0 +1,536 @@
+
+<div class="return-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div>
+      <div class="breadcrumb">
+        <span>Procurement</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Purchase Return</span>
+      </div>
+
+      <h1>Purchase Return</h1>
+      <p>Return damaged, expired or incorrect medicines to suppliers.</p>
+    </div>
+
+    <button
+      type="button"
+      class="btn btn-outline"
+      (click)="cancel()"
+    >
+      <i class="bi bi-arrow-left"></i>
+      Back
+    </button>
+
+  </div>
+
+
+  <!-- MAIN GRID -->
+  <div class="content-grid">
+
+    <!-- LEFT CONTENT -->
+    <div class="main-content">
+
+      <!-- RETURN INFORMATION -->
+      <div class="card">
+
+        <div class="card-header">
+
+          <div>
+            <h2>Return Information</h2>
+            <p>Enter the purchase order and supplier details.</p>
+          </div>
+
+          <span class="return-badge">
+            <i class="bi bi-arrow-return-left"></i>
+            Purchase Return
+          </span>
+
+        </div>
+
+
+        <div class="form-grid">
+
+          <!-- PURCHASE ORDER -->
+          <div class="form-group">
+
+            <label>
+              Purchase Order <span>*</span>
+            </label>
+
+            <select
+              [(ngModel)]="purchaseOrder"
+              (change)="onPurchaseOrderChange()"
+              class="form-control"
+            >
+              <option value="">Select purchase order</option>
+
+              <option
+                *ngFor="let order of purchaseOrders"
+                [value]="order"
+              >
+                {{ order }}
+              </option>
+            </select>
+
+          </div>
+
+
+          <!-- SUPPLIER -->
+          <div class="form-group">
+
+            <label>
+              Supplier <span>*</span>
+            </label>
+
+            <select
+              [(ngModel)]="supplier"
+              class="form-control"
+            >
+              <option value="">Select supplier</option>
+
+              <option
+                *ngFor="let item of suppliers"
+                [value]="item"
+              >
+                {{ item }}
+              </option>
+            </select>
+
+          </div>
+
+
+          <!-- RETURN DATE -->
+          <div class="form-group">
+
+            <label>
+              Return Date <span>*</span>
+            </label>
+
+            <input
+              type="date"
+              [(ngModel)]="returnDate"
+              class="form-control"
+            />
+
+          </div>
+
+
+          <!-- INVOICE -->
+          <div class="form-group">
+
+            <label>
+              Supplier Invoice No.
+            </label>
+
+            <input
+              type="text"
+              [(ngModel)]="invoiceNumber"
+              class="form-control"
+              placeholder="e.g. INV-2026-458"
+            />
+
+          </div>
+
+
+          <!-- RETURN REASON -->
+          <div class="form-group">
+
+            <label>
+              Return Reason <span>*</span>
+            </label>
+
+            <select
+              [(ngModel)]="returnReason"
+              class="form-control"
+            >
+
+              <option
+                *ngFor="let reason of returnReasons"
+                [value]="reason"
+              >
+                {{ reason }}
+              </option>
+
+            </select>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- RETURN ITEMS -->
+      <div class="card">
+
+        <div class="card-header">
+
+          <div>
+            <h2>Return Items</h2>
+            <p>Select medicines and specify the quantity to return.</p>
+          </div>
+
+          <button
+            type="button"
+            class="btn btn-primary btn-sm"
+            (click)="addItem()"
+          >
+            <i class="bi bi-plus-lg"></i>
+            Add Item
+          </button>
+
+        </div>
+
+
+        <!-- TABLE -->
+        <div class="table-wrapper">
+
+          <table>
+
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Medicine</th>
+                <th>Batch No.</th>
+                <th>Available</th>
+                <th>Return Qty</th>
+                <th>Unit Price</th>
+                <th>Reason</th>
+                <th>Total</th>
+                <th></th>
+              </tr>
+            </thead>
+
+
+            <tbody>
+
+              <tr
+                *ngFor="
+                  let item of items;
+                  let i = index;
+                  trackBy: trackByMedicine
+                "
+              >
+
+                <!-- NUMBER -->
+                <td class="serial">
+                  {{ i + 1 }}
+                </td>
+
+
+                <!-- MEDICINE -->
+                <td class="medicine-cell">
+
+                  <select
+                    [(ngModel)]="item.medicine"
+                    class="table-control"
+                  >
+
+                    <option value="">
+                      Select medicine
+                    </option>
+
+                    <option
+                      *ngFor="let medicine of medicines"
+                      [value]="medicine"
+                    >
+                      {{ medicine }}
+                    </option>
+
+                  </select>
+
+                </td>
+
+
+                <!-- BATCH -->
+                <td>
+
+                  <input
+                    type="text"
+                    [(ngModel)]="item.batch"
+                    class="table-control"
+                    placeholder="Batch"
+                  />
+
+                </td>
+
+
+                <!-- AVAILABLE -->
+                <td>
+
+                  <input
+                    type="number"
+                    [(ngModel)]="item.availableQty"
+                    class="table-control quantity-input available"
+                    min="0"
+                  />
+
+                </td>
+
+
+                <!-- RETURN QUANTITY -->
+                <td>
+
+                  <input
+                    type="number"
+                    [(ngModel)]="item.returnQty"
+                    (input)="calculateTotal(item)"
+                    class="table-control quantity-input"
+                    min="0"
+                    [max]="item.availableQty"
+                  />
+
+                </td>
+
+
+                <!-- UNIT PRICE -->
+                <td>
+
+                  <input
+                    type="number"
+                    [(ngModel)]="item.unitPrice"
+                    (input)="calculateTotal(item)"
+                    class="table-control price-input"
+                    min="0"
+                    placeholder="0"
+                  />
+
+                </td>
+
+
+                <!-- REASON -->
+                <td>
+
+                  <select
+                    [(ngModel)]="item.reason"
+                    class="table-control reason-select"
+                  >
+
+                    <option
+                      *ngFor="let reason of returnReasons"
+                      [value]="reason"
+                    >
+                      {{ reason }}
+                    </option>
+
+                  </select>
+
+                </td>
+
+
+                <!-- TOTAL -->
+                <td class="item-total">
+
+                  ৳{{ item.total | number:'1.2-2' }}
+
+                </td>
+
+
+                <!-- REMOVE -->
+                <td>
+
+                  <button
+                    type="button"
+                    class="remove-btn"
+                    (click)="removeItem(i)"
+                    [disabled]="items.length === 1"
+                    title="Remove item"
+                  >
+                    <i class="bi bi-trash3"></i>
+                  </button>
+
+                </td>
+
+              </tr>
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+
+        <div class="table-note">
+
+          <i class="bi bi-exclamation-circle"></i>
+
+          Return quantity cannot be greater than the available quantity.
+
+        </div>
+
+      </div>
+
+
+      <!-- NOTES -->
+      <div class="card">
+
+        <div class="card-header simple-header">
+
+          <div>
+            <h2>Return Notes</h2>
+            <p>Add additional information about this return.</p>
+          </div>
+
+        </div>
+
+
+        <div class="notes-wrapper">
+
+          <textarea
+            [(ngModel)]="notes"
+            rows="4"
+            placeholder="Describe damaged items, quality issues or other return remarks..."
+          ></textarea>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- RIGHT SUMMARY -->
+    <aside class="summary-column">
+
+      <!-- SUMMARY CARD -->
+      <div class="summary-card">
+
+        <div class="summary-header">
+
+          <div>
+            <h2>Return Summary</h2>
+            <p>Refund / adjustment details</p>
+          </div>
+
+          <div class="summary-icon">
+            <i class="bi bi-receipt"></i>
+          </div>
+
+        </div>
+
+
+        <div class="summary-info">
+
+          <div class="summary-row">
+            <span>Items</span>
+            <strong>{{ totalItems }}</strong>
+          </div>
+
+          <div class="summary-row">
+            <span>Return Quantity</span>
+            <strong>{{ totalReturnQty }}</strong>
+          </div>
+
+          <div class="summary-row">
+            <span>Return Value</span>
+            <strong>
+              ৳{{ returnValue | number:'1.2-2' }}
+            </strong>
+          </div>
+
+          <div class="summary-row">
+            <span>Tax Adjustment (5%)</span>
+            <strong>
+              ৳{{ taxAdjustment | number:'1.2-2' }}
+            </strong>
+          </div>
+
+        </div>
+
+
+        <div class="grand-total">
+
+          <span>Total Refund</span>
+
+          <strong>
+            ৳{{ totalRefund | number:'1.2-2' }}
+          </strong>
+
+        </div>
+
+
+        <!-- ACTIONS -->
+        <div class="action-buttons">
+
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="saveDraft()"
+          >
+            <i class="bi bi-file-earmark"></i>
+            Save Draft
+          </button>
+
+
+          <button
+            type="button"
+            class="btn btn-danger"
+            (click)="submitReturn()"
+          >
+            <i class="bi bi-arrow-return-left"></i>
+            Submit Return
+          </button>
+
+
+          <button
+            type="button"
+            class="btn btn-cancel"
+            (click)="cancel()"
+          >
+            Cancel
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <!-- WARNING CARD -->
+      <div class="warning-card">
+
+        <div class="warning-icon">
+          <i class="bi bi-exclamation-triangle"></i>
+        </div>
+
+        <div>
+
+          <h3>Return Verification</h3>
+
+          <p>
+            Verify the medicine, batch number and quantity carefully
+            before submitting the return.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <!-- INFO CARD -->
+      <div class="info-card">
+
+        <div class="info-icon">
+          <i class="bi bi-info-circle"></i>
+        </div>
+
+        <div>
+
+          <h3>Return Process</h3>
+
+          <p>
+            Submitted returns can be reviewed and adjusted against
+            the supplier ledger.
+          </p>
+
+        </div>
+
+      </div>
+
+    </aside>
+
+  </div>
+
+</div>

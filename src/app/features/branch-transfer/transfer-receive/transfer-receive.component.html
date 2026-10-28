@@ -1,0 +1,649 @@
+a<div class="receive-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div>
+      <div class="breadcrumb">
+        <span>Pharmacy</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Branch Transfer</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Transfer Receive</span>
+      </div>
+
+      <h1>Transfer Receive</h1>
+
+      <p>
+        Receive and verify stock transferred from another branch.
+      </p>
+    </div>
+
+    <button class="btn-light" type="button" (click)="backToTransfers()">
+      <i class="bi bi-arrow-left"></i>
+      Back to Transfers
+    </button>
+
+  </div>
+
+
+  <!-- SUMMARY -->
+  <div class="summary-grid">
+
+    <div class="summary-card">
+
+      <div class="summary-icon blue">
+        <i class="bi bi-arrow-left-right"></i>
+      </div>
+
+      <div>
+        <span>Total Transfers</span>
+        <strong>{{ totalTransfers }}</strong>
+        <small>All branch transfers</small>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon orange">
+        <i class="bi bi-truck"></i>
+      </div>
+
+      <div>
+        <span>In Transit</span>
+        <strong>{{ inTransitTransfers }}</strong>
+        <small>Waiting to receive</small>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon green">
+        <i class="bi bi-box-seam"></i>
+      </div>
+
+      <div>
+        <span>Received</span>
+        <strong>{{ receivedTransfers }}</strong>
+        <small>Successfully received</small>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon purple">
+        <i class="bi bi-exclamation-triangle"></i>
+      </div>
+
+      <div>
+        <span>Partial</span>
+        <strong>{{ partialTransfers }}</strong>
+        <small>Quantity discrepancy</small>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- PENDING STOCK -->
+  <div class="stock-banner">
+
+    <div class="stock-icon">
+      <i class="bi bi-box-arrow-in-down"></i>
+    </div>
+
+    <div>
+      <span>Pending Stock Quantity</span>
+
+      <strong>
+        {{ totalPendingQuantity | number }} Units
+      </strong>
+
+      <small>
+        Total stock currently in transit
+      </small>
+    </div>
+
+  </div>
+
+
+  <!-- FILTER -->
+  <div class="filter-card">
+
+    <div class="search-box">
+
+      <i class="bi bi-search"></i>
+
+      <input type="text" [(ngModel)]="searchTerm" placeholder="Search transfer ID, branch or requester...">
+
+    </div>
+
+
+    <div class="filter-group">
+
+      <label>Status</label>
+
+      <select [(ngModel)]="selectedStatus">
+        <option value="All">All Status</option>
+        <option value="In Transit">In Transit</option>
+        <option value="Received">Received</option>
+        <option value="Partial">Partial</option>
+      </select>
+
+    </div>
+
+  </div>
+
+
+  <!-- TRANSFER TABLE -->
+  <div class="content-card">
+
+    <div class="card-header">
+
+      <div class="header-left">
+
+        <div class="header-icon">
+          <i class="bi bi-box-arrow-in-down"></i>
+        </div>
+
+        <div>
+          <h3>Transfer Receiving Queue</h3>
+          <p>
+            Select a transfer to verify and receive stock.
+          </p>
+        </div>
+
+      </div>
+
+      <span class="request-count">
+        {{ filteredTransfers.length }} Transfers
+      </span>
+
+    </div>
+
+
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Transfer ID</th>
+            <th>Transfer Route</th>
+            <th>Transfer Date</th>
+            <th>Transferred By</th>
+            <th>Items</th>
+            <th>Quantity</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+
+        <tbody>
+
+          <tr *ngFor="
+              let transfer of filteredTransfers;
+              trackBy: trackByTransferId
+            ">
+
+            <!-- ID -->
+            <td>
+
+              <div class="transfer-id">
+
+                <div class="id-icon">
+                  <i class="bi bi-box-seam"></i>
+                </div>
+
+                <strong>
+                  {{ transfer.id }}
+                </strong>
+
+              </div>
+
+            </td>
+
+
+            <!-- ROUTE -->
+            <td>
+
+              <div class="route">
+
+                <span>
+                  {{ transfer.fromBranch }}
+                </span>
+
+                <i class="bi bi-arrow-right"></i>
+
+                <span>
+                  {{ transfer.toBranch }}
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <!-- DATE -->
+            <td>
+              <span class="date">
+                {{ transfer.transferDate }}
+              </span>
+            </td>
+
+
+            <!-- USER -->
+            <td>
+
+              <div class="requester">
+
+                <div class="avatar">
+                  {{ transfer.transferredBy.charAt(0) }}
+                </div>
+
+                <span>
+                  {{ transfer.transferredBy }}
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <!-- ITEMS -->
+            <td>
+              <strong>
+                {{ transfer.items.length }}
+              </strong>
+            </td>
+
+
+            <!-- QTY -->
+            <td>
+              <strong class="quantity">
+               {{ totalTransferredQty | number }}
+              </strong>
+            </td>
+
+
+            <!-- STATUS -->
+            <td>
+
+              <span class="status-badge" [ngClass]="getStatusClass(transfer.status)">
+
+                <span class="status-dot"></span>
+
+                {{ transfer.status }}
+
+              </span>
+
+            </td>
+
+
+            <!-- ACTION -->
+            <td>
+
+              <div class="actions">
+
+                <button class="icon-btn view" type="button" title="View Details" (click)="viewDetails(transfer)">
+                  <i class="bi bi-eye"></i>
+                </button>
+
+
+                <button *ngIf="
+                    transfer.status === 'In Transit' ||
+                    transfer.status === 'Partial'
+                  " class="receive-btn" type="button" (click)="selectTransfer(transfer)">
+                  <i class="bi bi-box-arrow-in-down"></i>
+                  Receive
+                </button>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+
+          <!-- EMPTY -->
+          <tr *ngIf="filteredTransfers.length === 0">
+
+            <td colspan="8">
+
+              <div class="empty-state">
+
+                <div class="empty-icon">
+                  <i class="bi bi-inbox"></i>
+                </div>
+
+                <h3>No Transfers Found</h3>
+
+                <p>
+                  No transfer records match your current filter.
+                </p>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+
+  <!-- RECEIVE PANEL -->
+  <div class="details-overlay" *ngIf="selectedTransfer" (click)="closeReceivePanel()">
+
+    <div class="receive-panel" (click)="$event.stopPropagation()">
+
+      <!-- PANEL HEADER -->
+      <div class="panel-header">
+
+        <div>
+
+          <span>Receive Transfer</span>
+
+          <h2>
+            {{ selectedTransfer.id }}
+          </h2>
+
+        </div>
+
+        <button class="close-btn" type="button" (click)="closeReceivePanel()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+
+      </div>
+
+
+      <!-- ROUTE -->
+      <div class="route-card">
+
+        <div class="branch">
+
+          <span>From</span>
+
+          <strong>
+            {{ selectedTransfer.fromBranch }}
+          </strong>
+
+        </div>
+
+
+        <div class="route-arrow">
+          <i class="bi bi-arrow-right"></i>
+        </div>
+
+
+        <div class="branch">
+
+          <span>To</span>
+
+          <strong>
+            {{ selectedTransfer.toBranch }}
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <!-- RECEIVE INFORMATION -->
+      <div class="form-section">
+
+        <div class="section-heading">
+
+          <div>
+            <h3>Receiving Information</h3>
+            <p>Confirm when and how the stock was received.</p>
+          </div>
+
+        </div>
+
+
+        <div class="form-grid">
+
+          <div class="form-group">
+
+            <label>Received Date</label>
+
+            <input type="date" [(ngModel)]="receiveDate">
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>Received By</label>
+
+            <input type="text" value="Pharmacy Admin" readonly>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- QUICK ACTION -->
+      <div class="quick-action">
+
+        <div>
+
+          <strong>Quick Verification</strong>
+
+          <span>
+            Mark all transferred quantities as received.
+          </span>
+
+        </div>
+
+        <button class="btn-outline" type="button" (click)="markAllGood()">
+          <i class="bi bi-check2-all"></i>
+          Mark All Good
+        </button>
+
+      </div>
+
+
+      <!-- ITEMS -->
+      <div class="form-section">
+
+        <div class="section-heading">
+
+          <div>
+            <h3>Received Items</h3>
+
+            <p>
+              Compare transferred quantity with received quantity.
+            </p>
+          </div>
+
+          <span class="item-count">
+            {{ selectedTransfer.items.length }} Items
+          </span>
+
+        </div>
+
+
+        <div class="receive-items">
+
+          <div class="receive-item" *ngFor="
+              let item of selectedTransfer.items;
+              let i = index;
+              trackBy: trackByItem
+            ">
+
+            <div class="item-top">
+
+              <div class="medicine-info">
+
+                <div class="medicine-icon">
+                  <i class="bi bi-capsule"></i>
+                </div>
+
+                <div>
+
+                  <strong>
+                    {{ item.medicine }}
+                  </strong>
+
+                  <span>
+                    {{ item.generic }}
+                  </span>
+
+                </div>
+
+              </div>
+
+
+              <span class="condition-badge" [ngClass]="getConditionClass(item.condition)">
+                {{ item.condition }}
+              </span>
+
+            </div>
+
+
+            <div class="item-meta">
+
+              <div>
+                <span>Batch</span>
+                <strong>{{ item.batch }}</strong>
+              </div>
+
+              <div>
+                <span>Expiry</span>
+                <strong>{{ item.expiryDate }}</strong>
+              </div>
+
+              <div>
+                <span>Transferred</span>
+                <strong>{{ item.transferredQty }}</strong>
+              </div>
+
+            </div>
+
+
+            <div class="quantity-grid">
+
+              <div class="quantity-field">
+
+                <label>Received Qty</label>
+
+                <input type="number" min="0" [max]="item.transferredQty" [(ngModel)]="item.receivedQty"
+                  (ngModelChange)="updateCondition(item)">
+
+              </div>
+
+
+              <div class="quantity-field">
+
+                <label>Damaged Qty</label>
+
+                <input type="number" min="0" [max]="item.transferredQty" [(ngModel)]="item.damagedQty"
+                  (ngModelChange)="updateCondition(item)">
+
+              </div>
+
+
+              <div class="quantity-field total-field">
+
+                <label>Value</label>
+
+                <strong>
+                  ৳{{ item.total | number:'1.2-2' }}
+                </strong>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- NOTES -->
+      <div class="form-section">
+
+        <div class="form-group">
+
+          <label>Receiving Notes</label>
+
+          <textarea rows="3" [(ngModel)]="receiveNotes"
+            placeholder="Add receiving notes or quantity discrepancy details..."></textarea>
+
+        </div>
+
+      </div>
+
+
+      <!-- SUMMARY -->
+      <div class="receive-summary">
+
+        <div>
+          <span>Transferred</span>
+          <strong>
+            {{ getSelectedTransferredQty() | number }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Received</span>
+          <strong class="green-text">
+            {{ getSelectedReceivedQty() | number }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Damaged</span>
+          <strong class="red-text">
+            {{ getSelectedDamagedQty() | number }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Total Value</span>
+          <strong>
+            ৳{{ getSelectedValue() | number:'1.2-2' }}
+          </strong>
+        </div>
+
+      </div>
+
+
+      <!-- ACTIONS -->
+      <div class="panel-actions">
+
+        <button class="btn-light" type="button" (click)="closeReceivePanel()">
+          Cancel
+        </button>
+
+        <button class="btn-success" type="button" (click)="receiveTransfer()">
+          <i class="bi bi-check-circle"></i>
+          Confirm Receipt
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

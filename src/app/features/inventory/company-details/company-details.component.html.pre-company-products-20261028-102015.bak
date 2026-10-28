@@ -1,0 +1,328 @@
+<div class="company-details-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div class="header-left">
+      <button class="back-btn" (click)="goBack()">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+
+      <div>
+        <div class="breadcrumb">
+          <span>Inventory</span>
+          <i class="bi bi-chevron-right"></i>
+          <span>Companies</span>
+          <i class="bi bi-chevron-right"></i>
+          <span>Company Details</span>
+        </div>
+
+        <h1>{{ company.name }}</h1>
+        <p>View company information, medicines and purchase history.</p>
+      </div>
+    </div>
+
+    <button class="edit-btn" (click)="editCompany()">
+      <i class="bi bi-pencil"></i>
+      Edit Company
+    </button>
+
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger" role="alert">
+    {{ errorMessage }}
+    <button type="button" class="btn btn-sm btn-outline-danger ms-2" (click)="loadCompany()">Retry</button>
+  </div>
+
+  <div *ngIf="loading" class="alert alert-info" role="status">
+    Loading company details...
+  </div>
+
+  <!-- COMPANY OVERVIEW -->
+  <div class="overview-card">
+
+    <div class="company-icon">
+      <i class="bi bi-building"></i>
+    </div>
+
+    <div class="company-main">
+      <div class="company-title-row">
+        <h2>{{ company.name }}</h2>
+
+        <span
+          class="status-badge"
+          [class.active]="company.status === 'Active'"
+          [class.inactive]="company.status === 'Inactive'">
+          {{ company.status }}
+        </span>
+      </div>
+
+      <p class="company-id">
+        Company ID: {{ company.id }}
+      </p>
+
+      <div class="company-meta">
+        <span>
+          <i class="bi bi-person"></i>
+          {{ company.contactPerson }}
+        </span>
+
+        <span>
+          <i class="bi bi-telephone"></i>
+          {{ company.phone }}
+        </span>
+
+        <span>
+          <i class="bi bi-envelope"></i>
+          {{ company.email }}
+        </span>
+
+        <span>
+          <i class="bi bi-geo-alt"></i>
+          {{ company.address }}
+        </span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-grid">
+
+    <div class="stat-card">
+      <div class="stat-icon blue">
+        <i class="bi bi-capsule"></i>
+      </div>
+
+      <div>
+        <span>Linked Products</span>
+        <strong>{{ company.medicines }}</strong>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon green">
+        <i class="bi bi-box-seam"></i>
+      </div>
+
+      <div>
+        <span>Current Stock</span>
+        <strong>{{ totalStock | number }}</strong>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon purple">
+        <i class="bi bi-cart-check"></i>
+      </div>
+
+      <div>
+        <span>Purchases</span>
+        <strong>Not linked</strong>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon orange">
+        <i class="bi bi-wallet2"></i>
+      </div>
+
+      <div>
+        <span>Due Amount</span>
+        <strong>Not linked</strong>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- COMPANY INFORMATION -->
+  <div class="content-card">
+
+    <div class="card-header">
+      <div>
+        <h3>Company Information</h3>
+        <p>Basic information about the pharmaceutical company.</p>
+      </div>
+    </div>
+
+    <div class="info-grid">
+
+      <div class="info-item">
+        <label>Company Name</label>
+        <strong>{{ company.name }}</strong>
+      </div>
+
+      <div class="info-item">
+        <label>Contact Person</label>
+        <strong>{{ company.contactPerson }}</strong>
+      </div>
+
+      <div class="info-item">
+        <label>Phone Number</label>
+        <strong>{{ company.phone }}</strong>
+      </div>
+
+      <div class="info-item">
+        <label>Email Address</label>
+        <strong>{{ company.email }}</strong>
+      </div>
+
+      <div class="info-item full">
+        <label>Address</label>
+        <strong>{{ company.address }}</strong>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- MEDICINES -->
+  <div class="content-card">
+
+    <div class="card-header">
+      <div>
+        <h3>Medicines from this Company</h3>
+        <p>Products supplied by {{ company.name }}.</p>
+      </div>
+
+      <span class="count-badge">
+        {{ medicines.length }} shown
+      </span>
+    </div>
+
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Medicine</th>
+            <th>Generic Name</th>
+            <th>Category</th>
+            <th>Stock</th>
+            <th>Purchase Price</th>
+            <th>Sale Price</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <tr *ngIf="medicines.length === 0">
+            <td colspan="7" class="text-center text-muted">
+              No products are linked to this company yet.
+            </td>
+          </tr>
+
+          <tr *ngFor="let medicine of medicines">
+
+            <td>
+              <div class="medicine-name">
+                <div class="medicine-icon">
+                  <i class="bi bi-capsule"></i>
+                </div>
+
+                <strong>{{ medicine.name }}</strong>
+              </div>
+            </td>
+
+            <td>{{ medicine.generic }}</td>
+
+            <td>{{ medicine.category }}</td>
+
+            <td>
+              <strong>{{ medicine.stock }}</strong>
+            </td>
+
+            <td>৳{{ medicine.purchasePrice | number:'1.2-2' }}</td>
+
+            <td>৳{{ medicine.salePrice | number:'1.2-2' }}</td>
+
+            <td>
+              <span
+                class="stock-badge"
+                [class.in-stock]="medicine.status === 'In Stock'"
+                [class.low-stock]="medicine.status === 'Low Stock'">
+                {{ medicine.status }}
+              </span>
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+  <!-- PURCHASE HISTORY -->
+  <div class="content-card">
+
+    <div class="card-header">
+      <div>
+        <h3>Purchase History</h3>
+        <p>Recent purchase transactions from this company.</p>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Invoice</th>
+            <th>Date</th>
+            <th>Total Amount</th>
+            <th>Paid</th>
+            <th>Due</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <tr *ngFor="let purchase of purchases">
+
+            <td>
+              <strong class="invoice-number">
+                {{ purchase.invoice }}
+              </strong>
+            </td>
+
+            <td>{{ purchase.date }}</td>
+
+            <td>৳{{ purchase.amount | number }}</td>
+
+            <td class="paid">
+              ৳{{ purchase.paid | number }}
+            </td>
+
+            <td
+              [class.due]="purchase.due > 0"
+              [class.no-due]="purchase.due === 0">
+              ৳{{ purchase.due | number }}
+            </td>
+
+            <td>
+              <span
+                class="purchase-status"
+                [class.paid-status]="purchase.status === 'Paid'"
+                [class.partial-status]="purchase.status === 'Partial'">
+                {{ purchase.status }}
+              </span>
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>

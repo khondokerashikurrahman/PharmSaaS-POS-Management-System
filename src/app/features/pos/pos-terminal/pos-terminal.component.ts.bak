@@ -1,0 +1,1785 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+import { StorageService } from '../../../core/services/storage.service';
+import { SaleApiService } from '../../../core/services/sale-api.service';
+import { StoreApiService, StoreResponse } from '../../../core/services/store-api.service';
+
+import {
+  InvoiceReceiptData
+} from '../invoice-receipt/invoice-receipt.component';
+
+import { ProductSearchComponent } from '../product-search/product-search.component';
+import { CartListComponent } from '../cart-list/cart-list.component';
+import { CustomerSelectorComponent } from '../customer-selector/customer-selector.component';
+import { DiscountModalComponent } from '../discount-modal/discount-modal.component';
+import { PaymentPanelComponent } from '../payment-panel/payment-panel.component';
+import { InvoiceReceiptComponent } from '../invoice-receipt/invoice-receipt.component';
+
+import {
+  HoldCartComponent,
+  HeldCart
+} from '../hold-cart/hold-cart.component';
+
+import {
+  ReturnSaleComponent,
+  ReturnSaleData
+} from '../return-sale/return-sale.component';
+
+import { BatchSelectorModalComponent } from '../batch-selector-modal/batch-selector-modal.component';
+
+import { CartItem } from '../../../core/models/cart.model';
+
+
+@Component({
+  selector: 'app-pos-terminal',
+  standalone: true,
+
+  imports: [
+    CommonModule,
+    ProductSearchComponent,
+    CartListComponent,
+    CustomerSelectorComponent,
+    DiscountModalComponent,
+    PaymentPanelComponent,
+    InvoiceReceiptComponent,
+    HoldCartComponent,
+    ReturnSaleComponent,
+    BatchSelectorModalComponent
+  ],
+
+  templateUrl: './pos-terminal.component.html',
+  styleUrl: './pos-terminal.component.scss'
+})
+
+
+export class PosTerminalComponent implements OnInit {
+
+  processingSale = false;
+
+  activeStores: StoreResponse[] = [];
+  selectedStoreId: number | null = null;
+  loadingStores = false;
+  storeLoadFailed = false;
+
+  // =====================================================
+  // CART
+  // =====================================================
+
+  cartItems: CartItem[] = [];
+
+
+  // =====================================================
+  // PRODUCT / CUSTOMER
+  // =====================================================
+
+  selectedCustomer: any = null;
+
+  selectedProduct: any = null;
+
+
+  // =====================================================
+  // INVOICE
+  // =====================================================
+
+  invoiceReceiptData: InvoiceReceiptData | null = null;
+
+
+  // =====================================================
+  // BATCH MODAL
+  // =====================================================
+
+  showBatchModal = false;
+
+
+  // =====================================================
+  // DISCOUNT
+  // =====================================================
+
+  discount = 0;
+
+  discountType: 'amount' | 'percentage' = 'amount';
+
+  showDiscountModal = false;
+
+
+  // =====================================================
+  // TAX
+  // =====================================================
+
+  taxRate = 0;
+
+
+  // =====================================================
+  // PAYMENT
+  // =====================================================
+
+  paymentMethod: 'Cash' | 'Card' | 'Mobile' = 'Cash';
+
+  amountReceived = 0;
+
+  showPaymentPanel = false;
+
+
+  // =====================================================
+  // INVOICE RECEIPT
+  // =====================================================
+
+  showInvoiceReceipt = false;
+
+
+  // =====================================================
+  // HOLD CART
+  // =====================================================
+
+  showHoldCart = false;
+
+
+  // =====================================================
+  // RETURN SALE
+  // =====================================================
+
+  showReturnSale = false;
+
+  returnSaleTarget: any = null;
+
+
+  // =====================================================
+  // STORAGE
+  // =====================================================
+
+  private storageKey = 'held-carts';
+
+
+  // =====================================================
+  // CONSTRUCTOR
+  // =====================================================
+
+  constructor(
+    private storageService: StorageService,
+    private saleApiService: SaleApiService,
+    private storeApiService: StoreApiService
+  ) {}
+
+
+  // =====================================================
+  get currentTenantId(): number {
+    const id = Number(
+      localStorage.getItem('tenantId') ||
+      localStorage.getItem('tenant_id') ||
+      0
+    );
+    if (Number.isSafeInteger(id) && id > 0) return id;
+
+    try {
+      const user = JSON.parse(localStorage.getItem('pharm_user') || '{}');
+      const fallback = Number(user.tenantId || user.tenant?.id || 0);
+      return Number.isSafeInteger(fallback) && fallback > 0 ? fallback : 0;
+    } catch {
+      return 0;
+    }
+  }
+
+  // INIT
+  // =====================================================
+
+  ngOnInit(): void {
+
+    this.loadStores();
+    this.loadCart();
+
+  }
+
+  // Load only active stores belonging to the current tenant.
+  loadStores(): void {
+    const tenantId = Number(localStorage.getItem('tenantId'));
+
+    if (!Number.isSafeInteger(tenantId) || tenantId <= 0) {
+      this.activeStores = [];
+      this.selectedStoreId = null;
+      this.storeLoadFailed = true;
+      return;
+    }
+
+    this.loadingStores = true;
+    this.storeLoadFailed = false;
+
+    this.storeApiService.getAll(tenantId).subscribe({
+      next: stores => {
+        this.activeStores = (Array.isArray(stores) ? stores : [])
+          .filter(store => String(store.status || '').toLowerCase() === 'active');
+
+        if (
+          this.selectedStoreId !== null &&
+          !this.activeStores.some(store => store.id === this.selectedStoreId)
+        ) {
+          this.selectedStoreId = null;
+        }
+
+        // Avoid asking the operator to choose when only one active store exists.
+        if (this.activeStores.length === 1) {
+          this.selectedStoreId = this.activeStores[0].id;
+        }
+
+        this.loadingStores = false;
+      },
+      error: error => {
+        console.error('Could not load tenant stores for POS:', error);
+        this.activeStores = [];
+        this.selectedStoreId = null;
+        this.storeLoadFailed = true;
+        this.loadingStores = false;
+      }
+    });
+  }
+
+  onStoreChange(value: string): void {
+    const id = Number(value);
+    this.selectedStoreId =
+      value && Number.isSafeInteger(id) && id > 0 ? id : null;
+  }
+
+
+  // =====================================================
+  // CALCULATIONS
+  // =====================================================
+
+  /**
+   * Total quantity of all products
+   */
+  get totalItems(): number {
+
+    return this.cartItems.reduce(
+      (sum, item) =>
+        sum + Number(item.quantity || 0),
+      0
+    );
+
+  }
+
+
+  /**
+   * Customer name
+   */
+  get customerName(): string {
+
+    return (
+      this.selectedCustomer?.name ||
+      this.selectedCustomer?.customerName ||
+      'Walk-in Customer'
+    );
+
+  }
+
+
+  /**
+   * Cart subtotal
+   */
+  get subtotal(): number {
+
+    return this.cartItems.reduce(
+      (sum, item) =>
+        sum + Number(item.totalPrice || 0),
+      0
+    );
+
+  }
+
+
+  /**
+   * Actual discount amount
+   *
+   * Example:
+   *
+   * Subtotal = 1000
+   *
+   * Percentage 10
+   * => Discount = 100
+   *
+   * Amount 150
+   * => Discount = 150
+   */
+  get discountAmount(): number {
+
+    const currentSubtotal = this.subtotal;
+
+    const currentDiscount = Number(
+      this.discount || 0
+    );
+
+
+    if (
+      currentSubtotal <= 0 ||
+      currentDiscount <= 0
+    ) {
+
+      return 0;
+
+    }
+
+
+    // Percentage discount
+    if (this.discountType === 'percentage') {
+
+      const calculatedDiscount =
+        currentSubtotal *
+        (currentDiscount / 100);
+
+
+      return Math.min(
+        calculatedDiscount,
+        currentSubtotal
+      );
+
+    }
+
+
+    // Fixed amount discount
+    return Math.min(
+      currentDiscount,
+      currentSubtotal
+    );
+
+  }
+
+
+  /**
+   * Tax
+   *
+   * Tax is calculated after discount.
+   */
+  get taxAmount(): number {
+
+    const taxableAmount =
+      Math.max(
+        this.subtotal -
+        this.discountAmount,
+        0
+      );
+
+
+    return (
+      taxableAmount *
+      (Number(this.taxRate || 0) / 100)
+    );
+
+  }
+
+
+  /**
+   * Final payable amount
+   */
+  get totalAmount(): number {
+
+    const total =
+      this.subtotal -
+      this.discountAmount +
+      this.taxAmount;
+
+
+    return Math.max(
+      total,
+      0
+    );
+
+  }
+
+
+  // =====================================================
+  // CART
+  // =====================================================
+
+  loadCart(): void {
+
+    this.cartItems = [];
+
+  }
+
+
+  /**
+   * Increase quantity
+   */
+  increaseQuantity(item: CartItem): void {
+
+    if (!item) {
+      return;
+    }
+
+
+    const stock =
+      Number(item.stock);
+
+
+    if (
+      Number.isFinite(stock) &&
+      stock > 0 &&
+      item.quantity >= stock
+    ) {
+
+      alert(
+        'Available stock limit reached.'
+      );
+
+      return;
+
+    }
+
+
+    item.quantity++;
+
+    this.recalculateItem(item);
+
+
+    // Force Angular UI update
+    this.cartItems = [
+      ...this.cartItems
+    ];
+
+  }
+
+
+  /**
+   * Decrease quantity
+   */
+  decreaseQuantity(item: CartItem): void {
+
+    if (!item) {
+      return;
+    }
+
+
+    if (item.quantity > 1) {
+
+      item.quantity--;
+
+      this.recalculateItem(item);
+
+      this.cartItems = [
+        ...this.cartItems
+      ];
+
+      return;
+
+    }
+
+
+    this.removeFromCart(item);
+
+  }
+
+
+  /**
+   * Remove cart item
+   */
+  removeFromCart(item: CartItem): void {
+
+    if (!item) {
+      return;
+    }
+
+
+    this.cartItems =
+      this.cartItems.filter(
+        cartItem =>
+          cartItem.id !== item.id
+      );
+
+
+    /*
+     * If cart becomes empty,
+     * remove discount automatically.
+     */
+    if (this.cartItems.length === 0) {
+
+      this.resetDiscount();
+
+    }
+
+  }
+
+
+  /**
+   * Cart list থেকে updated cart পাওয়া
+   */
+  onCartUpdated(event: any): void {
+
+    const items =
+      Array.isArray(event)
+        ? event
+        : event?.items;
+
+
+    if (!Array.isArray(items)) {
+      return;
+    }
+
+
+    this.cartItems =
+      items.map(item => {
+
+        this.recalculateItem(item);
+
+        return item;
+
+      });
+
+
+    /*
+     * Cart subtotal কমে গেলে
+     * existing discount আবার validate হবে।
+     */
+    this.validateDiscount();
+
+  }
+
+
+  /**
+   * Recalculate individual cart item
+   */
+  recalculateItem(item: CartItem): void {
+
+    if (!item) {
+      return;
+    }
+
+
+    const quantity =
+      Number(item.quantity || 0);
+
+
+    const unitPrice =
+      Number(item.unitPrice || 0);
+
+
+    const itemDiscount =
+      Number(item.discount || 0);
+
+
+    const gross =
+      quantity *
+      unitPrice;
+
+
+    item.totalPrice =
+      Math.max(
+        gross -
+        itemDiscount,
+        0
+      );
+
+  }
+
+
+  /**
+   * Clear entire cart
+   */
+  clearCart(): void {
+
+    this.cartItems = [];
+
+    this.selectedCustomer = null;
+
+    this.selectedProduct = null;
+
+
+    // Reset discount
+    this.resetDiscount();
+
+
+    // Reset payment
+    this.amountReceived = 0;
+
+    this.paymentMethod = 'Cash';
+
+  }
+
+
+  // =====================================================
+  // PRODUCT
+  // =====================================================
+
+  onProductSelected(product: any): void {
+    if (!product) return;
+
+    if (this.loadingStores || this.storeLoadFailed ||
+        this.activeStores.length === 0 || this.selectedStoreId === null) {
+      alert('POS sale শুরু করার আগে একটি active store load ও select করতে হবে।');
+      return;
+    }
+
+    const productId = Number(
+      product.id ?? product.productId ?? product.medicineId
+    );
+
+    if (!Number.isSafeInteger(productId) || productId <= 0) {
+      alert('Selected medicine-এর valid database ID নেই। Inventory API product নির্বাচন করো।');
+      return;
+    }
+
+    // Always fetch the available batches for the selected store.
+    // Never fall back to demo batches or tenant-wide stock.
+    this.selectedProduct = product;
+    this.showBatchModal = true;
+  }
+
+
+  /**
+   * Add product to cart
+   */
+  addProductToCart(product: any): void {
+
+    if (!product) {
+      return;
+    }
+
+
+    const productId =
+      product.id ||
+      product.productId;
+
+
+    if (!productId) {
+
+      alert(
+        'Product ID is missing.'
+      );
+
+      return;
+
+    }
+
+
+    /*
+     * Price priority
+     */
+    const price =
+      Number(
+        product.sellingPrice ??
+        product.price ??
+        product.salePrice ??
+        0
+      );
+
+
+    if (price < 0) {
+
+      alert(
+        'Invalid product price.'
+      );
+
+      return;
+
+    }
+
+
+    /*
+     * Stock
+     *
+     * Undefined রাখছি যদি demo product-এ
+     * stock দেওয়া না থাকে।
+     */
+    const rawStock =
+      product.stock;
+
+
+    const stock =
+      rawStock !== undefined &&
+      rawStock !== null &&
+      Number(rawStock) > 0
+        ? Number(rawStock)
+        : undefined;
+
+
+    /*
+     * Check existing product
+     */
+    const existingItem =
+      this.cartItems.find(
+        item =>
+          item.productId === productId &&
+          (item.batchId || '') ===
+          (product.batchId || '')
+      );
+
+
+    // ===================================================
+    // EXISTING ITEM
+    // ===================================================
+
+    if (existingItem) {
+
+      if (
+        stock !== undefined &&
+        existingItem.quantity >= stock
+      ) {
+
+        alert(
+          'Available stock limit reached.'
+        );
+
+        return;
+
+      }
+
+
+      existingItem.quantity++;
+
+
+      this.recalculateItem(
+        existingItem
+      );
+
+
+      this.cartItems = [
+        ...this.cartItems
+      ];
+
+
+      return;
+
+    }
+
+
+    // ===================================================
+    // NEW ITEM
+    // ===================================================
+
+    const item: CartItem = {
+
+      id:
+        Date.now().toString(),
+
+      productId:
+        productId,
+
+      productName:
+        product.name ||
+        product.productName ||
+        'Product',
+
+      sku:
+        product.sku ||
+        product.code ||
+        '',
+
+      batchId:
+        product.batchId ||
+        '',
+
+      batchNumber:
+        product.batchNumber ||
+        '',
+
+      expiryDate:
+        product.expiryDate ||
+        '',
+
+      quantity:
+        1,
+
+      stock:
+        stock,
+
+      unitPrice:
+        price,
+
+      discount:
+        0,
+
+      totalPrice:
+        price
+
+    };
+
+
+    this.cartItems = [
+      ...this.cartItems,
+      item
+    ];
+
+  }
+
+
+  // =====================================================
+  // BATCH
+  // =====================================================
+
+  onBatchSelected(batch: any): void {
+
+    this.showBatchModal = false;
+
+
+    if (
+      !this.selectedProduct ||
+      !batch
+    ) {
+
+      return;
+
+    }
+
+
+    const product = {
+
+      ...this.selectedProduct,
+
+
+      batchId:
+        batch.id ??
+        batch.batchId ??
+        '',
+
+
+      batchNumber:
+        batch.batchNumber ??
+        batch.number ??
+        '',
+
+
+      expiryDate:
+        batch.expiryDate ??
+        '',
+
+
+      stock:
+        batch.availableQuantity ??
+        batch.quantity ??
+        batch.stock ??
+        this.selectedProduct.stock ??
+        undefined,
+
+
+      price:
+        batch.sellingPrice ??
+        batch.price ??
+        this.selectedProduct.sellingPrice ??
+        this.selectedProduct.price ??
+        0
+
+    };
+
+
+    this.addProductToCart(
+      product
+    );
+
+
+    this.selectedProduct = null;
+
+  }
+
+
+  closeBatchModal(): void {
+
+    this.showBatchModal = false;
+
+    this.selectedProduct = null;
+
+  }
+
+
+  // =====================================================
+  // CUSTOMER
+  // =====================================================
+
+  onCustomerSelected(
+    customer: any
+  ): void {
+
+    this.selectedCustomer =
+      customer;
+
+  }
+
+
+  // =====================================================
+  // DISCOUNT
+  // =====================================================
+
+  /**
+   * Open Discount Modal
+   */
+  openDiscountModal(): void {
+
+    /*
+     * Discount cannot be applied
+     * without products.
+     */
+    if (
+      this.cartItems.length === 0
+    ) {
+
+      alert(
+        'Please add products to the cart first.'
+      );
+
+      return;
+
+    }
+
+
+    /*
+     * Make sure subtotal is available.
+     */
+    if (this.subtotal <= 0) {
+
+      alert(
+        'Cart subtotal must be greater than zero.'
+      );
+
+      return;
+
+    }
+
+
+    this.showDiscountModal =
+      true;
+
+  }
+
+
+  /**
+   * Discount modal থেকে event আসার পরে
+   * এই method কাজ করবে।
+   *
+   * Expected data:
+   *
+   * {
+   *   type: 'percentage' | 'amount',
+   *   value: number
+   * }
+   */
+  onDiscountApplied(data: any): void {
+
+    if (!data) {
+
+      return;
+
+    }
+
+
+    /*
+     * Get discount value
+     */
+    const value =
+      Number(
+        data.value ??
+        data.discount ??
+        0
+      );
+
+
+    /*
+     * Invalid value
+     */
+    if (
+      !Number.isFinite(value) ||
+      value < 0
+    ) {
+
+      alert(
+        'Please enter a valid discount.'
+      );
+
+      return;
+
+    }
+
+
+    /*
+     * Get discount type
+     */
+    const type =
+      data.type === 'percentage'
+        ? 'percentage'
+        : 'amount';
+
+
+    /*
+     * Percentage validation
+     */
+    if (
+      type === 'percentage' &&
+      value > 100
+    ) {
+
+      alert(
+        'Percentage discount cannot exceed 100%.'
+      );
+
+      return;
+
+    }
+
+
+    /*
+     * Amount validation
+     */
+    if (
+      type === 'amount' &&
+      value > this.subtotal
+    ) {
+
+      alert(
+        'Discount cannot exceed subtotal.'
+      );
+
+      return;
+
+    }
+
+
+    /*
+     * Save discount
+     */
+    this.discount =
+      value;
+
+    this.discountType =
+      type;
+
+
+    /*
+     * Close modal
+     */
+    this.showDiscountModal =
+      false;
+
+
+    /*
+     * Force Angular UI refresh
+     */
+    this.cartItems = [
+      ...this.cartItems
+    ];
+
+  }
+
+
+  /**
+   * Kept for compatibility
+   * with any existing code.
+   */
+  applyDiscount(data: any): void {
+
+    this.onDiscountApplied(
+      data
+    );
+
+  }
+
+
+  /**
+   * Remove discount
+   */
+  removeDiscount(): void {
+
+    this.resetDiscount();
+
+  }
+
+
+  /**
+   * Reset discount
+   */
+  private resetDiscount(): void {
+
+    this.discount = 0;
+
+    this.discountType = 'amount';
+
+  }
+
+
+  /**
+   * Check whether current discount
+   * is still valid after cart update.
+   */
+  private validateDiscount(): void {
+
+    if (
+      this.discount <= 0
+    ) {
+
+      return;
+
+    }
+
+
+    if (
+      this.discountType ===
+      'percentage'
+    ) {
+
+      if (this.discount > 100) {
+
+        this.discount = 100;
+
+      }
+
+      return;
+
+    }
+
+
+    /*
+     * Fixed amount discount
+     * cannot exceed current subtotal.
+     */
+    if (
+      this.discount >
+      this.subtotal
+    ) {
+
+      this.discount =
+        this.subtotal;
+
+    }
+
+  }
+
+
+  /**
+   * Close discount modal
+   */
+  closeDiscountModal(): void {
+
+    this.showDiscountModal =
+      false;
+
+  }
+
+
+  // =====================================================
+  // PAYMENT
+  // =====================================================
+
+  /**
+   * Open payment panel
+   */
+  openPayment(): void {
+
+    if (
+      this.cartItems.length === 0
+    ) {
+
+      alert(
+        'Please add products to the cart.'
+      );
+
+      return;
+
+    }
+
+
+    if (
+      this.totalAmount <= 0
+    ) {
+
+      alert(
+        'Total amount must be greater than zero.'
+      );
+
+      return;
+
+    }
+
+
+    /*
+     * Reset payment values
+     */
+    this.amountReceived = 0;
+
+    this.paymentMethod = 'Cash';
+
+
+    /*
+     * Open payment modal
+     */
+    this.showPaymentPanel =
+      true;
+
+  }
+
+
+  /**
+   * Close payment panel
+   */
+  closePayment(): void {
+
+    this.showPaymentPanel =
+      false;
+
+  }
+
+
+  /**
+   * Payment panel থেকে
+   * payment data receive
+   */
+  onPaymentChanged(
+    payment: any
+  ): void {
+
+    if (!payment) {
+
+      return;
+
+    }
+
+
+    const method =
+      payment.method ??
+      payment.paymentMethod ??
+      'Cash';
+
+
+    /*
+     * Only allow valid methods
+     */
+    if (
+      method === 'Cash' ||
+      method === 'Card' ||
+      method === 'Mobile'
+    ) {
+
+      this.paymentMethod =
+        method;
+
+    }
+
+
+    this.amountReceived =
+      Number(
+        payment.amountReceived ??
+        payment.receivedAmount ??
+        payment.amount ??
+        0
+      );
+
+  }
+
+
+  /**
+   * Payment completed
+   */
+  onPaymentCompleted(
+    payment: any
+  ): void {
+
+    this.onPaymentChanged(
+      payment
+    );
+
+
+    this.completeSale();
+
+  }
+
+
+  // =====================================================
+  // COMPLETE SALE
+  // =====================================================
+
+  completeSale(): void {
+    if (this.processingSale) {
+      return;
+    }
+
+    if (!this.cartItems.length) {
+      alert('Cart is empty.');
+      return;
+    }
+
+    const tenantId = Number(
+      localStorage.getItem('tenantId') ||
+      (() => {
+        try {
+          return JSON.parse(localStorage.getItem('pharm_user') || '{}').tenantId;
+        } catch {
+          return null;
+        }
+      })()
+    );
+
+    if (!Number.isSafeInteger(tenantId) || tenantId <= 0) {
+      alert('Tenant ID is missing. Please log in again.');
+      return;
+    }
+
+    // The backend currently supports order-level discounts only.
+    if (this.cartItems.some(item => Number(item.discount || 0) > 0)) {
+      alert(
+        'One or more cart items have an item-level discount. ' +
+        'Please remove those discounts before checkout; backend support is being added.'
+      );
+      return;
+    }
+
+    const items = this.cartItems.map(item => ({
+      productId: Number(item.productId),
+      batchId: Number(item.batchId),
+      quantity: Number(item.quantity)
+    }));
+
+    if (items.some(item =>
+      !Number.isSafeInteger(item.productId) || item.productId <= 0 ||
+      !Number.isSafeInteger(item.batchId) || item.batchId <= 0 ||
+      !Number.isSafeInteger(item.quantity) || item.quantity <= 0
+    )) {
+      alert(
+        'A cart item is missing a valid database product ID or batch ID. ' +
+        'Remove it and select the product batch again.'
+      );
+      return;
+    }
+
+    if (this.loadingStores || this.storeLoadFailed) {
+      alert('Active stores could not be loaded. Please refresh the POS and try again.');
+      return;
+    }
+
+    if (this.activeStores.length === 0 || this.selectedStoreId === null) {
+      alert('Please select a store before completing this sale.');
+      return;
+    }
+
+    const total = Number(this.totalAmount);
+    const received = Number(this.amountReceived || 0);
+
+    if (!Number.isFinite(total) || total < 0) {
+      alert('The sale total is invalid.');
+      return;
+    }
+
+    if (
+      String(this.paymentMethod).toLowerCase() === 'cash' &&
+      received < total
+    ) {
+      alert(
+        `Received amount is not enough. Please enter at least ৳${total.toFixed(2)}.`
+      );
+      return;
+    }
+
+    const taxableAmount = Number(this.subtotal) - Number(this.discountAmount);
+    const taxRate = taxableAmount > 0
+      ? Number((Number(this.taxAmount) / taxableAmount * 100).toFixed(4))
+      : 0;
+
+    const method = String(this.paymentMethod).toLowerCase();
+    const paymentMethod: 'CASH' | 'CARD' | 'MOBILE' =
+      method === 'cash' ? 'CASH' :
+      method === 'card' ? 'CARD' : 'MOBILE';
+
+    this.processingSale = true;
+
+    this.saleApiService.createSale(tenantId, {
+      customerName: this.customerName || 'Walk-in Customer',
+      storeId: this.selectedStoreId ?? undefined,
+      paymentMethod,
+      discountType: this.discountType,
+      discountValue: Number(this.discount || 0),
+      taxRate,
+      amountReceived: paymentMethod === 'CASH' ? received : total,
+      items
+    }).subscribe({
+      next: sale => {
+        // The receipt is built from the saved backend response.
+        this.invoiceReceiptData = {
+          invoiceNumber: sale.invoiceNumber,
+          date: sale.createdAt
+            ? new Date(sale.createdAt).toLocaleString()
+            : new Date().toLocaleString(),
+          customerName: sale.customerName,
+          items: sale.items.map(item => ({
+            productName: item.productName,
+            sku: item.sku || '',
+            batchNumber: item.batchNumber || '',
+            quantity: item.quantity,
+            unitPrice: Number(item.unitPrice),
+            totalPrice: Number(item.subtotal)
+          })),
+          subtotal: Number(sale.subtotal),
+          discount: Number(sale.discount),
+          tax: Number(sale.tax),
+          totalAmount: Number(sale.total),
+          paymentMethod:
+            sale.paymentMethod === 'CASH' ? 'Cash' :
+            sale.paymentMethod === 'CARD' ? 'Card' : 'Mobile',
+          amountReceived: Number(sale.amountReceived),
+          change: Number(sale.changeAmount)
+        };
+
+        this.showPaymentPanel = false;
+        this.showInvoiceReceipt = true;
+        this.processingSale = false;
+      },
+      error: error => {
+        this.processingSale = false;
+        const message =
+          error?.error?.detail ||
+          error?.error?.message ||
+          error?.error?.title ||
+          'Sale could not be saved. Please check the server and try again.';
+
+        alert(message);
+      }
+    });
+  }
+
+
+  /**
+   * Generate invoice number
+   */
+  generateInvoiceNumber(): string {
+
+    return `INV-${Date.now()
+      .toString()
+      .slice(-8)}`;
+
+  }
+
+
+  // =====================================================
+  // INVOICE
+  // =====================================================
+
+  closeInvoice(): void {
+
+    this.showInvoiceReceipt =
+      false;
+
+    this.invoiceReceiptData =
+      null;
+
+
+    /*
+     * Start new sale
+     */
+    this.clearCart();
+
+  }
+
+
+  closeInvoiceReceipt(): void {
+
+    this.closeInvoice();
+
+  }
+
+
+  // =====================================================
+  // HOLD CART
+  // =====================================================
+
+  holdCurrentCart(): void {
+
+    if (
+      this.cartItems.length === 0
+    ) {
+
+      alert(
+        'Cart is empty.'
+      );
+
+      return;
+
+    }
+
+
+    const heldCart: HeldCart = {
+
+      id:
+        Date.now().toString(),
+
+
+      customerName:
+        this.customerName,
+
+
+      items:
+        this.cartItems.map(
+          item => ({
+            ...item
+          })
+        ),
+
+
+      subtotal:
+        this.subtotal,
+
+
+      discount:
+        this.discountAmount,
+
+
+      tax:
+        this.taxAmount,
+
+
+      total:
+        this.totalAmount,
+
+
+      createdAt:
+        new Date()
+          .toLocaleString()
+
+    };
+
+
+    const stored =
+      localStorage.getItem(
+        this.storageKey
+      );
+
+
+    let heldCarts:
+      HeldCart[] = [];
+
+
+    if (stored) {
+
+      try {
+
+        heldCarts =
+          JSON.parse(
+            stored
+          );
+
+      } catch {
+
+        heldCarts = [];
+
+      }
+
+    }
+
+
+    heldCarts.unshift(
+      heldCart
+    );
+
+
+    localStorage.setItem(
+
+      this.storageKey,
+
+      JSON.stringify(
+        heldCarts
+      )
+
+    );
+
+
+    /*
+     * Clear current cart
+     */
+    this.clearCart();
+
+
+    alert(
+      'Cart has been put on hold.'
+    );
+
+  }
+
+
+  /**
+   * Open held cart modal
+   */
+  openHoldCart(): void {
+
+    this.showHoldCart =
+      true;
+
+  }
+
+
+  /**
+   * Close held cart modal
+   */
+  closeHoldCart(): void {
+
+    this.showHoldCart =
+      false;
+
+  }
+
+
+  /**
+   * Resume held cart
+   */
+  resumeHeldCart(
+    cart: HeldCart
+  ): void {
+
+    if (!cart) {
+
+      return;
+
+    }
+
+
+    this.cartItems =
+      cart.items || [];
+
+
+    /*
+     * Recalculate items
+     */
+    this.cartItems.forEach(
+      item => {
+
+        this.recalculateItem(
+          item
+        );
+
+      }
+    );
+
+
+    /*
+     * HeldCart বর্তমানে
+     * discount amount হিসেবে save হচ্ছে।
+     */
+    this.discount =
+      Number(
+        cart.discount || 0
+      );
+
+
+    this.discountType =
+      'amount';
+
+
+    /*
+     * Customer
+     */
+    this.selectedCustomer = {
+
+      name:
+        cart.customerName
+
+    };
+
+
+    this.showHoldCart =
+      false;
+
+
+    /*
+     * Validate discount after restore
+     */
+    this.validateDiscount();
+
+  }
+
+
+  // =====================================================
+  // RETURN SALE
+  // =====================================================
+
+  openReturnSale(
+    sale: any
+  ): void {
+
+    if (!sale) {
+
+      alert(
+        'Please select a completed sale from Sales History first.'
+      );
+
+      return;
+
+    }
+
+
+    this.returnSaleTarget =
+      sale;
+
+
+    this.showReturnSale =
+      true;
+
+  }
+
+
+  /**
+   * Close return sale modal
+   */
+  closeReturnSale(): void {
+
+    this.showReturnSale =
+      false;
+
+    this.returnSaleTarget =
+      null;
+
+  }
+
+
+  /**
+   * Complete return
+   */
+  completeReturn(
+    data: ReturnSaleData
+  ): void {
+
+    if (!data) {
+
+      return;
+
+    }
+
+
+    const sales =
+      this.storageService
+        .getSales<any>();
+
+
+    const sale =
+      sales.find(
+        (item: any) =>
+          item.invoice ===
+          data.invoice
+      );
+
+
+    if (sale) {
+
+      sale.status =
+        'Refunded';
+
+
+      sale.returnReason =
+        data.reason;
+
+
+      sale.refundAmount =
+        data.refundAmount;
+
+
+      sale.returnedItems =
+        data.items;
+
+
+      this.storageService
+        .saveSales(
+          sales
+        );
+
+    }
+
+
+    this.closeReturnSale();
+
+
+    alert(
+      `Return completed for invoice ${data.invoice}. Refund amount: ৳${data.refundAmount.toFixed(2)}`
+    );
+
+  }
+
+}

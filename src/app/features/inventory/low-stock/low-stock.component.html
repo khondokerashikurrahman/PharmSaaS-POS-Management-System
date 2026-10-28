@@ -1,0 +1,458 @@
+
+<div class="low-stock-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div class="header-left">
+
+      <div class="breadcrumb">
+        <span>Pharmacy</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Inventory</span>
+        <i class="bi bi-chevron-right"></i>
+        <span class="current">Low Stock</span>
+      </div>
+
+      <h1>Low Stock Alert</h1>
+
+      <p>
+        Monitor medicines that need replenishment before stock runs out.
+      </p>
+
+    </div>
+
+    <div class="header-actions">
+
+      <button
+        type="button"
+        class="btn btn-light"
+        (click)="goBack()"
+      >
+        <i class="bi bi-arrow-left"></i>
+        Back to Medicines
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="goToPurchaseOrders()"
+      >
+        <i class="bi bi-cart-plus"></i>
+        Create Purchase Order
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- SUMMARY -->
+  <div class="summary-grid">
+
+    <div class="summary-card">
+
+      <div class="summary-icon warning">
+        <i class="bi bi-exclamation-triangle"></i>
+      </div>
+
+      <div class="summary-content">
+        <span>Low Stock</span>
+        <strong>{{ totalLowStock }}</strong>
+        <small>Need replenishment</small>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon danger">
+        <i class="bi bi-x-octagon"></i>
+      </div>
+
+      <div class="summary-content">
+        <span>Out of Stock</span>
+        <strong>{{ totalOutOfStock }}</strong>
+        <small>Currently unavailable</small>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon critical">
+        <i class="bi bi-lightning-charge"></i>
+      </div>
+
+      <div class="summary-content">
+        <span>Critical Items</span>
+        <strong>{{ totalCriticalItems }}</strong>
+        <small>Urgent attention</small>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon units">
+        <i class="bi bi-boxes"></i>
+      </div>
+
+      <div class="summary-content">
+        <span>Required Units</span>
+        <strong>{{ totalRequiredUnits }}</strong>
+        <small>Estimated replenishment</small>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- CONTENT -->
+  <div class="content-card">
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+
+      <div class="toolbar-title">
+
+        <div class="title-icon">
+          <i class="bi bi-bell"></i>
+        </div>
+
+        <div>
+          <h2>Stock Alerts</h2>
+          <p>Medicines currently below their reorder level.</p>
+        </div>
+
+      </div>
+
+
+      <div class="search-wrapper">
+
+        <i class="bi bi-search"></i>
+
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          placeholder="Search medicine or company..."
+        />
+
+        <button
+          *ngIf="searchTerm"
+          type="button"
+          class="clear-search"
+          (click)="searchTerm = ''"
+        >
+          <i class="bi bi-x"></i>
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- CATEGORY FILTER -->
+    <div class="filter-bar">
+
+      <div class="filter-label">
+        <i class="bi bi-funnel"></i>
+        Category
+      </div>
+
+      <div class="category-filters">
+
+        <button
+          *ngFor="let category of categories"
+          type="button"
+          [class.active]="selectedCategory === category"
+          (click)="selectCategory(category)"
+        >
+          {{ category }}
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- TABLE -->
+    <div
+      class="table-wrapper"
+      *ngIf="filteredMedicines.length > 0"
+    >
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>Medicine</th>
+            <th>Category</th>
+            <th>Current Stock</th>
+            <th>Reorder Level</th>
+            <th>Shortage</th>
+            <th>Stock Level</th>
+            <th>Unit Price</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="let medicine of filteredMedicines"
+          >
+
+            <!-- MEDICINE -->
+            <td>
+
+              <div class="medicine-cell">
+
+                <div class="medicine-icon">
+                  <i class="bi bi-capsule"></i>
+                </div>
+
+                <div class="medicine-info">
+
+                  <strong>
+                    {{ medicine.name }}
+                  </strong>
+
+                  <span>
+                    {{ medicine.generic }}
+                  </span>
+
+                  <small>
+                    {{ medicine.company }}
+                  </small>
+
+                </div>
+
+              </div>
+
+            </td>
+
+
+            <!-- CATEGORY -->
+            <td>
+
+              <span class="category-badge">
+                {{ medicine.category }}
+              </span>
+
+            </td>
+
+
+            <!-- CURRENT STOCK -->
+            <td>
+
+              <div
+                class="stock-value"
+                [class.danger]="medicine.stock <= 0"
+              >
+                <strong>
+                  {{ medicine.stock }}
+                </strong>
+
+                <span>units</span>
+              </div>
+
+            </td>
+
+
+            <!-- REORDER -->
+            <td>
+
+              <div class="reorder-value">
+
+                <i class="bi bi-arrow-repeat"></i>
+
+                <span>
+                  {{ medicine.reorderLevel }} units
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <!-- SHORTAGE -->
+            <td>
+
+              <span
+                class="shortage"
+                [class.zero]="
+                  getShortageQuantity(medicine) === 0
+                "
+              >
+                {{
+                  getShortageQuantity(medicine)
+                }}
+                units
+              </span>
+
+            </td>
+
+
+            <!-- STOCK LEVEL -->
+            <td>
+
+              <div class="stock-level">
+
+                <div class="progress-info">
+
+                  <span>
+                    {{ getStockPercentage(medicine) | number:'1.0-0' }}%
+                  </span>
+
+                </div>
+
+                <div class="progress-bar">
+
+                  <div
+                    class="progress-fill"
+                    [ngClass]="getStockClass(medicine)"
+                    [style.width.%]="
+                      getStockPercentage(medicine)
+                    "
+                  ></div>
+
+                </div>
+
+              </div>
+
+            </td>
+
+
+            <!-- PRICE -->
+            <td>
+
+              <span class="price">
+                ৳{{ medicine.unitPrice | number:'1.2-2' }}
+              </span>
+
+            </td>
+
+
+            <!-- STATUS -->
+            <td>
+
+              <span
+                class="status-badge"
+                [ngClass]="getStatusClass(medicine)"
+              >
+
+                <span class="status-dot"></span>
+
+                {{
+                  medicine.stock <= 0
+                    ? 'Out of Stock'
+                    : 'Low Stock'
+                }}
+
+              </span>
+
+            </td>
+
+
+            <!-- ACTION -->
+            <td>
+
+              <div class="action-buttons">
+
+                <button
+                  type="button"
+                  class="action-btn view"
+                  title="View Medicine"
+                  (click)="viewMedicine(medicine)"
+                >
+                  <i class="bi bi-eye"></i>
+                </button>
+
+                <button
+                  type="button"
+                  class="action-btn edit"
+                  title="Edit Medicine"
+                  (click)="editMedicine(medicine)"
+                >
+                  <i class="bi bi-pencil"></i>
+                </button>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    <!-- EMPTY STATE -->
+    <div
+      class="empty-state"
+      *ngIf="filteredMedicines.length === 0"
+    >
+
+      <div class="empty-icon">
+        <i class="bi bi-check-circle"></i>
+      </div>
+
+      <h3>No low stock medicines</h3>
+
+      <p>
+        {{
+          searchTerm
+            ? 'No low stock items match your search.'
+            : 'Great! All medicines are currently above their reorder level.'
+        }}
+      </p>
+
+      <button
+        *ngIf="searchTerm"
+        type="button"
+        class="btn btn-light"
+        (click)="searchTerm = ''"
+      >
+        <i class="bi bi-arrow-counterclockwise"></i>
+        Clear Search
+      </button>
+
+    </div>
+
+
+    <!-- FOOTER -->
+    <div
+      class="table-footer"
+      *ngIf="filteredMedicines.length > 0"
+    >
+
+      <span>
+        Showing
+        <strong>{{ filteredMedicines.length }}</strong>
+        of
+        <strong>{{ totalLowStock + totalOutOfStock }}</strong>
+        alert items
+      </span>
+
+      <span class="footer-note">
+        <i class="bi bi-shield-check"></i>
+        Reorder monitoring enabled
+      </span>
+
+    </div>
+
+  </div>
+
+</div>

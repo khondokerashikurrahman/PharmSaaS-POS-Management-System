@@ -1,0 +1,681 @@
+<div class="settings-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div>
+      <div class="breadcrumb">
+        <span>Super Admin</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Platform Settings</span>
+      </div>
+
+      <h1>Platform Settings</h1>
+
+      <p>
+        Manage your PharmSaaS platform configuration and preferences.
+      </p>
+    </div>
+
+    <div class="header-actions">
+      <button
+        class="btn btn-light"
+        type="button"
+        (click)="resetSettings()">
+
+        <i class="bi bi-arrow-counterclockwise"></i>
+        Reset
+      </button>
+
+      <button
+        class="btn btn-primary"
+        type="button"
+        (click)="saveSettings()">
+
+        <i class="bi bi-check2-circle"></i>
+        Save Changes
+      </button>
+    </div>
+
+  </div>
+
+
+  <!-- SETTINGS CONTENT -->
+  <div class="settings-layout">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="settings-sidebar">
+
+      <div class="sidebar-title">
+        <span>Settings</span>
+      </div>
+
+      <button
+        *ngFor="let section of sections"
+        type="button"
+        class="settings-nav-item"
+        [class.active]="activeSection === section.id"
+        (click)="selectSection(section.id)">
+
+        <span class="nav-icon">
+          <i [class]="section.icon"></i>
+        </span>
+
+        <span>{{ section.title }}</span>
+
+        <i class="bi bi-chevron-right arrow"></i>
+
+      </button>
+
+    </aside>
+
+
+    <!-- RIGHT CONTENT -->
+    <main class="settings-content">
+
+
+      <!-- GENERAL SETTINGS -->
+      <section
+        class="settings-card"
+        *ngIf="activeSection === 'general'">
+
+        <div class="section-header">
+
+          <div class="section-icon">
+            <i class="bi bi-gear"></i>
+          </div>
+
+          <div>
+            <h2>General Settings</h2>
+            <p>
+              Configure basic information about your platform.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="form-grid">
+
+          <div class="form-group full-width">
+
+            <label>Platform Name</label>
+
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="settings.platformName"
+              placeholder="Enter platform name">
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>Support Email</label>
+
+            <div class="input-icon">
+
+              <i class="bi bi-envelope"></i>
+
+              <input
+                type="email"
+                class="form-control"
+                [(ngModel)]="settings.supportEmail">
+
+            </div>
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>Support Phone</label>
+
+            <div class="input-icon">
+
+              <i class="bi bi-telephone"></i>
+
+              <input
+                type="text"
+                class="form-control"
+                [(ngModel)]="settings.supportPhone">
+
+            </div>
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>Timezone</label>
+
+            <select
+              class="form-control"
+              [(ngModel)]="settings.timezone">
+
+              <option value="Asia/Dhaka">
+                Asia/Dhaka (GMT+6)
+              </option>
+
+              <option value="Asia/Kolkata">
+                Asia/Kolkata (GMT+5:30)
+              </option>
+
+              <option value="Asia/Dubai">
+                Asia/Dubai (GMT+4)
+              </option>
+
+              <option value="UTC">
+                UTC
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>Currency</label>
+
+            <select
+              class="form-control"
+              [(ngModel)]="settings.currency">
+
+              <option value="BDT">
+                BDT - Bangladeshi Taka
+              </option>
+
+              <option value="USD">
+                USD - US Dollar
+              </option>
+
+              <option value="EUR">
+                EUR - Euro
+              </option>
+
+            </select>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+
+      <!-- BILLING SETTINGS -->
+      <section
+        class="settings-card"
+        *ngIf="activeSection === 'billing'">
+
+        <div class="section-header">
+
+          <div class="section-icon">
+            <i class="bi bi-credit-card"></i>
+          </div>
+
+          <div>
+            <h2>SaaS & Billing</h2>
+            <p>
+              Configure subscription and billing preferences.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="form-grid">
+
+          <div class="form-group">
+
+            <label>Trial Period</label>
+
+            <div class="input-with-unit">
+
+              <input
+                type="number"
+                class="form-control"
+                [(ngModel)]="settings.trialPeriod"
+                min="0">
+
+              <span>Days</span>
+
+            </div>
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>Invoice Prefix</label>
+
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="settings.invoicePrefix"
+              placeholder="INV-">
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>Tax Percentage</label>
+
+            <div class="input-with-unit">
+
+              <input
+                type="number"
+                class="form-control"
+                [(ngModel)]="settings.taxPercentage"
+                min="0"
+                max="100">
+
+              <span>%</span>
+
+            </div>
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>Auto Renewal</label>
+
+            <div class="toggle-row">
+
+              <div>
+                <strong>Automatic subscription renewal</strong>
+                <small>
+                  Automatically renew active subscriptions.
+                </small>
+              </div>
+
+              <label class="switch">
+
+                <input
+                  type="checkbox"
+                  [(ngModel)]="settings.autoRenewal">
+
+                <span class="slider"></span>
+
+              </label>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+
+      <!-- NOTIFICATIONS -->
+      <section
+        class="settings-card"
+        *ngIf="activeSection === 'notifications'">
+
+        <div class="section-header">
+
+          <div class="section-icon">
+            <i class="bi bi-bell"></i>
+          </div>
+
+          <div>
+            <h2>Notification Settings</h2>
+            <p>
+              Control platform notifications and alerts.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="settings-list">
+
+          <div class="setting-row">
+
+            <div class="setting-info">
+
+              <div class="setting-icon">
+                <i class="bi bi-envelope"></i>
+              </div>
+
+              <div>
+                <strong>Email Notifications</strong>
+                <small>
+                  Send important platform notifications through email.
+                </small>
+              </div>
+
+            </div>
+
+            <label class="switch">
+
+              <input
+                type="checkbox"
+                [(ngModel)]="settings.emailNotifications">
+
+              <span class="slider"></span>
+
+            </label>
+
+          </div>
+
+
+          <div class="setting-row">
+
+            <div class="setting-info">
+
+              <div class="setting-icon">
+                <i class="bi bi-credit-card"></i>
+              </div>
+
+              <div>
+                <strong>Billing Alerts</strong>
+                <small>
+                  Notify admins about billing and payment activities.
+                </small>
+              </div>
+
+            </div>
+
+            <label class="switch">
+
+              <input
+                type="checkbox"
+                [(ngModel)]="settings.billingAlerts">
+
+              <span class="slider"></span>
+
+            </label>
+
+          </div>
+
+
+          <div class="setting-row">
+
+            <div class="setting-info">
+
+              <div class="setting-icon">
+                <i class="bi bi-shop"></i>
+              </div>
+
+              <div>
+                <strong>New Tenant Alerts</strong>
+                <small>
+                  Receive alerts when a new pharmacy registers.
+                </small>
+              </div>
+
+            </div>
+
+            <label class="switch">
+
+              <input
+                type="checkbox"
+                [(ngModel)]="settings.newTenantAlerts">
+
+              <span class="slider"></span>
+
+            </label>
+
+          </div>
+
+
+          <div class="setting-row">
+
+            <div class="setting-info">
+
+              <div class="setting-icon">
+                <i class="bi bi-headset"></i>
+              </div>
+
+              <div>
+                <strong>Support Alerts</strong>
+                <small>
+                  Notify support team about new tickets.
+                </small>
+              </div>
+
+            </div>
+
+            <label class="switch">
+
+              <input
+                type="checkbox"
+                [(ngModel)]="settings.supportAlerts">
+
+              <span class="slider"></span>
+
+            </label>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+
+      <!-- SECURITY -->
+      <section
+        class="settings-card"
+        *ngIf="activeSection === 'security'">
+
+        <div class="section-header">
+
+          <div class="section-icon">
+            <i class="bi bi-shield-lock"></i>
+          </div>
+
+          <div>
+            <h2>Security Settings</h2>
+            <p>
+              Manage platform authentication and security policies.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="form-grid">
+
+          <div class="form-group">
+
+            <label>Session Timeout</label>
+
+            <div class="input-with-unit">
+
+              <input
+                type="number"
+                class="form-control"
+                [(ngModel)]="settings.sessionTimeout"
+                min="5">
+
+              <span>Minutes</span>
+
+            </div>
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>Login Attempt Limit</label>
+
+            <div class="input-with-unit">
+
+              <input
+                type="number"
+                class="form-control"
+                [(ngModel)]="settings.loginAttemptLimit"
+                min="1">
+
+              <span>Attempts</span>
+
+            </div>
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>Password Expiry</label>
+
+            <div class="input-with-unit">
+
+              <input
+                type="number"
+                class="form-control"
+                [(ngModel)]="settings.passwordExpiry"
+                min="0">
+
+              <span>Days</span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="security-option">
+
+          <div class="setting-info">
+
+            <div class="setting-icon security">
+              <i class="bi bi-shield-check"></i>
+            </div>
+
+            <div>
+              <strong>Two-Factor Authentication</strong>
+
+              <small>
+                Require an additional verification step for admin accounts.
+              </small>
+            </div>
+
+          </div>
+
+          <label class="switch">
+
+            <input
+              type="checkbox"
+              [(ngModel)]="settings.twoFactorAuth">
+
+            <span class="slider"></span>
+
+          </label>
+
+        </div>
+
+      </section>
+
+
+
+      <!-- PLATFORM -->
+      <section
+        class="settings-card"
+        *ngIf="activeSection === 'platform'">
+
+        <div class="section-header">
+
+          <div class="section-icon">
+            <i class="bi bi-sliders"></i>
+          </div>
+
+          <div>
+            <h2>Platform Controls</h2>
+            <p>
+              Manage system-wide platform availability.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="maintenance-box">
+
+          <div class="maintenance-content">
+
+            <div class="maintenance-icon">
+              <i class="bi bi-tools"></i>
+            </div>
+
+            <div>
+
+              <h3>Maintenance Mode</h3>
+
+              <p>
+                Temporarily disable platform access while system
+                maintenance is being performed.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <label class="switch">
+
+            <input
+              type="checkbox"
+              [(ngModel)]="settings.maintenanceMode"
+              (change)="toggleMaintenance()">
+
+            <span class="slider"></span>
+
+          </label>
+
+        </div>
+
+
+        <div
+          class="maintenance-warning"
+          *ngIf="settings.maintenanceMode">
+
+          <i class="bi bi-exclamation-triangle"></i>
+
+          <div>
+            <strong>Maintenance mode is active</strong>
+
+            <p>
+              Platform users may currently be unable to access
+              the system.
+            </p>
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- SAVE BAR -->
+      <div class="save-bar">
+
+        <div>
+          <i class="bi bi-info-circle"></i>
+          Changes are applied after saving.
+        </div>
+
+        <button
+          class="btn btn-primary"
+          type="button"
+          (click)="saveSettings()">
+
+          <i class="bi bi-check2"></i>
+          Save Changes
+
+        </button>
+
+      </div>
+
+    </main>
+
+  </div>
+
+</div>

@@ -1,0 +1,228 @@
+<div class="payment-overlay">
+
+  <div class="payment-modal">
+
+    <!-- HEADER -->
+
+    <div class="payment-header">
+
+      <div>
+        <div class="payment-title">
+          <div class="title-icon">
+            <i class="bi bi-credit-card"></i>
+          </div>
+
+          <div>
+            <h2>Complete Payment</h2>
+            <p>Choose payment method and confirm the sale.</p>
+          </div>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="close-btn"
+        (click)="close()">
+
+        <i class="bi bi-x-lg"></i>
+
+      </button>
+
+    </div>
+
+
+    <!-- BODY -->
+
+    <div class="payment-body">
+
+      <!-- TOTAL -->
+
+      <div class="payment-total">
+
+        <span>Total Amount</span>
+
+        <strong>
+          ৳{{ totalAmount | number:'1.2-2' }}
+        </strong>
+
+      </div>
+
+
+      <!-- PAYMENT METHOD -->
+
+      <div class="section-title">
+        <span>Payment Method</span>
+      </div>
+
+
+      <div class="payment-methods">
+
+        <button
+          type="button"
+          [class.active]="paymentMethod === 'Cash'"
+          (click)="selectPaymentMethod('Cash')">
+
+          <i class="bi bi-cash-stack"></i>
+
+          <span>Cash</span>
+
+        </button>
+
+
+        <button
+          type="button"
+          [class.active]="paymentMethod === 'Card'"
+          (click)="selectPaymentMethod('Card')">
+
+          <i class="bi bi-credit-card"></i>
+
+          <span>Card</span>
+
+        </button>
+
+
+        <button
+          type="button"
+          [class.active]="paymentMethod === 'Mobile'"
+          (click)="selectPaymentMethod('Mobile')">
+
+          <i class="bi bi-phone"></i>
+
+          <span>Mobile</span>
+
+        </button>
+
+      </div>
+
+
+      <!-- CASH -->
+
+      <div
+        class="cash-input"
+        *ngIf="paymentMethod === 'Cash'">
+
+        <label>
+          Amount Received
+        </label>
+
+        <div class="amount-input">
+
+          <span>৳</span>
+
+          <input
+            type="number"
+            min="0"
+            step="0.01"
+            [(ngModel)]="amountReceived"
+            (ngModelChange)="onAmountChanged()"
+            placeholder="Enter amount received"
+          />
+
+        </div>
+
+      </div>
+
+
+      <!-- WARNING -->
+
+      <div
+        class="payment-warning"
+        *ngIf="
+          paymentMethod === 'Cash' &&
+          amountReceived > 0 &&
+          amountReceived < totalAmount
+        ">
+
+        <i class="bi bi-exclamation-circle"></i>
+
+        <span>
+          Amount received is less than total.
+        </span>
+
+      </div>
+
+
+      <!-- CHANGE -->
+
+      <div
+        class="change-row"
+        *ngIf="
+          paymentMethod === 'Cash' &&
+          amountReceived > 0
+        ">
+
+        <span>Change</span>
+
+        <strong>
+          ৳{{ change | number:'1.2-2' }}
+        </strong>
+
+      </div>
+
+
+      <!-- CARD / MOBILE INFO -->
+
+      <div
+        class="non-cash-info"
+        *ngIf="paymentMethod !== 'Cash'">
+
+        <i
+          class="bi"
+          [ngClass]="{
+            'bi-credit-card': paymentMethod === 'Card',
+            'bi-phone': paymentMethod === 'Mobile'
+          }">
+        </i>
+
+        <div>
+
+          <strong>
+            {{ paymentMethod }} Payment
+          </strong>
+
+          <span>
+            Full amount of
+            ৳{{ totalAmount | number:'1.2-2' }}
+            will be recorded.
+          </span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- FOOTER -->
+
+    <div class="payment-footer">
+
+      <button
+        type="button"
+        class="cancel-btn"
+        (click)="close()">
+
+        <i class="bi bi-x-circle"></i>
+
+        Cancel
+
+      </button>
+
+
+      <button
+        type="button"
+        class="complete-btn"
+        [disabled]="!isPaymentValid"
+        (click)="completePayment()">
+
+        <i class="bi bi-check-circle"></i>
+
+        {{ paymentButtonText }}
+
+      </button>
+
+    </div>
+
+  </div>
+
+</div>

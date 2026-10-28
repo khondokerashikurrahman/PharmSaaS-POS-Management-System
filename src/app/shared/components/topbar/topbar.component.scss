@@ -1,0 +1,598 @@
+/* =================================================
+   TOPBAR
+================================================= */
+
+.topbar {
+  height: 70px;
+
+  width: 100%;
+
+  background: #ffffff;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  padding: 0 25px;
+
+  box-sizing: border-box;
+
+  border-bottom: 1px solid #e8edf2;
+
+  position: sticky;
+
+  top: 0;
+
+  z-index: 1000;
+}
+
+
+/* =================================================
+   SEARCH
+================================================= */
+
+.search-area {
+  display: flex;
+
+  align-items: center;
+
+  min-width: 0;
+}
+
+.search-box {
+  width: 360px;
+
+  height: 40px;
+
+  display: flex;
+
+  align-items: center;
+
+  background: #f6f8fa;
+
+  border: 1px solid #e3e8ed;
+
+  border-radius: 8px;
+
+  padding: 0 12px;
+
+  box-sizing: border-box;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.search-box:focus-within {
+  border-color: #3f72af;
+
+  box-shadow:
+    0 0 0 3px rgba(63, 114, 175, 0.08);
+}
+
+.search-icon {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  color: #7b8794;
+
+  font-size: 14px;
+
+  margin-right: 9px;
+}
+
+.search-box input {
+  flex: 1;
+
+  min-width: 0;
+
+  border: none;
+
+  outline: none;
+
+  background: transparent;
+
+  font-size: 13px;
+
+  color: #333333;
+}
+
+.search-box input::placeholder {
+  color: #9aa4af;
+}
+
+.shortcut {
+  flex-shrink: 0;
+
+  font-size: 11px;
+
+  color: #8c96a0;
+
+  background: #ffffff;
+
+  border: 1px solid #dfe4e8;
+
+  border-radius: 5px;
+
+  padding: 3px 7px;
+}
+
+
+/* =================================================
+   TOPBAR ACTIONS
+================================================= */
+
+.topbar-actions {
+  display: flex;
+
+  align-items: center;
+
+  gap: 18px;
+
+  min-width: 0;
+}
+
+
+/* =================================================
+   TENANT INFO
+================================================= */
+
+.tenant-info {
+  display: flex;
+
+  align-items: center;
+
+  gap: 9px;
+
+  padding-right: 18px;
+
+  border-right: 1px solid #e5e9ed;
+
+  min-width: 0;
+}
+
+.tenant-icon {
+  width: 38px;
+
+  height: 38px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  background: #eef7f2;
+
+  border-radius: 9px;
+
+  color: #3f72af;
+
+  font-size: 16px;
+
+  flex-shrink: 0;
+}
+
+.admin-context .tenant-icon {
+  background: #f1efff;
+
+  color: #6d5bd0;
+}
+
+.tenant-details {
+  display: flex;
+
+  flex-direction: column;
+
+  line-height: 1.2;
+
+  min-width: 0;
+}
+
+.tenant-details strong {
+  max-width: 180px;
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  color: #263238;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+}
+
+.tenant-details span {
+  margin-top: 4px;
+
+  font-size: 11px;
+
+  color: #7b8794;
+}
+
+
+/* =================================================
+   ACTION BUTTONS
+================================================= */
+
+.action-btn {
+  position: relative;
+
+  width: 38px;
+
+  height: 38px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border: none;
+
+  background: transparent;
+
+  border-radius: 8px;
+
+  cursor: pointer;
+
+  color: #68737d;
+
+  font-size: 17px;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.action-btn:hover {
+  background: #f4f6f8;
+
+  color: #3f72af;
+}
+
+.action-btn:focus-visible {
+  outline: 2px solid #3f72af;
+
+  outline-offset: 2px;
+}
+
+
+/* =================================================
+   NOTIFICATION DOT
+================================================= */
+
+.notification-dot {
+  position: absolute;
+
+  top: 7px;
+
+  right: 7px;
+
+  width: 7px;
+
+  height: 7px;
+
+  background: #e53935;
+
+  border-radius: 50%;
+
+  border: 2px solid #ffffff;
+}
+
+
+/* =================================================
+   PROFILE
+================================================= */
+
+.profile {
+  position: relative;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 9px;
+
+  min-width: 0;
+}
+
+.profile-avatar {
+  width: 38px;
+
+  height: 38px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #e8f0ff;
+
+  color: #2563eb;
+
+  font-size: 14px;
+
+  font-weight: 700;
+
+  flex-shrink: 0;
+}
+
+.profile-info {
+  display: flex;
+
+  flex-direction: column;
+
+  line-height: 1.2;
+
+  min-width: 0;
+}
+
+.profile-info strong {
+  max-width: 130px;
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  color: #263238;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+}
+
+.profile-info span {
+  margin-top: 3px;
+
+  font-size: 11px;
+
+  color: #7b8794;
+}
+
+
+/* =================================================
+   DROPDOWN TRIGGER
+================================================= */
+
+.dropdown-trigger {
+  width: 28px;
+
+  height: 30px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border: none;
+
+  background: transparent;
+
+  border-radius: 6px;
+
+  cursor: pointer;
+
+  color: #68737d;
+
+  font-size: 13px;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.dropdown-trigger:hover {
+  background: #f4f6f8;
+
+  color: #3f72af;
+}
+
+.dropdown-trigger:focus-visible {
+  outline: 2px solid #3f72af;
+
+  outline-offset: 2px;
+}
+
+
+/* =================================================
+   DROPDOWN MENU
+================================================= */
+
+.dropdown-menu {
+  position: absolute;
+
+  top: calc(100% + 10px);
+
+  right: 0;
+
+  width: 170px;
+
+  background: #ffffff;
+
+  border: 1px solid #e5e9ed;
+
+  border-radius: 8px;
+
+  box-shadow:
+    0 8px 25px rgba(0, 0, 0, 0.12);
+
+  padding: 6px;
+
+  z-index: 9999;
+}
+
+.dropdown-item {
+  width: 100%;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 10px 12px;
+
+  border: none;
+
+  background: transparent;
+
+  border-radius: 6px;
+
+  color: #374151;
+
+  font-size: 13px;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  box-sizing: border-box;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.dropdown-item i {
+  width: 18px;
+
+  font-size: 14px;
+}
+
+.dropdown-item:hover {
+  background: #f5f7f9;
+
+  color: #3f72af;
+}
+
+.dropdown-divider {
+  height: 1px;
+
+  background: #edf0f2;
+
+  margin: 5px 0;
+}
+
+.logout-item {
+  color: #dc3545;
+}
+
+.logout-item:hover {
+  background: #fff1f2;
+
+  color: #dc3545;
+}
+
+
+/* =================================================
+   RESPONSIVE - 1000px
+================================================= */
+
+@media (max-width: 1000px) {
+
+  .search-box {
+    width: 280px;
+  }
+
+  .tenant-details {
+    display: none;
+  }
+
+  .tenant-info {
+    border-right: none;
+
+    padding-right: 0;
+  }
+
+}
+
+
+/* =================================================
+   RESPONSIVE - 700px
+================================================= */
+
+@media (max-width: 700px) {
+
+  .topbar {
+    padding: 0 15px;
+  }
+
+  .search-box {
+    width: 220px;
+  }
+
+  .profile-info {
+    display: none;
+  }
+
+  .topbar-actions {
+    gap: 8px;
+  }
+
+}
+
+
+/* =================================================
+   RESPONSIVE - 550px
+================================================= */
+
+@media (max-width: 550px) {
+
+  .search-box {
+    width: 180px;
+  }
+
+  .shortcut {
+    display: none;
+  }
+
+  .tenant-info,
+  .admin-context {
+    display: none;
+  }
+
+}
+
+
+/* =================================================
+   RESPONSIVE - 400px
+================================================= */
+
+@media (max-width: 400px) {
+
+  .topbar {
+    padding: 0 10px;
+  }
+
+  .search-box {
+    width: 150px;
+  }
+
+  .action-btn {
+    width: 34px;
+
+    height: 34px;
+  }
+
+  .profile-avatar {
+    width: 34px;
+
+    height: 34px;
+  }
+
+}

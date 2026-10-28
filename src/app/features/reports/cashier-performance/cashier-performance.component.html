@@ -1,0 +1,573 @@
+<div class="cashier-report-page">
+
+  <!-- Header -->
+  <div class="page-header">
+
+    <div class="header-left">
+
+      <div class="breadcrumb">
+        <span>Reports</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Cashier Performance</span>
+      </div>
+
+      <h1>Cashier Performance</h1>
+
+      <p>
+        Monitor cashier-wise sales performance and payment activity
+      </p>
+
+    </div>
+
+    <div class="header-actions">
+
+      <button
+        type="button"
+        class="btn btn-light"
+        (click)="refreshReport()">
+
+        <i class="bi bi-arrow-clockwise"></i>
+        Refresh
+
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="exportCSV()">
+
+        <i class="bi bi-download"></i>
+        Export CSV
+
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- Filters -->
+  <div class="filter-card">
+
+    <div class="filter-group">
+
+      <label>Period</label>
+
+      <select
+        [(ngModel)]="selectedPeriod"
+        (change)="onPeriodChange()">
+
+        <option value="today">
+          Today
+        </option>
+
+        <option value="week">
+          This Week
+        </option>
+
+        <option value="month">
+          This Month
+        </option>
+
+        <option value="all">
+          All Time
+        </option>
+
+        <option value="custom">
+          Custom Range
+        </option>
+
+      </select>
+
+    </div>
+
+
+    <div
+      class="filter-group"
+      *ngIf="selectedPeriod === 'custom'">
+
+      <label>From</label>
+
+      <input
+        type="date"
+        [(ngModel)]="customFrom"
+        (change)="onPeriodChange()">
+
+    </div>
+
+
+    <div
+      class="filter-group"
+      *ngIf="selectedPeriod === 'custom'">
+
+      <label>To</label>
+
+      <input
+        type="date"
+        [(ngModel)]="customTo"
+        (change)="onPeriodChange()">
+
+    </div>
+
+
+    <div class="filter-group search-group">
+
+      <label>Search Cashier</label>
+
+      <div class="search-box">
+
+        <i class="bi bi-search"></i>
+
+        <input
+          type="text"
+          placeholder="Search cashier..."
+          [(ngModel)]="searchTerm"
+          (input)="applySearch()">
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- Statistics -->
+  <div class="stats-grid">
+
+    <div class="stat-card">
+
+      <div class="stat-icon sales-icon">
+        <i class="bi bi-cash-stack"></i>
+      </div>
+
+      <div class="stat-content">
+
+        <span>Total Sales</span>
+
+        <h2>
+          ৳{{ formatCurrency(totalSales) }}
+        </h2>
+
+        <small>
+          Across all cashiers
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+      <div class="stat-icon transaction-icon">
+        <i class="bi bi-receipt"></i>
+      </div>
+
+      <div class="stat-content">
+
+        <span>Total Transactions</span>
+
+        <h2>
+          {{ totalTransactions }}
+        </h2>
+
+        <small>
+          Completed sales
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+      <div class="stat-icon item-icon">
+        <i class="bi bi-box-seam"></i>
+      </div>
+
+      <div class="stat-content">
+
+        <span>Items Sold</span>
+
+        <h2>
+          {{ totalItemsSold }}
+        </h2>
+
+        <small>
+          Total quantity sold
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+      <div class="stat-icon average-icon">
+        <i class="bi bi-bar-chart"></i>
+      </div>
+
+      <div class="stat-content">
+
+        <span>Average Sale</span>
+
+        <h2>
+          ৳{{ formatCurrency(averageSale) }}
+        </h2>
+
+        <small>
+          Per transaction
+        </small>
+
+      </div>
+
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon refund-icon">
+        <i class="bi bi-arrow-counterclockwise"></i>
+      </div>
+
+      <div class="stat-content">
+        <span>Refunded Amount</span>
+        <h2>৳{{ formatCurrency(totalRefunded) }}</h2>
+        <small>Refunds in selected period</small>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- Top Cashier -->
+  <div
+    class="top-cashier-card"
+    *ngIf="topCashier">
+
+    <div class="top-icon">
+      <i class="bi bi-trophy"></i>
+    </div>
+
+    <div class="top-content">
+
+      <span>
+        Highest Sales Volume
+      </span>
+
+      <strong>
+        {{ topCashier.cashier }}
+      </strong>
+
+      <small>
+        {{ topCashier.transactions }}
+        transactions
+        ·
+        ৳{{ formatCurrency(topCashier.totalSales) }}
+        total sales
+      </small>
+
+    </div>
+
+  </div>
+
+
+  <!-- Cashier Table -->
+  <div class="table-card">
+
+    <div class="section-header">
+
+      <div>
+
+        <h2>
+          Cashier Performance
+        </h2>
+
+        <p>
+          {{ filteredCashiers.length }}
+          cashier(s) found
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <div
+      class="table-wrapper"
+      *ngIf="filteredCashiers.length > 0">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>Cashier</th>
+
+            <th>Transactions</th>
+
+            <th>Items Sold</th>
+
+            <th>Total Sales</th>
+            <th>Refund Amount</th>
+
+            <th>Average Sale</th>
+
+            <th>Cash</th>
+
+            <th>Card</th>
+
+            <th>Mobile</th>
+
+            <th>Credit</th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="let cashier of filteredCashiers">
+
+            <td>
+
+              <div class="cashier-cell">
+
+                <div class="avatar">
+                  {{ cashier.cashier
+                    .charAt(0)
+                    .toUpperCase() }}
+                </div>
+
+                <div>
+
+                  <strong>
+                    {{ cashier.cashier }}
+                  </strong>
+
+                  <small>
+                    Sales operator
+                  </small>
+
+                </div>
+
+              </div>
+
+            </td>
+
+
+            <td>
+
+              <span class="count-badge">
+                {{ cashier.transactions }}
+              </span>
+
+            </td>
+
+
+            <td>
+              {{ cashier.itemsSold }}
+            </td>
+
+
+            <td>
+
+              <strong class="sales-value">
+                ৳{{ formatCurrency(
+                  cashier.totalSales
+                ) }}
+              </strong>
+
+            </td>
+            <td class="refund-value">
+              ৳{{ formatCurrency(cashier.refundAmount) }}
+            </td>
+
+
+            <td>
+              ৳{{ formatCurrency(
+                cashier.averageSale
+              ) }}
+            </td>
+
+
+            <td>
+              ৳{{ formatCurrency(
+                cashier.cash
+              ) }}
+            </td>
+
+
+            <td>
+              ৳{{ formatCurrency(
+                cashier.card
+              ) }}
+            </td>
+
+
+            <td>
+              ৳{{ formatCurrency(
+                cashier.mobile
+              ) }}
+            </td>
+
+
+            <td>
+              ৳{{ formatCurrency(
+                cashier.credit
+              ) }}
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    <!-- Empty State -->
+    <div
+      class="empty-state"
+      *ngIf="filteredCashiers.length === 0">
+
+      <div class="empty-icon">
+        <i class="bi bi-person-badge"></i>
+      </div>
+
+      <h3>
+        No cashier data found
+      </h3>
+
+      <p>
+        Cashier performance will appear here
+        when completed sales are available
+        for the selected period.
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <!-- Payment Summary -->
+<!-- Payment Summary -->
+<div class="payment-card">
+
+  <div class="section-header">
+
+    <div>
+
+      <h2>Payment Activity</h2>
+
+      <p>
+        Payment method distribution across cashiers
+      </p>
+
+    </div>
+
+  </div>
+
+  <div class="payment-grid">
+
+    <div class="payment-item">
+
+      <div class="payment-icon cash">
+        <i class="bi bi-cash"></i>
+      </div>
+
+      <div>
+        <span>Cash</span>
+
+        <strong>
+          ৳{{ formatCurrency(getTotalCash()) }}
+        </strong>
+      </div>
+
+    </div>
+
+
+    <div class="payment-item">
+
+      <div class="payment-icon card">
+        <i class="bi bi-credit-card"></i>
+      </div>
+
+      <div>
+        <span>Card</span>
+
+        <strong>
+          ৳{{ formatCurrency(getTotalCard()) }}
+        </strong>
+      </div>
+
+    </div>
+
+
+    <div class="payment-item">
+
+      <div class="payment-icon mobile">
+        <i class="bi bi-phone"></i>
+      </div>
+
+      <div>
+        <span>Mobile</span>
+
+        <strong>
+          ৳{{ formatCurrency(getTotalMobile()) }}
+        </strong>
+      </div>
+
+    </div>
+
+
+    <div class="payment-item">
+
+      <div class="payment-icon credit">
+        <i class="bi bi-wallet2"></i>
+      </div>
+
+      <div>
+        <span>Credit</span>
+
+        <strong>
+          ৳{{ formatCurrency(getTotalCredit()) }}
+        </strong>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+  <!-- Information -->
+  <div class="info-card">
+
+    <div class="info-icon">
+      <i class="bi bi-info-circle"></i>
+    </div>
+
+    <div>
+
+      <h3>
+        Performance Calculation
+      </h3>
+
+      <p>
+        Cashier performance is calculated from completed
+        sales stored in the system. Total sales represent
+        the transaction amount, while average sale is the
+        total sales divided by the number of transactions.
+      </p>
+
+    </div>
+
+  </div>
+
+</div>

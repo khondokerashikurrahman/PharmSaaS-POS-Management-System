@@ -1,0 +1,372 @@
+<div class="billing-logs-page">
+
+  <!-- PAGE HEADER -->
+
+  <div class="page-header">
+
+    <div>
+
+      <div class="breadcrumb">
+
+        <span>Super Admin</span>
+
+        <i class="bi bi-chevron-right"></i>
+
+        <span>Billing Logs</span>
+
+      </div>
+
+      <h1>Billing Logs</h1>
+
+      <p>
+        Monitor subscription billing activities and payment events.
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <!-- SUMMARY -->
+
+  <div class="summary-grid">
+
+    <div class="summary-card">
+
+      <div class="summary-icon blue">
+        <i class="bi bi-journal-text"></i>
+      </div>
+
+      <div>
+        <span>Total Logs</span>
+        <h2>{{ totalLogs }}</h2>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon green">
+        <i class="bi bi-check-circle"></i>
+      </div>
+
+      <div>
+        <span>Successful</span>
+        <h2>{{ successfulLogs }}</h2>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon orange">
+        <i class="bi bi-exclamation-circle"></i>
+      </div>
+
+      <div>
+        <span>Warnings</span>
+        <h2>{{ warningLogs }}</h2>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon red">
+        <i class="bi bi-x-circle"></i>
+      </div>
+
+      <div>
+        <span>Failed</span>
+        <h2>{{ failedLogs }}</h2>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- TOOLBAR -->
+
+  <div class="toolbar">
+
+    <div class="search-box">
+
+      <i class="bi bi-search"></i>
+
+      <input
+        type="text"
+        placeholder="Search logs, pharmacy, action..."
+        [(ngModel)]="searchText"
+        (input)="searchLogs()"
+      />
+
+    </div>
+
+
+    <div class="filter-buttons">
+
+      <button
+      type="button"
+        [class.active]="selectedFilter === 'All'"
+        (click)="filterLogs('All')">
+        All
+      </button>
+
+      <button
+        [class.active]="selectedFilter === 'Success'"
+        (click)="filterLogs('Success')">
+        Success
+      </button>
+
+      <button
+        [class.active]="selectedFilter === 'Warning'"
+        (click)="filterLogs('Warning')">
+        Warning
+      </button>
+
+      <button
+        [class.active]="selectedFilter === 'Failed'"
+        (click)="filterLogs('Failed')">
+        Failed
+      </button>
+
+      <button
+        [class.active]="selectedFilter === 'Info'"
+        (click)="filterLogs('Info')">
+        Info
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- LOG TABLE -->
+
+  <div class="table-card">
+
+    <div class="table-header">
+
+      <div>
+
+        <h3>Billing Activity Logs</h3>
+
+        <p>
+          {{ filteredLogs.length }} logs found
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>Log ID</th>
+
+            <th>Pharmacy</th>
+
+            <th>Activity</th>
+
+            <th>Amount</th>
+
+            <th>Performed By</th>
+
+            <th>Date & Time</th>
+
+            <th>Status</th>
+
+            <th>Action</th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="let log of filteredLogs"
+          >
+
+            <!-- LOG ID -->
+
+            <td>
+
+              <div class="log-id">
+
+                <strong>
+                  {{ log.id }}
+                </strong>
+
+                <span>
+                  {{ log.tenantId }}
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <!-- PHARMACY -->
+
+            <td>
+
+              <div class="pharmacy-info">
+
+                <strong>
+                  {{ log.pharmacyName }}
+                </strong>
+
+                <span>
+                  Pharmacy Tenant
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <!-- ACTIVITY -->
+
+            <td>
+
+              <div class="activity-info">
+
+                <strong>
+                  {{ log.action }}
+                </strong>
+
+                <span>
+                  {{ log.description }}
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <!-- AMOUNT -->
+
+            <td>
+
+              <strong class="amount">
+
+                <ng-container
+                  *ngIf="log.amount > 0; else noAmount"
+                >
+                  ৳{{ log.amount | number:'1.0-0' }}
+                </ng-container>
+
+                <ng-template #noAmount>
+                  —
+                </ng-template>
+
+              </strong>
+
+            </td>
+
+
+            <!-- PERFORMED BY -->
+
+            <td>
+
+              <span class="performed-by">
+
+                <i class="bi bi-person"></i>
+
+                {{ log.performedBy }}
+
+              </span>
+
+            </td>
+
+
+            <!-- DATE -->
+
+            <td>
+              {{ log.date }}
+            </td>
+
+
+            <!-- STATUS -->
+
+            <td>
+
+              <span
+                class="status-badge"
+                [class.success]="log.status === 'Success'"
+                [class.warning]="log.status === 'Warning'"
+                [class.failed]="log.status === 'Failed'"
+                [class.info]="log.status === 'Info'"
+              >
+
+                <span class="status-dot"></span>
+
+                {{ log.status }}
+
+              </span>
+
+            </td>
+
+
+            <!-- ACTION -->
+
+            <td>
+
+              <button
+              
+                class="view-btn"
+                title="View Log"
+                (click)="viewLog(log)"
+              >
+
+                <i class="bi bi-eye"></i>
+
+              </button>
+
+            </td>
+
+          </tr>
+
+
+          <!-- EMPTY -->
+
+          <tr *ngIf="filteredLogs.length === 0">
+
+            <td
+              colspan="8"
+              class="empty-state"
+            >
+
+              <i class="bi bi-journal-x"></i>
+
+              <h3>No billing logs found</h3>
+
+              <p>
+                Try changing your search or filter.
+              </p>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>

@@ -1,0 +1,436 @@
+import { Injectable } from '@angular/core';
+
+import { AuthService } from './auth.service';
+import { MembershipRole } from '../models/user.model';
+import { PermissionAction } from '../models/permission.model';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class PermissionService {
+
+  constructor(
+    private readonly authService: AuthService
+  ) {}
+
+  private getMembershipRole(): MembershipRole | null {
+    const user = this.authService.getCurrentUser();
+
+    if (!user) {
+      return null;
+    }
+
+    if (user.role === 'SUPER_ADMIN') {
+      return 'SUPER_ADMIN';
+    }
+
+    if (user.membershipRole) {
+      return user.membershipRole;
+    }
+
+    // Compatibility fallback for older saved sessions.
+    switch (user.role) {
+      case 'TENANT_ADMIN':
+        return 'PHARMACY_ADMIN';
+      case 'MANAGER':
+        return 'MANAGER';
+      case 'STORE_KEEPER':
+        return 'STORE_KEEPER';
+      case 'STAFF':
+        return 'STAFF';
+      default:
+        return null;
+    }
+  }
+
+  private hasAnyRole(
+    role: MembershipRole,
+    allowed: MembershipRole[]
+  ): boolean {
+    return allowed.includes(role);
+  }
+
+  private within(
+    path: string,
+    base: string
+  ): boolean {
+    return path === base || path.startsWith(base + '/');
+  }
+
+  private isMutationPath(path: string): boolean {
+    return /\/(new|edit)$/.test(path);
+  }
+
+  private getAdminRoles(): MembershipRole[] {
+    return ['TENANT_OWNER', 'PHARMACY_ADMIN'];
+  }
+
+  private getManagerRoles(): MembershipRole[] {
+    return [
+      'TENANT_OWNER',
+      'PHARMACY_ADMIN',
+      'MANAGER'
+    ];
+  }
+
+  private getStockRoles(): MembershipRole[] {
+    return [
+      'TENANT_OWNER',
+      'PHARMACY_ADMIN',
+      'MANAGER',
+      'STORE_KEEPER'
+    ];
+  }
+
+  canAccessUrl(rawUrl: string): boolean {
+    if (!this.authService.isLoggedIn()) {
+      return false;
+    }
+
+    const role = this.getMembershipRole();
+
+    if (!role) {
+      return false;
+    }
+
+    const path = rawUrl
+      .split(/[?#]/)[0]
+      .replace(/\/+$/, '') || '/';
+
+    // Super Admin's pharmacy preview is additionally
+    // checked by tenantGuard.
+    if (role === 'SUPER_ADMIN') {
+      return true;
+    }
+
+    const allTenantRoles: MembershipRole[] = [
+      'TENANT_OWNER',
+      'PHARMACY_ADMIN',
+      'MANAGER',
+      'STORE_KEEPER',
+      'PHARMACIST',
+      'STAFF',
+      'CASHIER'
+    ];
+
+    if (
+      path === '/app' ||
+      path === '/app/dashboard'
+    ) {
+      return allTenantRoles.includes(role);
+    }
+
+    if (!path.startsWith('/app/')) {
+      return false;
+    }
+
+    const admins = this.getAdminRoles();
+    const managers = this.getManagerRoles();
+    const stockRoles = this.getStockRoles();
+
+    // SETTINGS
+    if (this.within(path, '/app/settings')) {
+      if (
+        this.within(path, '/app/settings/billing') ||
+        this.within(path, '/app/settings/saas-plan') ||
+        this.within(path, '/app/settings/payment-methods')
+      ) {
+        return role === 'TENANT_OWNER';
+      }
+
+      if (this.within(path, '/app/settings/usage')) {
+        return managers.includes(role);
+      }
+
+      return admins.includes(role);
+    }
+
+    // REPORTS
+    if (this.within(path, '/app/reports')) {
+      if (
+        this.within(path, '/app/reports/profit') ||
+        this.within(path, '/app/reports/cashier') ||
+        this.within(path, '/app/reports/branch')
+      ) {
+        return admins.includes(role);
+      }
+
+      return managers.includes(role);
+    }
+
+    // POS: Cashier has POS access, Store Keeper does not.
+    if (this.within(path, '/app/pos')) {
+      return [
+        'TENANT_OWNER',
+        'PHARMACY_ADMIN',
+        'MANAGER',
+        'PHARMACIST',
+        'CASHIER'
+      ].includes(role);
+    }
+
+    // INVENTORY: companies and salesmen are admin/manager tasks.
+    if (
+      this.within(path, '/app/inventory/companies') ||
+      this.within(path, '/app/inventory/salesmen')
+    ) {
+      return managers.includes(role);
+    }
+
+    // Medicine/product master-data changes are restricted.
+    if (
+      this.within(path, '/app/inventory/medicines') ||
+      this.within(path, '/app/inventory/products')
+    ) {
+      if (this.isMutationPath(path)) {
+        return managers.includes(role);
+      }
+
+      return [
+        ...managers,
+        'STORE_KEEPER',
+        'PHARMACIST',
+        'STAFF',
+        'CASHIER'
+      ].includes(role);
+    }
+
+    // Returned stock quarantine and restocking access
+    if (this.within(path, '/app/inventory/returned-stock')) {
+      return stockRoles.includes(role);
+    }
+
+    // Batch operations
+    if (this.within(path, '/app/inventory/batches')) {
+      return stockRoles.includes(role);
+    }
+
+    // Stock adjustment and movement
+    if (
+      this.within(path, '/app/inventory/stock-adjustment') ||
+      this.within(path, '/app/inventory/stock-movement')
+    ) {
+      return stockRoles.includes(role);
+    }
+
+    // Stock overview, low stock, and expiry alerts
+    if (
+      this.within(path, '/app/inventory/stock-overview') ||
+      this.within(path, '/app/inventory/low-stock') ||
+      this.within(path, '/app/inventory/expiry-alert')
+    ) {
+      return [
+        ...managers,
+        'STORE_KEEPER',
+        'PHARMACIST',
+        'STAFF'
+      ].includes(role);
+    }
+
+    if (this.within(path, '/app/inventory')) {
+      return stockRoles.includes(role);
+    }
+
+    // PROCUREMENT
+    if (
+      this.within(path, '/app/procurement/supplier-payment')
+    ) {
+      return admins.includes(role);
+    }
+
+    if (
+      this.within(path, '/app/procurement/purchase-orders') ||
+      this.within(path, '/app/procurement/supplier-ledger') ||
+      this.within(path, '/app/procurement/purchase-return')
+    ) {
+      return managers.includes(role);
+    }
+
+    if (this.within(path, '/app/procurement/grn')) {
+      return stockRoles.includes(role);
+    }
+
+    if (this.within(path, '/app/procurement')) {
+      return stockRoles.includes(role);
+    }
+
+    // BRANCH TRANSFER
+    if (
+      this.within(path, '/app/branch-transfer/approval')
+    ) {
+      return managers.includes(role);
+    }
+
+    if (this.within(path, '/app/branch-transfer')) {
+      return stockRoles.includes(role);
+    }
+
+    // SUPPLIER RECORDS
+    if (this.within(path, '/app/stakeholders/suppliers')) {
+      return managers.includes(role);
+    }
+
+    // CUSTOMER RECORDS
+    if (this.within(path, '/app/stakeholders/customers')) {
+      return [
+        ...managers,
+        'PHARMACIST',
+        'STAFF',
+        'CASHIER'
+      ].includes(role);
+    }
+
+    // Deny unknown routes by default.
+    return false;
+  }
+
+  canPerform(
+    moduleName: string,
+    action: PermissionAction
+  ): boolean {
+    if (!this.authService.isLoggedIn()) {
+      return false;
+    }
+
+    const role = this.getMembershipRole();
+
+    if (!role) {
+      return false;
+    }
+
+    if (role === 'SUPER_ADMIN') {
+      return true;
+    }
+
+    const module = moduleName
+      .trim()
+      .toUpperCase()
+      .replace(/[ -]/g, '_');
+
+    // VIEW permission reuses the central route policy.
+    if (action === 'VIEW') {
+      const viewPaths: Record<string, string> = {
+        DASHBOARD: '/app/dashboard',
+        POS: '/app/pos',
+        MEDICINES: '/app/inventory/medicines',
+        PRODUCTS: '/app/inventory/products',
+        BATCHES: '/app/inventory/batches',
+        STOCK: '/app/inventory/stock-overview',
+        STOCK_ADJUSTMENT: '/app/inventory/stock-adjustment',
+        GRN: '/app/procurement/grn',
+        PURCHASE_ORDERS: '/app/procurement/purchase-orders',
+        SUPPLIERS: '/app/stakeholders/suppliers',
+        CUSTOMERS: '/app/stakeholders/customers',
+        BRANCH_TRANSFER: '/app/branch-transfer',
+        REPORTS: '/app/reports',
+        USER_MANAGEMENT: '/app/settings/users',
+        ROLE_MANAGEMENT: '/app/settings/roles',
+        BILLING: '/app/settings/billing',
+        SAAS_PLAN: '/app/settings/saas-plan',
+        SUPPLIER_PAYMENT: '/app/procurement/supplier-payment'
+      };
+
+      const path = viewPaths[module];
+
+      return path ? this.canAccessUrl(path) : false;
+    }
+
+    const admins = this.getAdminRoles();
+    const managers = this.getManagerRoles();
+    const stockRoles = this.getStockRoles();
+
+    switch (module) {
+      case 'USER_MANAGEMENT':
+      case 'ROLE_MANAGEMENT':
+        if (action === 'DELETE' || action === 'APPROVE') {
+          return role === 'TENANT_OWNER';
+        }
+        return admins.includes(role);
+
+      case 'BILLING':
+      case 'SAAS_PLAN':
+      case 'SUPPLIER_PAYMENT':
+        return role === 'TENANT_OWNER';
+
+      case 'MEDICINES':
+      case 'PRODUCTS':
+      case 'COMPANIES':
+      case 'SALESMEN':
+        if (action === 'DELETE') {
+          return admins.includes(role);
+        }
+        return managers.includes(role);
+
+      case 'STOCK':
+      case 'STOCK_ADJUSTMENT':
+      case 'BATCHES':
+      case 'GRN':
+        if (action === 'DELETE') {
+          return admins.includes(role);
+        }
+        if (action === 'APPROVE') {
+          return managers.includes(role);
+        }
+        return stockRoles.includes(role);
+
+      case 'PURCHASE_ORDERS':
+      case 'PURCHASE_RETURN':
+        if (action === 'DELETE') {
+          return admins.includes(role);
+        }
+        return managers.includes(role);
+
+      case 'POS':
+      case 'SALES':
+        if (action === 'DELETE' || action === 'APPROVE') {
+          return managers.includes(role);
+        }
+        return [
+          ...managers,
+          'PHARMACIST',
+          'CASHIER'
+        ].includes(role);
+
+      case 'BRANCH_TRANSFER':
+        if (action === 'APPROVE') {
+          return managers.includes(role);
+        }
+        if (action === 'DELETE') {
+          return admins.includes(role);
+        }
+        return stockRoles.includes(role);
+
+      default:
+        return false;
+    }
+  }
+
+  canAssignRole(targetRole: string): boolean {
+    const actorRole = this.getMembershipRole();
+    const target = targetRole.trim().toUpperCase();
+
+    if (!actorRole || actorRole === 'SUPER_ADMIN') {
+      return false;
+    }
+
+    if (
+      target === 'SUPER_ADMIN' ||
+      target === 'TENANT_OWNER'
+    ) {
+      return false;
+    }
+
+    if (target === 'PHARMACY_ADMIN') {
+      return actorRole === 'TENANT_OWNER';
+    }
+
+    return this.getAdminRoles().includes(actorRole) &&
+      [
+        'MANAGER',
+        'STORE_KEEPER',
+        'PHARMACIST',
+        'STAFF',
+        'CASHIER'
+      ].includes(target);
+  }
+}

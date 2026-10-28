@@ -1,0 +1,683 @@
+
+<div class="approval-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div>
+      <div class="breadcrumb">
+        <span>Pharmacy</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Branch Transfer</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Transfer Approval</span>
+      </div>
+
+      <h1>Transfer Approval</h1>
+      <p>Review and approve branch stock transfer requests.</p>
+    </div>
+
+    <button
+      class="btn-light"
+      type="button"
+      (click)="backToTransfers()"
+    >
+      <i class="bi bi-arrow-left"></i>
+      <span>Back to Transfers</span>
+    </button>
+  </div>
+
+
+  <!-- SUMMARY CARDS -->
+  <div class="summary-grid">
+
+    <div class="summary-card">
+      <div class="summary-icon blue">
+        <i class="bi bi-arrow-left-right"></i>
+      </div>
+
+      <div class="summary-content">
+        <span>Total Requests</span>
+        <strong>{{ totalRequests }}</strong>
+        <small>All transfer requests</small>
+      </div>
+    </div>
+
+
+    <div class="summary-card">
+      <div class="summary-icon orange">
+        <i class="bi bi-hourglass-split"></i>
+      </div>
+
+      <div class="summary-content">
+        <span>Pending Approval</span>
+        <strong>{{ pendingRequests }}</strong>
+        <small>Waiting for review</small>
+      </div>
+    </div>
+
+
+    <div class="summary-card">
+      <div class="summary-icon green">
+        <i class="bi bi-check-circle"></i>
+      </div>
+
+      <div class="summary-content">
+        <span>Approved</span>
+        <strong>{{ approvedRequests }}</strong>
+        <small>Approved requests</small>
+      </div>
+    </div>
+
+
+    <div class="summary-card">
+      <div class="summary-icon red">
+        <i class="bi bi-x-circle"></i>
+      </div>
+
+      <div class="summary-content">
+        <span>Rejected</span>
+        <strong>{{ rejectedRequests }}</strong>
+        <small>Rejected requests</small>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- PENDING VALUE -->
+  <div class="value-banner">
+
+    <div class="value-icon">
+      <i class="bi bi-cash-stack"></i>
+    </div>
+
+    <div class="value-content">
+      <span>Pending Transfer Value</span>
+
+      <strong>
+        ৳{{ pendingValue | number:'1.2-2' }}
+      </strong>
+
+      <small>
+        Total value awaiting approval
+      </small>
+    </div>
+
+  </div>
+
+
+  <!-- FILTER CARD -->
+  <div class="filter-card">
+
+    <div class="search-box">
+      <i class="bi bi-search"></i>
+
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        placeholder="Search transfer ID, branch or requester..."
+      />
+    </div>
+
+    <div class="filter-group">
+
+      <label for="priorityFilter">Priority</label>
+
+      <select
+        id="priorityFilter"
+        [(ngModel)]="selectedPriority"
+      >
+        <option value="All">All Priorities</option>
+        <option value="Low">Low</option>
+        <option value="Normal">Normal</option>
+        <option value="High">High</option>
+        <option value="Urgent">Urgent</option>
+      </select>
+
+    </div>
+
+  </div>
+
+
+  <!-- REQUEST TABLE -->
+  <div class="content-card">
+
+    <div class="card-header">
+
+      <div class="header-left">
+
+        <div class="header-icon">
+          <i class="bi bi-clipboard-check"></i>
+        </div>
+
+        <div>
+          <h3>Transfer Requests</h3>
+          <p>Review branch stock transfer requests</p>
+        </div>
+
+      </div>
+
+      <span class="request-count">
+        {{ filteredRequests.length }} Requests
+      </span>
+
+    </div>
+
+
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Transfer ID</th>
+            <th>Transfer Route</th>
+            <th>Requested By</th>
+            <th>Date</th>
+            <th>Items</th>
+            <th>Quantity</th>
+            <th>Value</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th class="actions-column">Actions</th>
+          </tr>
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="
+              let request of filteredRequests;
+              trackBy: trackByRequestId
+            "
+          >
+
+            <!-- TRANSFER ID -->
+            <td>
+              <div class="transfer-id">
+
+                <div class="id-icon">
+                  <i class="bi bi-arrow-left-right"></i>
+                </div>
+
+                <strong>
+                  {{ request.id }}
+                </strong>
+
+              </div>
+            </td>
+
+
+            <!-- ROUTE -->
+            <td>
+              <div class="route">
+
+                <span>
+                  {{ request.fromBranch }}
+                </span>
+
+                <i class="bi bi-arrow-right"></i>
+
+                <span>
+                  {{ request.toBranch }}
+                </span>
+
+              </div>
+            </td>
+
+
+            <!-- REQUESTER -->
+            <td>
+              <div class="requester">
+
+                <div class="avatar">
+                  {{ request.requestedBy.charAt(0) }}
+                </div>
+
+                <span>
+                  {{ request.requestedBy }}
+                </span>
+
+              </div>
+            </td>
+
+
+            <!-- DATE -->
+            <td>
+              <span class="date">
+                {{ request.requestDate }}
+              </span>
+            </td>
+
+
+            <!-- ITEMS -->
+            <td>
+              <strong>
+                {{ request.totalItems }}
+              </strong>
+            </td>
+
+
+            <!-- QUANTITY -->
+            <td>
+              <strong class="quantity">
+                {{ request.totalQuantity | number }}
+              </strong>
+            </td>
+
+
+            <!-- VALUE -->
+            <td>
+              <strong class="amount">
+                ৳{{ request.totalValue | number:'1.2-2' }}
+              </strong>
+            </td>
+
+
+            <!-- PRIORITY -->
+            <td>
+              <span
+                class="priority-badge"
+                [ngClass]="getPriorityClass(request.priority)"
+              >
+                {{ request.priority }}
+              </span>
+            </td>
+
+
+            <!-- STATUS -->
+            <td>
+              <span
+                class="status-badge"
+                [ngClass]="getStatusClass(request.status)"
+              >
+                <span class="status-dot"></span>
+                {{ request.status }}
+              </span>
+            </td>
+
+
+            <!-- ACTIONS -->
+            <td class="actions-cell">
+
+              <div class="actions">
+
+                <!-- VIEW -->
+                <button
+                  class="icon-btn view"
+                  type="button"
+                  title="View Details"
+                  aria-label="View Details"
+                  (click)="viewRequest(request)"
+                >
+                  <i class="bi bi-eye"></i>
+                </button>
+
+
+                <!-- APPROVE -->
+                <button
+                  *ngIf="request.status === 'Pending'"
+                  class="icon-btn approve"
+                  type="button"
+                  title="Approve"
+                  aria-label="Approve"
+                  (click)="approveRequest(request)"
+                >
+                  <i class="bi bi-check-lg"></i>
+                </button>
+
+
+                <!-- REJECT -->
+                <button
+                  *ngIf="request.status === 'Pending'"
+                  class="icon-btn reject"
+                  type="button"
+                  title="Reject"
+                  aria-label="Reject"
+                  (click)="openRejectModal(request)"
+                >
+                  <i class="bi bi-x-lg"></i>
+                </button>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+
+          <!-- EMPTY STATE -->
+          <tr *ngIf="filteredRequests.length === 0">
+
+            <td colspan="10">
+
+              <div class="empty-state">
+
+                <div class="empty-icon">
+                  <i class="bi bi-inbox"></i>
+                </div>
+
+                <h3>No Transfer Requests Found</h3>
+
+                <p>
+                  No transfer requests match your current search or filter.
+                </p>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+
+  <!-- DETAILS PANEL -->
+  <div
+    class="details-overlay"
+    *ngIf="selectedRequest && !showRejectModal"
+    (click)="closeDetails()"
+  >
+
+    <div
+      class="details-panel"
+      (click)="$event.stopPropagation()"
+    >
+
+      <!-- PANEL HEADER -->
+      <div class="panel-header">
+
+        <div>
+          <span>Transfer Request</span>
+
+          <h2>
+            {{ selectedRequest.id }}
+          </h2>
+        </div>
+
+        <button
+          class="close-btn"
+          type="button"
+          title="Close"
+          aria-label="Close"
+          (click)="closeDetails()"
+        >
+          <i class="bi bi-x-lg"></i>
+        </button>
+
+      </div>
+
+
+      <!-- REQUEST ROUTE -->
+      <div class="request-summary">
+
+        <div class="summary-item">
+
+          <span>From Branch</span>
+
+          <strong>
+            {{ selectedRequest.fromBranch }}
+          </strong>
+
+        </div>
+
+        <div class="summary-arrow">
+          <i class="bi bi-arrow-right"></i>
+        </div>
+
+        <div class="summary-item">
+
+          <span>To Branch</span>
+
+          <strong>
+            {{ selectedRequest.toBranch }}
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <!-- META INFORMATION -->
+      <div class="meta-grid">
+
+        <div>
+          <span>Requested By</span>
+
+          <strong>
+            {{ selectedRequest.requestedBy }}
+          </strong>
+        </div>
+
+
+        <div>
+          <span>Request Date</span>
+
+          <strong>
+            {{ selectedRequest.requestDate }}
+          </strong>
+        </div>
+
+
+        <div>
+          <span>Priority</span>
+
+          <span
+            class="priority-badge"
+            [ngClass]="getPriorityClass(selectedRequest.priority)"
+          >
+            {{ selectedRequest.priority }}
+          </span>
+        </div>
+
+
+        <div>
+          <span>Status</span>
+
+          <span
+            class="status-badge"
+            [ngClass]="getStatusClass(selectedRequest.status)"
+          >
+            <span class="status-dot"></span>
+            {{ selectedRequest.status }}
+          </span>
+        </div>
+
+      </div>
+
+
+      <!-- REASON -->
+      <div class="reason-box">
+
+        <div class="reason-title">
+          <i class="bi bi-chat-left-text"></i>
+          <span>Transfer Reason</span>
+        </div>
+
+        <p>
+          {{ selectedRequest.reason }}
+        </p>
+
+      </div>
+
+
+      <!-- TRANSFER ITEMS -->
+      <div class="panel-section">
+
+        <div class="section-title">
+
+          <div>
+            <h3>Transfer Items</h3>
+
+            <span>
+              {{ selectedRequest.totalItems }} items ·
+              {{ selectedRequest.totalQuantity }} units
+            </span>
+          </div>
+
+          <strong>
+            ৳{{ selectedRequest.totalValue | number:'1.2-2' }}
+          </strong>
+
+        </div>
+
+
+        <div class="mini-table">
+
+          <div class="mini-head">
+            <span>Medicine</span>
+            <span>Batch</span>
+            <span>Qty</span>
+            <span>Total</span>
+          </div>
+
+
+          <div
+            class="mini-row"
+            *ngFor="
+              let item of selectedRequest.items;
+              trackBy: trackByItem
+            "
+          >
+
+            <div>
+              <strong>
+                {{ item.medicine }}
+              </strong>
+            </div>
+
+            <span>
+              {{ item.batch }}
+            </span>
+
+            <strong>
+              {{ item.quantity }}
+            </strong>
+
+            <strong>
+              ৳{{ item.total | number:'1.2-2' }}
+            </strong>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- PANEL ACTIONS -->
+      <div class="panel-actions">
+
+        <button
+          class="btn-danger"
+          type="button"
+          *ngIf="selectedRequest.status === 'Pending'"
+          (click)="openRejectModal(selectedRequest)"
+        >
+          <i class="bi bi-x-circle"></i>
+          <span>Reject</span>
+        </button>
+
+
+        <button
+          class="btn-success"
+          type="button"
+          *ngIf="selectedRequest.status === 'Pending'"
+          (click)="approveRequest(selectedRequest)"
+        >
+          <i class="bi bi-check-circle"></i>
+          <span>Approve Transfer</span>
+        </button>
+
+
+        <button
+          class="btn-light"
+          type="button"
+          (click)="viewDetails(selectedRequest)"
+        >
+          <i class="bi bi-eye"></i>
+          <span>Full Details</span>
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- REJECT MODAL -->
+  <div
+    class="details-overlay"
+    *ngIf="showRejectModal && selectedRequest"
+    (click)="closeRejectModal()"
+  >
+
+    <div
+      class="reject-modal"
+      (click)="$event.stopPropagation()"
+    >
+
+      <div class="modal-icon">
+        <i class="bi bi-x-circle"></i>
+      </div>
+
+      <h2>Reject Transfer Request</h2>
+
+      <p>
+        Are you sure you want to reject
+        <strong>
+          {{ selectedRequest.id }}
+        </strong>?
+      </p>
+
+
+      <div class="form-group">
+
+        <label for="rejectionReason">
+          Rejection Reason
+        </label>
+
+        <textarea
+          id="rejectionReason"
+          [(ngModel)]="rejectionReason"
+          rows="4"
+          placeholder="Enter the reason for rejecting this transfer..."
+        ></textarea>
+
+      </div>
+
+
+      <div class="modal-actions">
+
+        <button
+          class="btn-light"
+          type="button"
+          (click)="closeRejectModal()"
+        >
+          <span>Cancel</span>
+        </button>
+
+        <button
+          class="btn-danger filled"
+          type="button"
+          (click)="rejectRequest()"
+        >
+          <i class="bi bi-x-circle"></i>
+          <span>Reject Request</span>
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

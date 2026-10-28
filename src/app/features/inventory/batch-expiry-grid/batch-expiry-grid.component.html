@@ -1,0 +1,462 @@
+
+<div class="batch-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div class="header-left">
+
+      <div class="breadcrumb">
+        <span>Pharmacy</span>
+        <i class="bi bi-chevron-right"></i>
+
+        <span>Inventory</span>
+        <i class="bi bi-chevron-right"></i>
+
+        <span class="current">Batches &amp; Expiry</span>
+      </div>
+
+      <h1>Batch &amp; Expiry Management</h1>
+
+      <p>
+        Monitor medicine batches, expiry dates and available stock.
+      </p>
+
+    </div>
+
+    <div class="header-actions">
+
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="addBatch()"
+      >
+        <i class="bi bi-plus-lg"></i>
+        Add Batch / Stock-In
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-light"
+        (click)="goBack()"
+      >
+        <i class="bi bi-arrow-left"></i>
+        Back to Medicines
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- SUMMARY CARDS -->
+  <div class="summary-grid">
+
+    <!-- TOTAL BATCHES -->
+    <div class="summary-card">
+
+      <div class="summary-icon batches">
+        <i class="bi bi-box-seam"></i>
+      </div>
+
+      <div class="summary-content">
+        <span>Total Batches</span>
+        <strong>{{ totalBatches }}</strong>
+        <small>Registered batches</small>
+      </div>
+
+    </div>
+
+
+    <!-- TOTAL QUANTITY -->
+    <div class="summary-card">
+
+      <div class="summary-icon quantity">
+        <i class="bi bi-boxes"></i>
+      </div>
+
+      <div class="summary-content">
+        <span>Total Quantity</span>
+        <strong>{{ totalQuantity }}</strong>
+        <small>Units in batches</small>
+      </div>
+
+    </div>
+
+
+    <!-- EXPIRING SOON -->
+    <div class="summary-card">
+
+      <div class="summary-icon warning">
+        <i class="bi bi-calendar2-week"></i>
+      </div>
+
+      <div class="summary-content">
+        <span>Expiring Soon</span>
+        <strong>{{ expiringSoonCount }}</strong>
+        <small>Needs attention</small>
+      </div>
+
+    </div>
+
+
+    <!-- EXPIRED -->
+    <div class="summary-card">
+
+      <div class="summary-icon danger">
+        <i class="bi bi-exclamation-octagon"></i>
+      </div>
+
+      <div class="summary-content">
+        <span>Expired</span>
+        <strong>{{ expiredCount }}</strong>
+        <small>Requires action</small>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- MAIN CARD -->
+  <div class="content-card">
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+
+      <div class="search-wrapper">
+
+        <i class="bi bi-search"></i>
+
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          placeholder="Search medicine, batch or supplier..."
+        />
+
+        <button
+          *ngIf="searchTerm"
+          type="button"
+          class="clear-search"
+          (click)="searchTerm = ''"
+        >
+          <i class="bi bi-x"></i>
+        </button>
+
+      </div>
+
+
+      <!-- STATUS FILTER -->
+      <div class="status-filters">
+
+        <button
+          type="button"
+          [class.active]="selectedStatus === 'All'"
+          (click)="selectStatus('All')"
+        >
+          All
+        </button>
+
+        <button
+          type="button"
+          [class.active]="selectedStatus === 'Good'"
+          (click)="selectStatus('Good')"
+        >
+          Good
+        </button>
+
+        <button
+          type="button"
+          [class.active]="selectedStatus === 'Expiring Soon'"
+          (click)="selectStatus('Expiring Soon')"
+        >
+          Expiring Soon
+        </button>
+
+        <button
+          type="button"
+          [class.active]="selectedStatus === 'Expired'"
+          (click)="selectStatus('Expired')"
+        >
+          Expired
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- LOADING STATE -->
+    <div class="empty-state" *ngIf="loading">
+      <h3>Loading batches...</h3>
+      <p>Fetching batch and expiry information from the server.</p>
+    </div>
+
+    <!-- ERROR STATE -->
+    <div class="empty-state" *ngIf="!loading && errorMessage">
+      <h3>Unable to load batches</h3>
+      <p>{{ errorMessage }}</p>
+      <button type="button" class="btn btn-light" (click)="loadBatches()">
+        <i class="bi bi-arrow-clockwise"></i>
+        Try Again
+      </button>
+    </div>
+
+    <!-- TABLE -->
+    <div
+      class="table-wrapper"
+      *ngIf="!loading && !errorMessage && filteredBatches.length > 0"
+    >
+
+      <table>
+
+        <thead>
+          <tr>
+
+            <th>Medicine</th>
+
+            <th>Batch Number</th>
+
+            <th>Expiry Date</th>
+
+            <th>Quantity</th>
+
+            <th>Purchase Price</th>
+
+            <th>Selling Price</th>
+
+            <th>Supplier</th>
+
+            <th>Status</th>
+
+            <th>Action</th>
+
+          </tr>
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="let batch of filteredBatches"
+          >
+
+            <!-- MEDICINE -->
+            <td>
+
+              <div class="medicine-cell">
+
+                <div class="medicine-icon">
+                  <i class="bi bi-capsule"></i>
+                </div>
+
+                <div class="medicine-info">
+
+                  <strong>
+                    {{ batch.medicineName }}
+                  </strong>
+
+                  <span>
+                    {{ batch.generic }}
+                  </span>
+
+                </div>
+
+              </div>
+
+            </td>
+
+
+            <!-- BATCH -->
+            <td>
+
+              <span class="batch-number">
+                {{ batch.batchNumber }}
+              </span>
+
+            </td>
+
+
+            <!-- EXPIRY -->
+            <td>
+
+              <div class="expiry-cell">
+
+                <strong>
+                  {{ formatDate(batch.expiryDate) }}
+                </strong>
+
+                <span
+                  [class.expired-text]="
+                    batch.status === 'Expired'
+                  "
+                  [class.expiring-text]="
+                    batch.status === 'Expiring Soon'
+                  "
+                >
+
+                  <ng-container
+                    *ngIf="getDaysUntilExpiry(batch.expiryDate) >= 0"
+                  >
+                    {{ getDaysUntilExpiry(batch.expiryDate) }}
+                    days left
+                  </ng-container>
+
+                  <ng-container
+                    *ngIf="getDaysUntilExpiry(batch.expiryDate) < 0"
+                  >
+                    Expired
+                  </ng-container>
+
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <!-- QUANTITY -->
+            <td>
+
+              <div class="quantity-cell">
+
+                <strong>
+                  {{ batch.quantity }}
+                </strong>
+
+                <span>units</span>
+
+              </div>
+
+            </td>
+
+
+            <!-- PURCHASE PRICE -->
+            <td>
+
+              <span class="price">
+                ৳{{ batch.purchasePrice | number:'1.2-2' }}
+              </span>
+
+            </td>
+
+
+            <!-- SELLING PRICE -->
+            <td>
+
+              <span class="price selling-price">
+                ৳{{ batch.sellingPrice | number:'1.2-2' }}
+              </span>
+
+            </td>
+
+
+            <!-- SUPPLIER -->
+            <td>
+
+              <div class="supplier-cell">
+
+                <i class="bi bi-building"></i>
+
+                <span>
+                  {{ batch.supplier }}
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <!-- STATUS -->
+            <td>
+
+              <span
+                class="status-badge"
+                [ngClass]="getStatusClass(batch.status)"
+              >
+
+                <span class="status-dot"></span>
+
+                {{ batch.status }}
+
+              </span>
+
+            </td>
+
+
+            <!-- ACTION -->
+            <td>
+
+              <button
+                type="button"
+                class="view-btn"
+                title="View Medicine"
+                (click)="viewMedicine(batch)"
+              >
+                <i class="bi bi-eye"></i>
+              </button>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    <!-- EMPTY STATE -->
+    <div
+      class="empty-state"
+      *ngIf="!loading && !errorMessage && filteredBatches.length === 0"
+    >
+
+      <div class="empty-icon">
+        <i class="bi bi-search"></i>
+      </div>
+
+      <h3>No batches found</h3>
+
+      <p>
+        No batch records match your search or selected filter.
+      </p>
+
+      <button
+        type="button"
+        class="btn btn-light"
+        (click)="searchTerm = ''; selectedStatus = 'All'"
+      >
+        <i class="bi bi-arrow-counterclockwise"></i>
+        Clear Filters
+      </button>
+
+    </div>
+
+
+    <!-- FOOTER -->
+    <div
+      class="table-footer"
+      *ngIf="!loading && !errorMessage && filteredBatches.length > 0"
+    >
+
+      <span>
+        Showing
+        <strong>{{ filteredBatches.length }}</strong>
+        of
+        <strong>{{ totalBatches }}</strong>
+        batches
+      </span>
+
+      <span class="footer-note">
+        <i class="bi bi-info-circle"></i>
+        FEFO-ready inventory view
+      </span>
+
+    </div>
+
+  </div>
+
+</div>
+

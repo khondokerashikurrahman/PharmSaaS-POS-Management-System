@@ -1,0 +1,458 @@
+
+<div class="movement-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div class="header-left">
+
+      <div class="breadcrumb">
+        <span>Pharmacy</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Inventory</span>
+        <i class="bi bi-chevron-right"></i>
+        <span class="current">Stock Movement</span>
+      </div>
+
+      <h1>Stock Movement</h1>
+
+      <p>
+        View recorded stock changes from sales, receipts, returns and adjustments.
+      </p>
+
+    </div>
+
+    <div class="header-actions">
+
+      <button
+        type="button"
+        class="btn btn-light"
+        (click)="goBack()"
+      >
+        <i class="bi bi-arrow-left"></i>
+        Back to Medicines
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- SUMMARY -->
+  <div class="summary-grid">
+
+    <div class="summary-card">
+
+      <div class="summary-icon total">
+        <i class="bi bi-arrow-left-right"></i>
+      </div>
+
+      <div class="summary-content">
+        <span>Total Movements</span>
+        <strong>{{ totalMovements }}</strong>
+        <small>Movement records</small>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon sale">
+        <i class="bi bi-cart-check"></i>
+      </div>
+
+      <div class="summary-content">
+        <span>Sales</span>
+        <strong>{{ totalSaleQuantity }}</strong>
+        <small>Units sold</small>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon purchase">
+        <i class="bi bi-box-arrow-in-down"></i>
+      </div>
+
+      <div class="summary-content">
+        <span>Purchases</span>
+        <strong>{{ totalPurchaseQuantity }}</strong>
+        <small>Units received</small>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon transfer">
+        <i class="bi bi-arrow-left-right"></i>
+      </div>
+
+      <div class="summary-content">
+        <span>Transfers</span>
+        <strong>{{ totalTransferQuantity }}</strong>
+        <small>Units transferred</small>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- MOVEMENT HISTORY -->
+  <div class="content-card">
+
+    <div class="toolbar">
+
+      <div class="toolbar-title">
+
+        <div class="title-icon">
+          <i class="bi bi-clock-history"></i>
+        </div>
+
+        <div>
+          <h2>Movement History</h2>
+          <p>Complete inventory movement records.</p>
+        </div>
+
+      </div>
+
+
+      <div class="toolbar-right">
+
+        <div class="search-wrapper">
+
+          <i class="bi bi-search"></i>
+
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            placeholder="Search medicine, batch, reference or store/branch..."
+          />
+
+          <button
+            *ngIf="searchTerm"
+            type="button"
+            class="clear-search"
+            (click)="searchTerm = ''"
+          >
+            <i class="bi bi-x"></i>
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- FILTERS -->
+    <div class="filter-bar">
+
+      <div class="filter-label">
+        <i class="bi bi-funnel"></i>
+        Movement Type
+      </div>
+
+      <div class="type-filters">
+
+        <button
+          *ngFor="let type of movementTypes"
+          type="button"
+          [class.active]="selectedType === type"
+          (click)="selectType(type)"
+        >
+          <ng-container [ngSwitch]="type">
+
+            <i
+              *ngSwitchCase="'Sale'"
+              class="bi bi-cart-check"
+            ></i>
+
+            <i
+              *ngSwitchCase="'Purchase'"
+              class="bi bi-box-arrow-in-down"
+            ></i>
+
+            <i
+              *ngSwitchCase="'Return'"
+              class="bi bi-arrow-return-left"
+            ></i>
+
+            <i
+              *ngSwitchCase="'Transfer'"
+              class="bi bi-arrow-left-right"
+            ></i>
+
+            <i
+              *ngSwitchCase="'Adjustment'"
+              class="bi bi-sliders"
+            ></i>
+
+            <i
+              *ngSwitchDefault
+              class="bi bi-grid"
+            ></i>
+
+          </ng-container>
+
+          {{ type }}
+
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- TABLE -->
+    <div
+      class="table-wrapper"
+      *ngIf="filteredMovements.length > 0"
+    >
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>Date &amp; Time</th>
+            <th>Medicine</th>
+            <th>Batch</th>
+            <th>Movement</th>
+            <th>Quantity</th>
+            <th>From</th>
+            <th>To</th>
+            <th>Reference</th>
+            <th>User</th>
+            <th>Store / Branch</th>
+</tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="let movement of filteredMovements"
+          >
+
+            <!-- DATE -->
+            <td>
+
+              <div class="date-cell">
+
+                <strong>
+                  {{ formatDate(movement.date) }}
+                </strong>
+
+                <span>
+                  {{ formatTime(movement.date) }}
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <!-- MEDICINE -->
+            <td>
+
+              <div class="medicine-cell">
+
+                <div class="medicine-icon">
+                  <i class="bi bi-capsule"></i>
+                </div>
+
+                <div class="medicine-info">
+
+                  <strong>
+                    {{ movement.medicineName }}
+                  </strong>
+
+                  <span>
+                    Medicine ID: {{ movement.medicineId }}
+                  </span>
+
+                </div>
+
+              </div>
+
+            </td>
+
+
+            <!-- BATCH -->
+            <td>
+
+              <span class="batch-number">
+                {{ movement.batchNumber }}
+              </span>
+
+            </td>
+
+
+            <!-- TYPE -->
+            <td>
+
+              <span
+                class="movement-badge"
+                [ngClass]="getMovementClass(movement.type)"
+              >
+
+                <i
+                  class="bi"
+                  [ngClass]="getMovementIcon(movement.type)"
+                ></i>
+
+                {{ movement.type }}
+
+              </span>
+
+            </td>
+
+
+            <!-- QUANTITY -->
+            <td>
+
+              <strong class="quantity">
+                {{ movement.quantity }}
+              </strong>
+
+              <span class="units">
+                units
+              </span>
+
+            </td>
+
+
+            <!-- FROM -->
+            <td>
+
+              <div class="location-cell">
+
+                <i class="bi bi-geo-alt"></i>
+
+                <span>
+                  {{ movement.fromLocation }}
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <!-- TO -->
+            <td>
+
+              <div class="location-cell">
+
+                <i class="bi bi-geo-alt-fill"></i>
+
+                <span>
+                  {{ movement.toLocation }}
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <!-- REFERENCE -->
+            <td>
+
+              <span class="reference">
+                {{ movement.reference }}
+              </span>
+
+            </td>
+
+
+            <!-- USER -->
+            <td>
+
+              <div class="user-cell">
+
+                <div class="user-avatar">
+                  {{ movement.user.charAt(0) }}
+                </div>
+
+                <span>
+                  {{ movement.user }}
+                </span>
+
+              </div>
+
+            </td>
+
+          
+<td>{{ movement.storeName || '—' }}</td>
+</tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    <!-- EMPTY STATE -->
+    <div
+      class="empty-state"
+      *ngIf="filteredMovements.length === 0"
+    >
+
+      <div class="empty-icon">
+        <i class="bi bi-arrow-left-right"></i>
+      </div>
+
+      <h3>No stock movements found</h3>
+
+      <p>
+        {{
+          searchTerm
+            ? 'No movement records match your search.'
+            : 'No stock movement records are available for this filter.'
+        }}
+      </p>
+
+      <button
+        *ngIf="searchTerm"
+        type="button"
+        class="btn btn-light"
+        (click)="searchTerm = ''"
+      >
+        <i class="bi bi-arrow-counterclockwise"></i>
+        Clear Search
+      </button>
+
+    </div>
+
+
+    <!-- FOOTER -->
+    <div
+      class="table-footer"
+      *ngIf="filteredMovements.length > 0"
+    >
+
+      <span>
+        Showing
+        <strong>{{ filteredMovements.length }}</strong>
+        of
+        <strong>{{ totalMovements }}</strong>
+        movements
+      </span>
+
+      <span class="footer-note">
+        <i class="bi bi-shield-check"></i>
+        Inventory tracking enabled
+      </span>
+
+    </div>
+
+  </div>
+
+</div>

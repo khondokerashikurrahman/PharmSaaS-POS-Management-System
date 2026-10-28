@@ -1,0 +1,293 @@
+<div class="salesman-form-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div>
+      <div class="breadcrumb">
+        <span>Inventory</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Salesmen</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>{{ isEditMode ? 'Edit Salesman' : 'Add Salesman' }}</span>
+      </div>
+
+      <h1>
+        {{ isEditMode ? 'Edit Salesman' : 'Add Salesman' }}
+      </h1>
+
+      <p>
+        {{ isEditMode
+          ? 'Update salesman information and commission details'
+          : 'Add a new pharmaceutical sales representative'
+        }}
+      </p>
+    </div>
+
+    <button class="back-btn" type="button" (click)="goBack()">
+      <i class="bi bi-arrow-left"></i>
+      Back to Salesmen
+    </button>
+
+  </div>
+
+
+  <!-- FORM CARD -->
+  <div class="form-card">
+
+    <div class="form-card-header">
+      <div class="header-icon">
+        <i class="bi bi-person-badge"></i>
+      </div>
+
+      <div>
+        <h2>Salesman Information</h2>
+        <p>Enter the salesman details below</p>
+      </div>
+    </div>
+
+
+    <form (ngSubmit)="saveSalesman()">
+
+      <!-- BASIC INFORMATION -->
+      <div class="section-title">
+        <i class="bi bi-person"></i>
+        Basic Information
+      </div>
+
+      <div class="form-grid">
+
+        <!-- ID -->
+        <div class="form-group">
+          <label>Salesman ID</label>
+
+          <div class="input-wrapper">
+            <i class="bi bi-hash"></i>
+
+            <input
+              type="text"
+              name="id"
+              [(ngModel)]="salesman.id"
+              readonly
+              class="readonly-input"
+            />
+          </div>
+        </div>
+
+
+        <!-- NAME -->
+        <div class="form-group">
+          <label>
+            Salesman Name
+            <span>*</span>
+          </label>
+
+          <div class="input-wrapper">
+            <i class="bi bi-person"></i>
+
+            <input
+              type="text"
+              name="name"
+              [(ngModel)]="salesman.name"
+              placeholder="Enter salesman name"
+            />
+          </div>
+        </div>
+
+
+        <!-- PHONE -->
+        <div class="form-group">
+          <label>
+            Phone Number
+            <span>*</span>
+          </label>
+
+          <div class="input-wrapper">
+            <i class="bi bi-telephone"></i>
+
+            <input
+              type="tel"
+              name="phone"
+              [(ngModel)]="salesman.phone"
+              placeholder="+880 1XXX-XXXXXX"
+            />
+          </div>
+        </div>
+
+
+        <!-- EMAIL -->
+        <div class="form-group">
+          <label>
+            Email Address
+            <span>*</span>
+          </label>
+
+          <div class="input-wrapper">
+            <i class="bi bi-envelope"></i>
+
+            <input
+              type="email"
+              name="email"
+              [(ngModel)]="salesman.email"
+              placeholder="salesman@example.com"
+            />
+          </div>
+        </div>
+
+      </div>
+
+
+      <!-- COMPANY INFORMATION -->
+      <div class="section-title">
+        <i class="bi bi-building"></i>
+        Company & Territory
+      </div>
+
+      <div class="form-grid">
+
+        <!-- COMPANY -->
+        <div class="form-group">
+          <label>
+            Pharmaceutical Company
+            <span>*</span>
+          </label>
+
+          <div class="input-wrapper">
+            <i class="bi bi-building"></i>
+
+            <select
+              name="company"
+              [(ngModel)]="salesman.company"
+            >
+              <option value="">Select company</option>
+
+              <option
+                *ngFor="let company of companies"
+                [value]="company"
+              >
+                {{ company }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+
+        <!-- TERRITORY -->
+        <div class="form-group">
+          <label>
+            Territory
+            <span>*</span>
+          </label>
+
+          <div class="input-wrapper">
+            <i class="bi bi-geo-alt"></i>
+
+            <select
+              name="territory"
+              [(ngModel)]="salesman.territory"
+            >
+              <option value="">Select territory</option>
+
+              <option
+                *ngFor="let territory of territories"
+                [value]="territory"
+              >
+                {{ territory }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+
+        <!-- COMMISSION -->
+        <div class="form-group">
+          <label>
+            Commission (%)
+            <span>*</span>
+          </label>
+
+          <div class="input-wrapper">
+            <i class="bi bi-percent"></i>
+
+            <input
+              type="number"
+              name="commission"
+              [(ngModel)]="salesman.commission"
+              min="0"
+              max="100"
+              step="0.5"
+              placeholder="3.5"
+            />
+          </div>
+
+          <small>
+            Enter commission percentage
+          </small>
+        </div>
+
+
+        <!-- STATUS -->
+        <div class="form-group">
+          <label>Status</label>
+
+          <div class="input-wrapper">
+            <i class="bi bi-toggle-on"></i>
+
+            <select
+              name="status"
+              [(ngModel)]="salesman.status"
+            >
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+
+      </div>
+
+
+      <!-- INFORMATION NOTE -->
+      <div class="info-box">
+        <i class="bi bi-info-circle"></i>
+
+        <div>
+          <strong>Salesman Management</strong>
+          <p>
+            Salesman information can be used for territory management,
+            commission tracking and sales performance reporting.
+          </p>
+        </div>
+      </div>
+
+
+      <!-- ACTIONS -->
+      <div class="form-actions">
+
+        <button
+          type="button"
+          class="cancel-btn"
+          (click)="cancel()"
+        >
+          <i class="bi bi-x-lg"></i>
+          Cancel
+        </button>
+
+        <button
+          type="submit"
+          class="save-btn"
+        >
+          <i
+            class="bi"
+            [ngClass]="isEditMode ? 'bi-check-circle' : 'bi-person-plus'"
+          ></i>
+
+          {{ isEditMode ? 'Update Salesman' : 'Add Salesman' }}
+        </button>
+
+      </div>
+
+    </form>
+
+  </div>
+
+</div>

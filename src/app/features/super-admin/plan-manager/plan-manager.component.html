@@ -1,0 +1,623 @@
+<div class="plan-page">
+
+  <!-- TEST BUTTON
+  <button
+    type="button"
+    (click)="openAddModal()"
+    style="
+      background: red;
+      color: white;
+      padding: 15px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-bottom: 20px;
+    "
+  >
+    TEST ADD BUTTON
+  </button> -->
+
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div>
+      <div class="breadcrumb">
+        <span>Super Admin</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Subscription Plans</span>
+      </div>
+
+      <h1>Subscription Plans</h1>
+
+      <p>
+        Create and manage pricing plans for pharmacy tenants.
+      </p>
+    </div>
+
+    <button
+      class="add-plan-btn"
+      type="button"
+      (click)="openAddModal()"
+    >
+      <span>+</span>
+      Add New Plan
+    </button>
+
+  </div>
+
+
+  <!-- SUMMARY CARDS -->
+  <div class="summary-grid">
+
+    <div class="summary-card">
+
+      <div class="summary-icon blue">
+        <i class="bi bi-layers"></i>
+      </div>
+
+      <div>
+        <span>Total Plans</span>
+        <strong>{{ totalPlans }}</strong>
+        <small>Available plans</small>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon green">
+        <i class="bi bi-check-circle"></i>
+      </div>
+
+      <div>
+        <span>Active Plans</span>
+        <strong>{{ activePlans }}</strong>
+        <small>Currently available</small>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon purple">
+        <i class="bi bi-building"></i>
+      </div>
+
+      <div>
+        <span>Total Tenants</span>
+        <strong>{{ totalTenants }}</strong>
+        <small>Across all plans</small>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon orange">
+        <i class="bi bi-cash-stack"></i>
+      </div>
+
+      <div>
+        <span>Monthly Revenue</span>
+        <strong>৳{{ monthlyRevenue | number }}</strong>
+        <small>Estimated revenue</small>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- BILLING TOGGLE -->
+  <div class="plan-toolbar">
+
+    <div>
+      <h2>Available Plans</h2>
+      <p>Choose the right subscription for each pharmacy.</p>
+    </div>
+
+    <div class="billing-toggle">
+
+      <button
+        type="button"
+        [class.active]="billingCycle === 'Monthly'"
+        (click)="setBillingCycle('Monthly')"
+      >
+        Monthly
+      </button>
+
+      <button
+        type="button"
+        [class.active]="billingCycle === 'Yearly'"
+        (click)="setBillingCycle('Yearly')"
+      >
+        Yearly
+        <span>Save 2 months</span>
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- PLAN CARDS -->
+  <div class="plans-grid">
+
+    <div
+      class="plan-card"
+      *ngFor="let plan of plans"
+      [class.popular]="plan.popular"
+      [class.inactive]="plan.status === 'Inactive'"
+    >
+
+      <!-- POPULAR BADGE -->
+      <div
+        class="popular-badge"
+        *ngIf="plan.popular"
+      >
+        MOST POPULAR
+      </div>
+
+
+      <!-- PLAN HEADER -->
+      <div class="plan-card-header">
+
+        <div class="plan-title">
+
+          <div class="plan-icon">
+
+            <i
+              class="bi"
+              [class.bi-box]="plan.name === 'Basic'"
+              [class.bi-star]="plan.name === 'Standard'"
+              [class.bi-gem]="plan.name === 'Premium'"
+            ></i>
+
+          </div>
+
+          <div>
+
+            <h3>{{ plan.name }}</h3>
+
+            <span
+              class="status"
+              [class.active]="plan.status === 'Active'"
+              [class.inactive-status]="plan.status === 'Inactive'"
+            >
+              {{ plan.status }}
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- PRICE -->
+      <div class="price-section">
+
+        <span class="currency">৳</span>
+
+        <strong>
+          {{ getPrice(plan) | number }}
+        </strong>
+
+        <span class="period">
+          /{{ billingCycle === 'Monthly' ? 'month' : 'year' }}
+        </span>
+
+      </div>
+
+
+      <!-- DESCRIPTION -->
+      <p class="plan-description">
+        {{ plan.description }}
+      </p>
+
+
+      <!-- TENANTS -->
+      <div class="tenant-count">
+
+        <i class="bi bi-people"></i>
+
+        <strong>{{ plan.tenants }}</strong>
+
+        <span>active tenants</span>
+
+      </div>
+
+
+      <!-- FEATURES -->
+      <div class="features">
+
+        <h4>Plan Features</h4>
+
+        <div
+          class="feature"
+          *ngFor="let feature of plan.features"
+        >
+
+          <i class="bi bi-check-circle-fill"></i>
+
+          <span>{{ feature }}</span>
+
+        </div>
+
+      </div>
+
+
+      <!-- ACTIONS -->
+      <div class="plan-actions">
+
+        <button
+          type="button"
+          class="edit-btn"
+          (click)="editPlan(plan)"
+        >
+
+          <i class="bi bi-pencil"></i>
+
+          Edit
+
+        </button>
+
+
+        <button
+          type="button"
+          class="status-btn"
+          (click)="togglePlanStatus(plan)"
+        >
+
+          <i
+            class="bi"
+            [class.bi-pause-circle]="plan.status === 'Active'"
+            [class.bi-play-circle]="plan.status === 'Inactive'"
+          ></i>
+
+          {{ plan.status === 'Active' ? 'Deactivate' : 'Activate' }}
+
+        </button>
+
+
+        <button
+          type="button"
+          class="delete-btn"
+          (click)="deletePlan(plan)"
+        >
+
+          <i class="bi bi-trash"></i>
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+
+<!-- ================================================= -->
+<!-- ADD PLAN MODAL -->
+<!-- ================================================= -->
+
+<div
+  class="modal-overlay"
+  *ngIf="showAddModal"
+  (click)="closeAddModal()"
+>
+
+  <div
+    class="custom-modal"
+    (click)="$event.stopPropagation()"
+  >
+
+    <!-- MODAL HEADER -->
+    <div class="modal-header">
+
+      <div>
+
+        <h2>Add New Plan</h2>
+
+        <p>
+          Create a new subscription plan.
+        </p>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="close-btn"
+        (click)="closeAddModal()"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <!-- MODAL BODY -->
+    <div class="modal-body">
+
+      <!-- PLAN NAME -->
+      <div class="form-group">
+
+        <label>
+          Plan Name *
+        </label>
+
+        <input
+          type="text"
+          [(ngModel)]="newPlan.name"
+          placeholder="e.g. Enterprise"
+        />
+
+      </div>
+
+
+      <!-- PRICE + STATUS -->
+      <div class="form-row">
+
+        <div class="form-group">
+
+          <label>
+            Monthly Price *
+          </label>
+
+          <div class="price-input">
+
+            <span>৳</span>
+
+            <input
+              type="number"
+              [(ngModel)]="newPlan.price"
+              min="0"
+              placeholder="0"
+            />
+
+          </div>
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label>
+            Status
+          </label>
+
+          <select
+            [(ngModel)]="newPlan.status"
+          >
+
+            <option value="Active">
+              Active
+            </option>
+
+            <option value="Inactive">
+              Inactive
+            </option>
+
+          </select>
+
+        </div>
+
+      </div>
+
+
+      <!-- DESCRIPTION -->
+      <div class="form-group">
+
+        <label>
+          Description
+        </label>
+
+        <textarea
+          [(ngModel)]="newPlan.description"
+          rows="3"
+          placeholder="Describe this subscription plan..."
+        ></textarea>
+
+      </div>
+
+
+      <!-- FEATURES -->
+      <div class="form-group">
+
+        <label>
+          Features
+        </label>
+
+        <textarea
+          [(ngModel)]="newPlan.features[0]"
+          rows="4"
+          placeholder="Enter features..."
+        ></textarea>
+
+      </div>
+
+    </div>
+
+
+    <!-- MODAL FOOTER -->
+    <div class="modal-footer">
+
+      <button
+        type="button"
+        class="cancel-btn"
+        (click)="closeAddModal()"
+      >
+        Cancel
+      </button>
+
+
+      <button
+        type="button"
+        class="save-btn"
+        (click)="addPlan()"
+      >
+        Add Plan
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+
+<!-- ================================================= -->
+<!-- EDIT PLAN MODAL -->
+<!-- ================================================= -->
+
+<div
+  class="modal-overlay"
+  *ngIf="showEditModal && selectedPlan"
+  (click)="closeEditModal()"
+>
+
+  <div
+    class="custom-modal"
+    (click)="$event.stopPropagation()"
+  >
+
+    <!-- MODAL HEADER -->
+    <div class="modal-header">
+
+      <div>
+
+        <h2>Edit Plan</h2>
+
+        <p>
+          Update subscription plan information.
+        </p>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="close-btn"
+        (click)="closeEditModal()"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <!-- MODAL BODY -->
+    <div class="modal-body">
+
+      <!-- PLAN NAME -->
+      <div class="form-group">
+
+        <label>
+          Plan Name
+        </label>
+
+        <input
+          type="text"
+          [(ngModel)]="selectedPlan!.name"
+        />
+
+      </div>
+
+
+      <!-- PRICE -->
+      <div class="form-group">
+
+        <label>
+          Monthly Price
+        </label>
+
+        <div class="price-input">
+
+          <span>৳</span>
+
+          <input
+            type="number"
+            [(ngModel)]="selectedPlan!.price"
+            min="0"
+          />
+
+        </div>
+
+      </div>
+
+
+      <!-- DESCRIPTION -->
+      <div class="form-group">
+
+        <label>
+          Description
+        </label>
+
+        <textarea
+          [(ngModel)]="selectedPlan!.description"
+          rows="3"
+        ></textarea>
+
+      </div>
+
+
+      <!-- STATUS -->
+      <div class="form-group">
+
+        <label>
+          Status
+        </label>
+
+        <select
+          [(ngModel)]="selectedPlan!.status"
+        >
+
+          <option value="Active">
+            Active
+          </option>
+
+          <option value="Inactive">
+            Inactive
+          </option>
+
+        </select>
+
+      </div>
+
+    </div>
+
+
+    <!-- MODAL FOOTER -->
+    <div class="modal-footer">
+
+      <button
+        type="button"
+        class="cancel-btn"
+        (click)="closeEditModal()"
+      >
+        Cancel
+      </button>
+
+
+      <button
+        type="button"
+        class="save-btn"
+        (click)="updatePlan()"
+      >
+        Save Changes
+      </button>
+
+    </div>
+
+  </div>
+
+</div>

@@ -1,0 +1,289 @@
+
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { StorageService } from '../../../core/services/storage.service';
+
+interface Batch {
+  id: number;
+  medicineId: number;
+  medicineName: string;
+  generic: string;
+  batchNumber: string;
+  expiryDate: string;
+  quantity: number;
+  purchasePrice: number;
+  sellingPrice: number;
+  supplier: string;
+  status: 'Good' | 'Expiring Soon' | 'Expired' | 'Out of Stock';
+}
+
+@Component({
+  selector: 'app-batch-expiry-grid',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule
+  ],
+  templateUrl: './batch-expiry-grid.component.html',
+  styleUrl: './batch-expiry-grid.component.scss'
+})
+export class BatchExpiryGridComponent implements OnInit {
+
+  constructor(
+    private storageService: StorageService,
+    private router: Router
+  ) {}
+
+  searchTerm = '';
+  selectedStatus = 'All';
+
+  batches: Batch[] = [
+    {
+      id: 1,
+      medicineId: 1,
+      medicineName: 'Napa 500mg',
+      generic: 'Paracetamol',
+      batchNumber: 'NAP-25A01',
+      expiryDate: '2027-08-15',
+      quantity: 120,
+      purchasePrice: 1.80,
+      sellingPrice: 2.50,
+      supplier: 'Square Pharma',
+      status: 'Good'
+    },
+    {
+      id: 2,
+      medicineId: 2,
+      medicineName: 'Seclo 20mg',
+      generic: 'Omeprazole',
+      batchNumber: 'SEC-26B12',
+      expiryDate: '2027-02-20',
+      quantity: 85,
+      purchasePrice: 5.20,
+      sellingPrice: 7.00,
+      supplier: 'Square Pharma',
+      status: 'Good'
+    },
+    {
+      id: 3,
+      medicineId: 3,
+      medicineName: 'Monas 10mg',
+      generic: 'Montelukast',
+      batchNumber: 'MON-25C08',
+      expiryDate: '2026-11-18',
+      quantity: 18,
+      purchasePrice: 9.50,
+      sellingPrice: 12.00,
+      supplier: 'ACME Laboratories',
+      status: 'Expiring Soon'
+    },
+    {
+      id: 4,
+      medicineId: 4,
+      medicineName: 'DP 500mg',
+      generic: 'Metformin',
+      batchNumber: 'DPT-26A15',
+      expiryDate: '2028-01-10',
+      quantity: 92,
+      purchasePrice: 2.10,
+      sellingPrice: 3.00,
+      supplier: 'Renata Limited',
+      status: 'Good'
+    },
+    {
+      id: 5,
+      medicineId: 5,
+      medicineName: 'Napa Extend',
+      generic: 'Paracetamol',
+      batchNumber: 'NEX-25D04',
+      expiryDate: '2026-10-05',
+      quantity: 12,
+      purchasePrice: 2.60,
+      sellingPrice: 3.50,
+      supplier: 'Square Pharma',
+      status: 'Expiring Soon'
+    },
+    {
+      id: 6,
+      medicineId: 6,
+      medicineName: 'DP-Ten 10mg',
+      generic: 'Dapagliflozin',
+      batchNumber: 'DPT-24E09',
+      expiryDate: '2025-12-15',
+      quantity: 0,
+      purchasePrice: 14.00,
+      sellingPrice: 18.00,
+      supplier: 'Square Pharma',
+      status: 'Expired'
+    },
+    {
+      id: 7,
+      medicineId: 7,
+      medicineName: 'Esotid 20mg',
+      generic: 'Esomeprazole',
+      batchNumber: 'ESO-26F11',
+      expiryDate: '2027-06-25',
+      quantity: 64,
+      purchasePrice: 4.50,
+      sellingPrice: 6.00,
+      supplier: 'Beximco Pharma',
+      status: 'Good'
+    },
+    {
+      id: 8,
+      medicineId: 8,
+      medicineName: 'Fexo 120mg',
+      generic: 'Fexofenadine',
+      batchNumber: 'FEX-25G03',
+      expiryDate: '2026-09-30',
+      quantity: 8,
+      purchasePrice: 3.20,
+      sellingPrice: 4.50,
+      supplier: 'Square Pharma',
+      status: 'Expiring Soon'
+    }
+  ];
+
+  ngOnInit(): void {
+    this.loadBatches();
+  }
+
+  loadBatches(): void {
+    const savedBatches =
+      this.storageService.getMedicines<Batch>();
+
+    /*
+     * For presentation/demo purpose:
+     * Keep the initial batch dataset in memory.
+     *
+     * Later this can be connected to a dedicated
+     * batch storage/API.
+     */
+    if (savedBatches.length === 0) {
+      return;
+    }
+  }
+
+  get filteredBatches(): Batch[] {
+    const term =
+      this.searchTerm.toLowerCase().trim();
+
+    return this.batches.filter(batch => {
+
+      const matchesSearch =
+        !term ||
+        batch.medicineName
+          .toLowerCase()
+          .includes(term) ||
+        batch.generic
+          .toLowerCase()
+          .includes(term) ||
+        batch.batchNumber
+          .toLowerCase()
+          .includes(term) ||
+        batch.supplier
+          .toLowerCase()
+          .includes(term);
+
+      const matchesStatus =
+        this.selectedStatus === 'All' ||
+        batch.status === this.selectedStatus;
+
+      return matchesSearch && matchesStatus;
+    });
+  }
+
+  get totalBatches(): number {
+    return this.batches.length;
+  }
+
+  get totalQuantity(): number {
+    return this.batches.reduce(
+      (total, batch) =>
+        total + batch.quantity,
+      0
+    );
+  }
+
+  get expiringSoonCount(): number {
+    return this.batches.filter(
+      batch =>
+        batch.status === 'Expiring Soon'
+    ).length;
+  }
+
+  get expiredCount(): number {
+    return this.batches.filter(
+      batch =>
+        batch.status === 'Expired'
+    ).length;
+  }
+
+  selectStatus(status: string): void {
+    this.selectedStatus = status;
+  }
+
+  getStatusClass(
+    status: Batch['status']
+  ): string {
+
+    switch (status) {
+
+      case 'Good':
+        return 'good';
+
+      case 'Expiring Soon':
+        return 'expiring';
+
+      case 'Expired':
+        return 'expired';
+
+      case 'Out of Stock':
+        return 'out-of-stock';
+
+      default:
+        return '';
+    }
+  }
+
+  formatDate(date: string): string {
+    return new Date(date).toLocaleDateString(
+      'en-GB',
+      {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      }
+    );
+  }
+
+  getDaysUntilExpiry(
+    expiryDate: string
+  ): number {
+
+    const today = new Date();
+    const expiry = new Date(expiryDate);
+
+    const difference =
+      expiry.getTime() - today.getTime();
+
+    return Math.ceil(
+      difference / (1000 * 60 * 60 * 24)
+    );
+  }
+
+  viewMedicine(batch: Batch): void {
+    this.router.navigate([
+      '/app/inventory/medicines',
+      batch.medicineId
+    ]);
+  }
+
+  goBack(): void {
+    this.router.navigate([
+      '/app/inventory/medicines'
+    ]);
+  }
+}

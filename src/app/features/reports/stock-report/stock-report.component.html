@@ -1,0 +1,640 @@
+<div class="stock-report-page">
+
+  <!-- =====================================================
+       HEADER
+  ====================================================== -->
+
+  <div class="page-header">
+
+    <div>
+
+      <div class="breadcrumb">
+
+        <span>Reports</span>
+
+        <i class="bi bi-chevron-right"></i>
+
+        <span>Stock Report</span>
+
+      </div>
+
+      <h1>Stock Report</h1>
+
+      <p>
+        Monitor current inventory levels, stock value and
+        availability across your pharmacy.
+      </p>
+
+    </div>
+
+
+    <div class="header-actions">
+
+      <button
+        type="button"
+        class="btn btn-secondary"
+        (click)="refresh()">
+
+        <i class="bi bi-arrow-clockwise"></i>
+
+        Refresh
+
+      </button>
+
+
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="exportReport()"
+        [disabled]="!filteredItems.length">
+
+        <i class="bi bi-download"></i>
+
+        Export CSV
+
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       SUMMARY CARDS
+  ====================================================== -->
+
+  <div class="summary-grid">
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon blue">
+        <i class="bi bi-box-seam"></i>
+      </div>
+
+      <div class="summary-content">
+
+        <span class="summary-label">
+          Total Products
+        </span>
+
+        <strong>
+          {{ totalProducts | number }}
+        </strong>
+
+        <small>
+          Active inventory items
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon purple">
+        <i class="bi bi-stack"></i>
+      </div>
+
+      <div class="summary-content">
+
+        <span class="summary-label">
+          Total Quantity
+        </span>
+
+        <strong>
+          {{ totalQuantity | number }}
+        </strong>
+
+        <small>
+          Units currently available
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon green">
+        <i class="bi bi-cash-stack"></i>
+      </div>
+
+      <div class="summary-content">
+
+        <span class="summary-label">
+          Stock Value
+        </span>
+
+        <strong>
+          {{ formatCurrency(totalStockValue) }}
+        </strong>
+
+        <small>
+          Based on purchase price
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon orange">
+        <i class="bi bi-exclamation-triangle"></i>
+      </div>
+
+      <div class="summary-content">
+
+        <span class="summary-label">
+          Low Stock
+        </span>
+
+        <strong>
+          {{ lowStockCount | number }}
+        </strong>
+
+        <small>
+          Need replenishment
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon red">
+        <i class="bi bi-x-circle"></i>
+      </div>
+
+      <div class="summary-content">
+
+        <span class="summary-label">
+          Out of Stock
+        </span>
+
+        <strong>
+          {{ outOfStockCount | number }}
+        </strong>
+
+        <small>
+          Currently unavailable
+        </small>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       SECONDARY SUMMARY
+  ====================================================== -->
+
+  <div class="secondary-summary">
+
+    <div class="secondary-item">
+
+      <span>
+        In Stock
+      </span>
+
+      <strong>
+        {{ inStockCount | number }}
+      </strong>
+
+    </div>
+
+
+    <div class="secondary-divider"></div>
+
+
+    <div class="secondary-item">
+
+      <span>
+        Potential Sales Value
+      </span>
+
+      <strong>
+        {{ formatCurrency(getPotentialSalesValue()) }}
+      </strong>
+
+    </div>
+
+
+    <div class="secondary-divider"></div>
+
+
+    <div class="secondary-item">
+
+      <span>
+        Expected Gross Profit
+      </span>
+
+      <strong>
+        {{ formatCurrency(getExpectedProfit()) }}
+      </strong>
+
+    </div>
+
+
+    <div class="secondary-divider"></div>
+
+
+    <div class="secondary-item">
+
+      <span>
+        Last Updated
+      </span>
+
+      <strong>
+        {{ lastUpdated | date:'dd MMM yyyy, h:mm a' }}
+      </strong>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       FILTERS
+  ====================================================== -->
+
+  <div class="filter-card">
+
+    <div class="filter-header">
+
+      <div>
+
+        <h3>
+          Inventory Details
+        </h3>
+
+        <span>
+          {{ filteredItems.length | number }}
+          of
+          {{ totalProducts | number }}
+          products
+        </span>
+
+      </div>
+
+      <button
+        type="button"
+        class="clear-btn"
+        (click)="clearFilters()">
+
+        <i class="bi bi-arrow-counterclockwise"></i>
+
+        Clear Filters
+
+      </button>
+
+    </div>
+
+
+    <div class="filters">
+
+
+      <!-- Search -->
+
+      <div class="filter-field search-field">
+
+        <label>
+          Search
+        </label>
+
+        <div class="input-wrapper">
+
+          <i class="bi bi-search"></i>
+
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (input)="onSearch()"
+            placeholder="Search medicine, SKU or company...">
+
+        </div>
+
+      </div>
+
+
+      <!-- Status -->
+
+      <div class="filter-field">
+
+        <label>
+          Stock Status
+        </label>
+
+        <select
+          [(ngModel)]="selectedStatus"
+          (change)="onStatusChange()">
+
+          <option value="All">
+            All Status
+          </option>
+
+          <option value="In Stock">
+            In Stock
+          </option>
+
+          <option value="Low Stock">
+            Low Stock
+          </option>
+
+          <option value="Out of Stock">
+            Out of Stock
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <!-- Category -->
+
+      <div class="filter-field">
+
+        <label>
+          Category
+        </label>
+
+        <select
+          [(ngModel)]="selectedCategory"
+          (change)="onCategoryChange()">
+
+          <option
+            *ngFor="let category of categories"
+            [value]="category">
+
+            {{ category }}
+
+          </option>
+
+        </select>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       TABLE
+  ====================================================== -->
+
+  <div class="table-card">
+
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>
+              MEDICINE
+            </th>
+
+            <th>
+              CATEGORY
+            </th>
+
+            <th>
+              COMPANY
+            </th>
+
+            <th>
+              SKU
+            </th>
+
+            <th class="text-right">
+              QTY
+            </th>
+
+            <th class="text-right">
+              REORDER
+            </th>
+
+            <th class="text-right">
+              PURCHASE
+            </th>
+
+            <th class="text-right">
+              STOCK VALUE
+            </th>
+
+            <th>
+              STATUS
+            </th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="let item of filteredItems">
+
+
+            <!-- Medicine -->
+
+            <td>
+
+              <div class="medicine-cell">
+
+                <div class="medicine-icon">
+
+                  <i class="bi bi-capsule"></i>
+
+                </div>
+
+                <div>
+
+                  <strong>
+                    {{ item.name }}
+                  </strong>
+
+                  <span>
+                    {{ item.genericName }}
+                  </span>
+
+                </div>
+
+              </div>
+
+            </td>
+
+
+            <!-- Category -->
+
+            <td>
+
+              <span class="category-text">
+                {{ item.category }}
+              </span>
+
+            </td>
+
+
+            <!-- Company -->
+
+            <td>
+
+              <span class="company-text">
+                {{ item.company }}
+              </span>
+
+            </td>
+
+
+            <!-- SKU -->
+
+            <td>
+
+              <span class="sku">
+                {{ item.sku }}
+              </span>
+
+            </td>
+
+
+            <!-- Quantity -->
+
+            <td class="text-right">
+
+              <strong class="quantity">
+                {{ item.quantity | number }}
+              </strong>
+
+            </td>
+
+
+            <!-- Reorder -->
+
+            <td class="text-right">
+
+              <span class="reorder-level">
+                {{ item.reorderLevel | number }}
+              </span>
+
+            </td>
+
+
+            <!-- Purchase -->
+
+            <td class="text-right">
+
+              {{ formatCurrency(item.purchasePrice) }}
+
+            </td>
+
+
+            <!-- Stock Value -->
+
+            <td class="text-right">
+
+              <strong class="stock-value">
+                {{ formatCurrency(item.stockValue) }}
+              </strong>
+
+            </td>
+
+
+            <!-- Status -->
+
+            <td>
+
+              <span
+                class="status-badge"
+                [ngClass]="getStatusClass(item.status)">
+
+                <span class="status-dot"></span>
+
+                {{ item.status }}
+
+              </span>
+
+            </td>
+
+          </tr>
+
+
+          <!-- EMPTY -->
+
+          <tr
+            *ngIf="!filteredItems.length">
+
+            <td
+              colspan="9"
+              class="empty-cell">
+
+              <div class="empty-state">
+
+                <div class="empty-icon">
+
+                  <i class="bi bi-box-seam"></i>
+
+                </div>
+
+                <h3>
+                  No Stock Records Found
+                </h3>
+
+                <p>
+                  There are no inventory records matching
+                  your current filters.
+                </p>
+
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  (click)="clearFilters()">
+
+                  Clear Filters
+
+                </button>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       FOOTER NOTE
+  ====================================================== -->
+
+  <div class="report-note">
+
+    <i class="bi bi-info-circle"></i>
+
+    <span>
+      Stock value is calculated using the current quantity
+      multiplied by the purchase price. Actual inventory
+      valuation may vary when batch-level costing is applied.
+    </span>
+
+  </div>
+
+</div>

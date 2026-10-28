@@ -1,0 +1,383 @@
+<div class="checkout-page">
+
+  <!-- TOP BAR -->
+  <header class="checkout-header">
+
+    <div class="header-inner">
+
+      <a routerLink="/" class="brand">
+        <span class="brand-icon">
+          <i class="bi bi-capsule"></i>
+        </span>
+
+        <span>
+          Pharm<span>SaaS</span>
+        </span>
+      </a>
+
+      <div class="secure-checkout">
+        <i class="bi bi-shield-check"></i>
+        Secure Checkout
+      </div>
+
+    </div>
+
+  </header>
+
+
+  <!-- MAIN -->
+  <main class="checkout-main">
+
+    <div class="checkout-container">
+
+      <!-- PAGE TITLE -->
+      <div class="checkout-title">
+
+        <span class="step-label">
+          STEP 2 OF 2
+        </span>
+
+        <h1>Complete Your Subscription</h1>
+
+        <p>
+          Review your plan and complete the setup for your pharmacy.
+        </p>
+
+      </div>
+
+
+      <div class="checkout-grid">
+
+        <!-- LEFT: PAYMENT -->
+        <div class="payment-card">
+
+          <div class="card-header">
+
+            <div>
+              <h2>Payment Method</h2>
+
+              <p>
+                Choose your preferred payment method.
+              </p>
+            </div>
+
+            <i class="bi bi-credit-card"></i>
+
+          </div>
+
+
+          <!-- PAYMENT OPTIONS -->
+          <div class="payment-options">
+
+            <label class="payment-option active">
+
+              <input
+                type="radio"
+                name="payment"
+                checked
+              />
+
+              <div class="payment-icon">
+                <i class="bi bi-credit-card-2-front"></i>
+              </div>
+
+              <div class="payment-info">
+
+                <strong>Card Payment</strong>
+
+                <span>Visa / Mastercard</span>
+
+              </div>
+
+              <i class="bi bi-check-circle-fill selected-icon"></i>
+
+            </label>
+
+
+            <label class="payment-option">
+
+              <input
+                type="radio"
+                name="payment"
+              />
+
+              <div class="payment-icon mobile-payment">
+                <i class="bi bi-phone"></i>
+              </div>
+
+              <div class="payment-info">
+
+                <strong>Mobile Banking</strong>
+
+                <span>bKash / Nagad / Rocket</span>
+
+              </div>
+
+            </label>
+
+          </div>
+
+
+          <!-- DEMO NOTICE -->
+          <div class="demo-notice">
+
+            <i class="bi bi-info-circle"></i>
+
+            <div>
+
+              <strong>Demo Payment</strong>
+
+              <p>
+                This is a presentation demo. No real payment
+                will be processed.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <!-- CARD FORM -->
+          <div class="payment-form">
+
+            <div class="form-group full-width">
+
+              <label>Cardholder Name</label>
+
+              <div class="input-wrapper">
+
+                <i class="bi bi-person"></i>
+
+                <input
+                  type="text"
+                  placeholder="Enter cardholder name"
+                />
+
+              </div>
+
+            </div>
+
+
+            <div class="form-group full-width">
+
+              <label>Card Number</label>
+
+              <div class="input-wrapper">
+
+                <i class="bi bi-credit-card"></i>
+
+                <input
+                  type="text"
+                  placeholder="0000 0000 0000 0000"
+                />
+
+              </div>
+
+            </div>
+
+
+            <div class="form-grid">
+
+              <div class="form-group">
+
+                <label>Expiry Date</label>
+
+                <div class="input-wrapper">
+
+                  <i class="bi bi-calendar3"></i>
+
+                  <input
+                    type="text"
+                    placeholder="MM / YY"
+                  />
+
+                </div>
+
+              </div>
+
+
+              <div class="form-group">
+
+                <label>CVV</label>
+
+                <div class="input-wrapper">
+
+                  <i class="bi bi-lock"></i>
+
+                  <input
+                    type="password"
+                    placeholder="•••"
+                  />
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- SECURITY -->
+          <div class="security-note">
+
+            <i class="bi bi-shield-lock"></i>
+
+            <span>
+              Your payment information is protected with
+              industry-standard security.
+            </span>
+
+          </div>
+
+
+          <!-- ACTION -->
+          <button
+            type="button"
+            class="pay-button"
+            routerLink="/payment-success"
+          >
+
+            Complete Subscription
+
+            <span>
+              ৳{{ monthlyPrice | number }} / month
+            </span>
+
+            <i class="bi bi-arrow-right"></i>
+
+          </button>
+
+
+          <a
+            routerLink="/register"
+            class="back-link"
+          >
+            <i class="bi bi-arrow-left"></i>
+            Back to Registration
+          </a>
+
+        </div>
+
+
+        <!-- RIGHT: ORDER SUMMARY -->
+        <aside class="summary-card">
+
+          <div class="summary-header">
+
+            <h2>Order Summary</h2>
+
+            <span class="summary-status">
+              Monthly
+            </span>
+
+          </div>
+
+
+          <!-- PLAN -->
+          <div class="selected-plan">
+
+            <div class="plan-icon">
+              <i class="bi bi-stars"></i>
+            </div>
+
+            <div>
+
+              <span>Selected Plan</span>
+
+              <h3>{{ selectedPlan }}</h3>
+
+            </div>
+
+          </div>
+
+
+          <!-- FEATURES -->
+          <div class="summary-features">
+
+            <h4>Plan includes</h4>
+
+            <div>
+              <i class="bi bi-check-circle-fill"></i>
+              POS & Sales Management
+            </div>
+
+            <div>
+              <i class="bi bi-check-circle-fill"></i>
+              Inventory & Batch Tracking
+            </div>
+
+            <div>
+              <i class="bi bi-check-circle-fill"></i>
+              Procurement Management
+            </div>
+
+            <div>
+              <i class="bi bi-check-circle-fill"></i>
+              Advanced Reports
+            </div>
+
+            <div>
+              <i class="bi bi-check-circle-fill"></i>
+              Multi-Branch Management
+            </div>
+
+            <div>
+              <i class="bi bi-check-circle-fill"></i>
+              Staff & Role Management
+            </div>
+
+          </div>
+
+
+          <!-- PRICE -->
+          <div class="price-breakdown">
+
+            <div>
+              <span>Plan Price</span>
+              <strong>৳{{ monthlyPrice | number }}</strong>
+            </div>
+
+            <div>
+              <span>Setup Fee</span>
+              <strong class="free">Free</strong>
+            </div>
+
+            <div>
+              <span>Tax</span>
+              <strong>Included</strong>
+            </div>
+
+            <div class="total">
+
+              <span>Total</span>
+
+              <strong>
+                ৳{{ monthlyPrice | number }}
+                <small>/ month</small>
+              </strong>
+
+            </div>
+
+          </div>
+
+
+          <div class="summary-footer">
+
+            <i class="bi bi-arrow-repeat"></i>
+
+            <span>
+              You can upgrade or change your plan anytime.
+            </span>
+
+          </div>
+
+        </aside>
+
+      </div>
+
+    </div>
+
+  </main>
+
+</div>

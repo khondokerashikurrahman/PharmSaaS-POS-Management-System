@@ -1,0 +1,620 @@
+<div class="expiry-report-page">
+
+  <!-- =====================================================
+       HEADER
+  ====================================================== -->
+
+  <div class="page-header">
+
+    <div>
+
+      <div class="breadcrumb">
+
+        <span>Reports</span>
+
+        <i class="bi bi-chevron-right"></i>
+
+        <span>Expiry Report</span>
+
+      </div>
+
+      <h1>Expiry Report</h1>
+
+      <p>
+        Track medicine expiry dates and identify products
+        that require immediate attention.
+      </p>
+
+    </div>
+
+
+    <div class="header-actions">
+
+      <button
+        type="button"
+        class="btn btn-secondary"
+        (click)="refresh()">
+
+        <i class="bi bi-arrow-clockwise"></i>
+
+        Refresh
+
+      </button>
+
+
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="exportReport()"
+        [disabled]="!filteredItems.length">
+
+        <i class="bi bi-download"></i>
+
+        Export CSV
+
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       SUMMARY CARDS
+  ====================================================== -->
+
+  <div class="summary-grid">
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon red">
+
+        <i class="bi bi-calendar-x"></i>
+
+      </div>
+
+      <div class="summary-content">
+
+        <span>
+          Expired
+        </span>
+
+        <strong>
+          {{ expiredCount | number }}
+        </strong>
+
+        <small>
+          Already expired
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon orange">
+
+        <i class="bi bi-exclamation-triangle"></i>
+
+      </div>
+
+      <div class="summary-content">
+
+        <span>
+          Critical
+        </span>
+
+        <strong>
+          {{ criticalCount | number }}
+        </strong>
+
+        <small>
+          Within 30 days
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon yellow">
+
+        <i class="bi bi-hourglass-split"></i>
+
+      </div>
+
+      <div class="summary-content">
+
+        <span>
+          Expiring Soon
+        </span>
+
+        <strong>
+          {{ expiringSoonCount | number }}
+        </strong>
+
+        <small>
+          Within 90 days
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon green">
+
+        <i class="bi bi-shield-check"></i>
+
+      </div>
+
+      <div class="summary-content">
+
+        <span>
+          Safe Stock
+        </span>
+
+        <strong>
+          {{ safeCount | number }}
+        </strong>
+
+        <small>
+          More than 90 days
+        </small>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       OVERVIEW BAR
+  ====================================================== -->
+
+  <div class="overview-bar">
+
+    <div class="overview-item">
+
+      <span>
+        Products with Expiry Date
+      </span>
+
+      <strong>
+        {{ totalItems | number }}
+      </strong>
+
+    </div>
+
+
+    <div class="overview-divider"></div>
+
+
+    <div class="overview-item">
+
+      <span>
+        Affected Quantity
+      </span>
+
+      <strong>
+        {{ totalQuantity | number }}
+      </strong>
+
+    </div>
+
+
+    <div class="overview-divider"></div>
+
+
+    <div class="overview-item">
+
+      <span>
+        Stock Value at Risk
+      </span>
+
+      <strong>
+        {{ formatCurrency(totalStockValue) }}
+      </strong>
+
+    </div>
+
+
+    <div class="overview-divider"></div>
+
+
+    <div class="overview-item">
+
+      <span>
+        Last Updated
+      </span>
+
+      <strong>
+        {{ lastUpdated | date:'dd MMM yyyy, h:mm a' }}
+      </strong>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       FILTERS
+  ====================================================== -->
+
+  <div class="filter-card">
+
+    <div class="filter-header">
+
+      <div>
+
+        <h3>
+          Expiry Details
+        </h3>
+
+        <span>
+          {{ filteredItems.length | number }}
+          of
+          {{ totalItems | number }}
+          records
+        </span>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="clear-btn"
+        (click)="clearFilters()">
+
+        <i class="bi bi-arrow-counterclockwise"></i>
+
+        Clear Filters
+
+      </button>
+
+    </div>
+
+
+    <div class="filters">
+
+
+      <!-- Search -->
+
+      <div class="filter-field search-field">
+
+        <label>
+          Search
+        </label>
+
+        <div class="input-wrapper">
+
+          <i class="bi bi-search"></i>
+
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (input)="onSearch()"
+            placeholder="Search medicine, batch or company...">
+
+        </div>
+
+      </div>
+
+
+      <!-- Status -->
+
+      <div class="filter-field">
+
+        <label>
+          Expiry Status
+        </label>
+
+        <select
+          [(ngModel)]="selectedStatus"
+          (change)="onStatusChange()">
+
+          <option value="All">
+            All Status
+          </option>
+
+          <option value="Expired">
+            Expired
+          </option>
+
+          <option value="Critical">
+            Critical - Within 30 Days
+          </option>
+
+          <option value="Expiring Soon">
+            Expiring Soon - Within 90 Days
+          </option>
+
+          <option value="Safe">
+            Safe
+          </option>
+
+        </select>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       TABLE
+  ====================================================== -->
+
+  <div class="table-card">
+
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>
+              MEDICINE
+            </th>
+
+            <th>
+              CATEGORY
+            </th>
+
+            <th>
+              COMPANY
+            </th>
+
+            <th>
+              BATCH
+            </th>
+
+            <th class="text-right">
+              QTY
+            </th>
+
+            <th>
+              EXPIRY DATE
+            </th>
+
+            <th>
+              TIME LEFT
+            </th>
+
+            <th class="text-right">
+              STOCK VALUE
+            </th>
+
+            <th>
+              STATUS
+            </th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="let item of filteredItems">
+
+
+            <!-- Medicine -->
+
+            <td>
+
+              <div class="medicine-cell">
+
+                <div class="medicine-icon">
+
+                  <i class="bi bi-capsule"></i>
+
+                </div>
+
+                <div>
+
+                  <strong>
+                    {{ item.name }}
+                  </strong>
+
+                  <span>
+                    {{ item.genericName }}
+                  </span>
+
+                </div>
+
+              </div>
+
+            </td>
+
+
+            <!-- Category -->
+
+            <td>
+              <span class="category-text">
+                {{ item.category }}
+              </span>
+            </td>
+
+
+            <!-- Company -->
+
+            <td>
+              <span class="company-text">
+                {{ item.company }}
+              </span>
+            </td>
+
+
+            <!-- Batch -->
+
+            <td>
+
+              <span class="batch-number">
+                {{ item.batchNumber }}
+              </span>
+
+            </td>
+
+
+            <!-- Quantity -->
+
+            <td class="text-right">
+
+              <strong class="quantity">
+                {{ item.quantity | number }}
+              </strong>
+
+            </td>
+
+
+            <!-- Expiry -->
+
+            <td>
+
+              <span
+                class="expiry-date"
+                [class.expired-date]="
+                  item.status === 'Expired'
+                ">
+
+                {{
+                  item.expiryDate
+                    ? (item.expiryDate | date:'dd MMM yyyy')
+                    : '-'
+                }}
+
+              </span>
+
+            </td>
+
+
+            <!-- Days -->
+
+            <td>
+
+              <span
+                class="days-left"
+                [ngClass]="
+                  getStatusClass(item.status)
+                ">
+
+                {{ getDaysLabel(item.daysRemaining) }}
+
+              </span>
+
+            </td>
+
+
+            <!-- Value -->
+
+            <td class="text-right">
+
+              <strong class="stock-value">
+                {{ formatCurrency(item.stockValue) }}
+              </strong>
+
+            </td>
+
+
+            <!-- Status -->
+
+            <td>
+
+              <span
+                class="status-badge"
+                [ngClass]="
+                  getStatusClass(item.status)
+                ">
+
+                <span class="status-dot"></span>
+
+                {{ item.status }}
+
+              </span>
+
+            </td>
+
+          </tr>
+
+
+          <!-- EMPTY -->
+
+          <tr
+            *ngIf="!filteredItems.length">
+
+            <td
+              colspan="9"
+              class="empty-cell">
+
+              <div class="empty-state">
+
+                <div class="empty-icon">
+
+                  <i class="bi bi-calendar-check"></i>
+
+                </div>
+
+                <h3>
+                  No Expiry Records Found
+                </h3>
+
+                <p>
+                  No medicine expiry records match
+                  your current filters.
+                </p>
+
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  (click)="clearFilters()">
+
+                  Clear Filters
+
+                </button>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       INFORMATION NOTE
+  ====================================================== -->
+
+  <div class="report-note">
+
+    <i class="bi bi-info-circle"></i>
+
+    <span>
+      Expired medicines are identified when the expiry date
+      has passed. Critical items have 30 days or less remaining,
+      while products with 31–90 days remaining are classified
+      as expiring soon.
+    </span>
+
+  </div>
+
+</div>

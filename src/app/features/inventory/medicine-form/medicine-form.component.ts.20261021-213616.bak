@@ -1,0 +1,266 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { StorageService } from '../../../core/services/storage.service';
+
+interface Medicine {
+  id: number;
+  name: string;
+  generic: string;
+  company: string;
+  category: string;
+  strength: string;
+  dosageForm: string;
+  unitPrice: number;
+  stock: number;
+  reorderLevel: number;
+  description: string;
+}
+
+@Component({
+  selector: 'app-medicine-form',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  templateUrl: './medicine-form.component.html',
+  styleUrl: './medicine-form.component.scss'
+})
+export class MedicineFormComponent implements OnInit {
+
+  isEditMode = false;
+
+  medicine: Medicine = {
+    id: 0,
+    name: '',
+    generic: '',
+    company: '',
+    category: '',
+    strength: '',
+    dosageForm: '',
+    unitPrice: 0,
+    stock: 0,
+    reorderLevel: 10,
+    description: ''
+  };
+
+  categories = [
+    'Pain Relief',
+    'Gastric',
+    'Diabetes',
+    'Allergy',
+    'Antibiotic',
+    'Vitamin & Supplement',
+    'Cardiovascular',
+    'Other'
+  ];
+
+  dosageForms = [
+    'Tablet',
+    'Capsule',
+    'Syrup',
+    'Injection',
+    'Cream',
+    'Ointment',
+    'Drops',
+    'Inhaler',
+    'Other'
+  ];
+
+  companies = [
+    'Square Pharmaceuticals',
+    'Beximco Pharmaceuticals',
+    'ACME Laboratories',
+    'Renata Limited',
+    'Incepta Pharmaceuticals',
+    'Healthcare Pharmaceuticals',
+    'Opsonin Pharma'
+  ];
+
+  constructor(
+    private storageService: StorageService,
+    private router: Router,
+    private route: ActivatedRoute
+  ) {}
+
+  ngOnInit(): void {
+
+    const id =
+      this.route.snapshot.paramMap.get('id');
+
+    if (id) {
+
+      this.isEditMode = true;
+
+      this.loadMedicine(Number(id));
+
+    }
+
+  }
+
+  loadMedicine(id: number): void {
+
+    const medicines =
+      this.storageService.getMedicines<Medicine>();
+
+    const foundMedicine =
+      medicines.find(medicine => medicine.id === id);
+
+    if (!foundMedicine) {
+
+      alert('Medicine not found.');
+
+      this.router.navigate([
+        '/app/inventory/medicines'
+      ]);
+
+      return;
+    }
+
+    this.medicine = {
+      ...foundMedicine
+    };
+
+  }
+
+  saveMedicine(): void {
+
+    // =========================
+    // VALIDATION
+    // =========================
+
+    if (!this.medicine.name.trim()) {
+      alert('Please enter medicine name.');
+      return;
+    }
+
+    if (!this.medicine.generic.trim()) {
+      alert('Please enter generic name.');
+      return;
+    }
+
+    if (!this.medicine.company) {
+      alert('Please select company.');
+      return;
+    }
+
+    if (!this.medicine.category) {
+      alert('Please select category.');
+      return;
+    }
+
+    if (!this.medicine.dosageForm) {
+      alert('Please select dosage form.');
+      return;
+    }
+
+    if (this.medicine.unitPrice <= 0) {
+      alert('Please enter a valid unit price.');
+      return;
+    }
+
+    const medicines =
+      this.storageService.getMedicines<Medicine>();
+
+    // =========================
+    // EDIT MEDICINE
+    // =========================
+
+    if (this.isEditMode) {
+
+      const index =
+        medicines.findIndex(
+          medicine => medicine.id === this.medicine.id
+        );
+
+      if (index === -1) {
+
+        alert('Medicine not found.');
+
+        return;
+      }
+
+      medicines[index] = {
+        ...this.medicine
+      };
+
+      this.storageService.saveMedicines(
+        medicines
+      );
+
+      alert('Medicine updated successfully.');
+
+    }
+
+    // =========================
+    // ADD MEDICINE
+    // =========================
+
+    else {
+
+      const newId =
+        medicines.length > 0
+          ? Math.max(
+              ...medicines.map(medicine => medicine.id)
+            ) + 1
+          : 1;
+
+      this.medicine.id = newId;
+
+      medicines.unshift({
+        ...this.medicine
+      });
+
+      this.storageService.saveMedicines(
+        medicines
+      );
+
+      alert('Medicine added successfully.');
+
+    }
+
+    // =========================
+    // BACK TO LIST
+    // =========================
+
+    this.router.navigate([
+      '/app/inventory/medicines'
+    ]);
+
+  }
+
+  resetForm(): void {
+
+    if (this.isEditMode) {
+
+      const id = this.medicine.id;
+
+      this.loadMedicine(id);
+
+      return;
+    }
+
+    this.medicine = {
+      id: 0,
+      name: '',
+      generic: '',
+      company: '',
+      category: '',
+      strength: '',
+      dosageForm: '',
+      unitPrice: 0,
+      stock: 0,
+      reorderLevel: 10,
+      description: ''
+    };
+
+  }
+
+  cancel(): void {
+
+    this.router.navigate([
+      '/app/inventory/medicines'
+    ]);
+
+  }
+
+}

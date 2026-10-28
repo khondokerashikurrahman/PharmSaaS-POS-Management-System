@@ -1,0 +1,583 @@
+<div class="branch-report-page">
+
+  <!-- Header -->
+  <div class="page-header">
+
+    <div class="header-left">
+
+      <div class="breadcrumb">
+        <span>Reports</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Branch Performance</span>
+      </div>
+
+      <h1>Branch Performance</h1>
+
+      <p>
+        Monitor branch-wise sales performance and payment activity
+      </p>
+
+    </div>
+
+    <div class="header-actions">
+
+      <button
+        type="button"
+        class="btn btn-light"
+        (click)="refreshReport()">
+
+        <i class="bi bi-arrow-clockwise"></i>
+        Refresh
+
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="exportCSV()">
+
+        <i class="bi bi-download"></i>
+        Export CSV
+
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- Filters -->
+  <div class="filter-card">
+
+    <div class="filter-group">
+
+      <label>Period</label>
+
+      <select
+        [(ngModel)]="selectedPeriod"
+        (change)="onPeriodChange()">
+
+        <option value="today">
+          Today
+        </option>
+
+        <option value="week">
+          This Week
+        </option>
+
+        <option value="month">
+          This Month
+        </option>
+
+        <option value="all">
+          All Time
+        </option>
+
+        <option value="custom">
+          Custom Range
+        </option>
+
+      </select>
+
+    </div>
+
+
+    <div
+      class="filter-group"
+      *ngIf="selectedPeriod === 'custom'">
+
+      <label>From</label>
+
+      <input
+        type="date"
+        [(ngModel)]="customFrom"
+        (change)="onPeriodChange()">
+
+    </div>
+
+
+    <div
+      class="filter-group"
+      *ngIf="selectedPeriod === 'custom'">
+
+      <label>To</label>
+
+      <input
+        type="date"
+        [(ngModel)]="customTo"
+        (change)="onPeriodChange()">
+
+    </div>
+
+
+    <div class="filter-group search-group">
+
+      <label>Search Branch</label>
+
+      <div class="search-box">
+
+        <i class="bi bi-search"></i>
+
+        <input
+          type="text"
+          placeholder="Search branch..."
+          [(ngModel)]="searchTerm"
+          (input)="applySearch()">
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- Statistics -->
+  <div class="stats-grid">
+
+    <div class="stat-card">
+
+      <div class="stat-icon sales-icon">
+        <i class="bi bi-building"></i>
+      </div>
+
+      <div class="stat-content">
+
+        <span>Total Sales</span>
+
+        <h2>
+          ৳{{ formatCurrency(totalSales) }}
+        </h2>
+
+        <small>
+          Across all branches
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+      <div class="stat-icon transaction-icon">
+        <i class="bi bi-receipt"></i>
+      </div>
+
+      <div class="stat-content">
+
+        <span>Total Transactions</span>
+
+        <h2>
+          {{ totalTransactions }}
+        </h2>
+
+        <small>
+          Completed sales
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+      <div class="stat-icon item-icon">
+        <i class="bi bi-box-seam"></i>
+      </div>
+
+      <div class="stat-content">
+
+        <span>Items Sold</span>
+
+        <h2>
+          {{ totalItemsSold }}
+        </h2>
+
+        <small>
+          Total quantity sold
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+      <div class="stat-icon average-icon">
+        <i class="bi bi-bar-chart"></i>
+      </div>
+
+      <div class="stat-content">
+
+        <span>Average Sale</span>
+
+        <h2>
+          ৳{{ formatCurrency(averageSale) }}
+        </h2>
+
+        <small>
+          Per transaction
+        </small>
+
+      </div>
+
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon refund-icon">
+        <i class="bi bi-arrow-counterclockwise"></i>
+      </div>
+
+      <div class="stat-content">
+        <span>Refunded Amount</span>
+        <h2>৳{{ formatCurrency(totalRefunded) }}</h2>
+        <small>Refunds in selected period</small>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- Top Branch -->
+  <div
+    class="top-branch-card"
+    *ngIf="topBranch">
+
+    <div class="top-icon">
+      <i class="bi bi-trophy"></i>
+    </div>
+
+    <div class="top-content">
+
+      <span>
+        Highest Sales Volume
+      </span>
+
+      <strong>
+        {{ topBranch.branch }}
+      </strong>
+
+      <small>
+        {{ topBranch.code }}
+        ·
+        {{ topBranch.transactions }}
+        transactions
+        ·
+        ৳{{ formatCurrency(topBranch.totalSales) }}
+        total sales
+      </small>
+
+    </div>
+
+  </div>
+
+
+  <!-- Branch Table -->
+  <div class="table-card">
+
+    <div class="section-header">
+
+      <div>
+
+        <h2>
+          Branch Performance
+        </h2>
+
+        <p>
+          {{ filteredBranches.length }}
+          branch(es) found
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <div
+      class="table-wrapper"
+      *ngIf="filteredBranches.length > 0">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>Branch</th>
+
+            <th>Transactions</th>
+
+            <th>Items Sold</th>
+
+            <th>Total Sales</th>
+            <th>Refund Amount</th>
+
+            <th>Average Sale</th>
+
+            <th>Cash</th>
+
+            <th>Card</th>
+
+            <th>Mobile</th>
+
+            <th>Credit</th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="let branch of filteredBranches">
+
+            <td>
+
+              <div class="branch-cell">
+
+                <div class="avatar">
+                  {{ branch.branch
+                    .charAt(0)
+                    .toUpperCase() }}
+                </div>
+
+                <div>
+
+                  <strong>
+                    {{ branch.branch }}
+                  </strong>
+
+                  <small>
+                    {{ branch.code }}
+                  </small>
+
+                </div>
+
+              </div>
+
+            </td>
+
+
+            <td>
+
+              <span class="count-badge">
+                {{ branch.transactions }}
+              </span>
+
+            </td>
+
+
+            <td>
+              {{ branch.itemsSold }}
+            </td>
+
+
+            <td>
+
+              <strong class="sales-value">
+                ৳{{ formatCurrency(
+                  branch.totalSales
+                ) }}
+              </strong>
+
+            </td>
+            <td class="refund-value">
+              ৳{{ formatCurrency(branch.refundAmount) }}
+            </td>
+
+
+            <td>
+              ৳{{ formatCurrency(
+                branch.averageSale
+              ) }}
+            </td>
+
+
+            <td>
+              ৳{{ formatCurrency(
+                branch.cash
+              ) }}
+            </td>
+
+
+            <td>
+              ৳{{ formatCurrency(
+                branch.card
+              ) }}
+            </td>
+
+
+            <td>
+              ৳{{ formatCurrency(
+                branch.mobile
+              ) }}
+            </td>
+
+
+            <td>
+              ৳{{ formatCurrency(
+                branch.credit
+              ) }}
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    <!-- Empty State -->
+    <div
+      class="empty-state"
+      *ngIf="filteredBranches.length === 0">
+
+      <div class="empty-icon">
+        <i class="bi bi-building"></i>
+      </div>
+
+      <h3>
+        No branch data found
+      </h3>
+
+      <p>
+        Branch performance will appear here
+        when completed sales are available
+        for the selected period.
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <!-- Payment Summary -->
+  <div class="payment-card">
+
+    <div class="section-header">
+
+      <div>
+
+        <h2>Payment Activity</h2>
+
+        <p>
+          Payment method distribution across branches
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <div class="payment-grid">
+
+      <div class="payment-item">
+
+        <div class="payment-icon cash">
+          <i class="bi bi-cash"></i>
+        </div>
+
+        <div>
+
+          <span>Cash</span>
+
+          <strong>
+            ৳{{ formatCurrency(getTotalCash()) }}
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <div class="payment-item">
+
+        <div class="payment-icon card">
+          <i class="bi bi-credit-card"></i>
+        </div>
+
+        <div>
+
+          <span>Card</span>
+
+          <strong>
+            ৳{{ formatCurrency(getTotalCard()) }}
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <div class="payment-item">
+
+        <div class="payment-icon mobile">
+          <i class="bi bi-phone"></i>
+        </div>
+
+        <div>
+
+          <span>Mobile</span>
+
+          <strong>
+            ৳{{ formatCurrency(getTotalMobile()) }}
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <div class="payment-item">
+
+        <div class="payment-icon credit">
+          <i class="bi bi-wallet2"></i>
+        </div>
+
+        <div>
+
+          <span>Credit</span>
+
+          <strong>
+            ৳{{ formatCurrency(getTotalCredit()) }}
+          </strong>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- Information -->
+  <div class="info-card">
+
+    <div class="info-icon">
+      <i class="bi bi-info-circle"></i>
+    </div>
+
+    <div>
+
+      <h3>
+        Performance Calculation
+      </h3>
+
+      <p>
+        Branch performance is calculated from completed
+        sales stored in the system. Sales are grouped by
+        branch, while average sale is calculated from the
+        total sales divided by the number of transactions.
+      </p>
+
+    </div>
+
+  </div>
+
+</div>

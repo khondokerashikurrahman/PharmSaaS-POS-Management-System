@@ -1,0 +1,61 @@
+<section class="generic-page">
+  <div class="page-heading">
+    <div>
+      <h2>Generic Name Management</h2>
+      <p>Medicine ও OTC পণ্যের generic name পরিচালনা করো।</p>
+    </div>
+    <button type="button" class="btn btn-outline-secondary" (click)="load()">
+      Refresh
+    </button>
+  </div>
+
+  <div class="generic-form">
+    <label for="genericName">Generic Name</label>
+    <div class="form-row">
+      <input
+        id="genericName"
+        type="text"
+        class="form-control"
+        maxlength="150"
+        [(ngModel)]="name"
+        (keyup.enter)="save()"
+        placeholder="যেমন: Paracetamol"
+      />
+      <button class="btn btn-primary" type="button" (click)="save()" [disabled]="saving">
+        {{ saving ? 'Saving...' : (editingId ? 'Update' : 'Add Generic') }}
+      </button>
+      <button
+        *ngIf="editingId"
+        class="btn btn-outline-secondary"
+        type="button"
+        (click)="cancelEdit()"
+      >Cancel</button>
+    </div>
+    <div *ngIf="errorMessage" class="message error">{{ errorMessage }}</div>
+    <div *ngIf="successMessage" class="message success">{{ successMessage }}</div>
+  </div>
+
+  <div class="table-wrap">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr><th>#</th><th>Generic Name</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="loading">
+          <td colspan="3" class="text-center">Loading...</td>
+        </tr>
+        <tr *ngFor="let item of items; let i = index">
+          <td>{{ i + 1 }}</td>
+          <td>{{ item.name }}</td>
+          <td class="actions">
+            <button type="button" class="btn btn-sm btn-outline-primary" (click)="edit(item)">Edit</button>
+            <button type="button" class="btn btn-sm btn-outline-danger" (click)="archive(item)">Archive</button>
+          </td>
+        </tr>
+        <tr *ngIf="!loading && items.length === 0">
+          <td colspan="3" class="text-center text-muted">এখনও কোনো Generic Name যোগ করা হয়নি।</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

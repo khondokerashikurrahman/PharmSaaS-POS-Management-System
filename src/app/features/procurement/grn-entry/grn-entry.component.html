@@ -1,0 +1,81 @@
+<div class="grn-page">
+  <header class="page-header">
+    <div>
+      <div class="breadcrumb"><span>Procurement</span><i class="bi bi-chevron-right"></i><span>GRN Entry</span></div>
+      <h1>Goods Received Note</h1>
+      <p>Record received medicine batches against a purchase order.</p>
+    </div>
+    <button type="button" class="btn btn-outline" (click)="cancel()" [disabled]="saving"><i class="bi bi-arrow-left"></i> Back to GRN</button>
+  </header>
+
+  <div *ngIf="loadError" class="notice error-notice" role="alert">{{ loadError }}</div>
+  <div *ngIf="loadingPurchaseOrders" class="notice info-notice">Loading submitted purchase orders…</div>
+  <div *ngIf="loadingExistingGrns" class="notice info-notice">Loading previous GRN quantities…</div>
+  <div *ngIf="existingGrnsLoadError" class="notice error-notice" role="alert">{{ existingGrnsLoadError }}</div>
+  <div *ngIf="purchaseOrderError" class="notice info-notice" role="status">{{ purchaseOrderError }}</div>
+  <div *ngIf="message" class="notice" [class.success-notice]="messageType === 'success'" [class.error-notice]="messageType === 'error'" [class.info-notice]="messageType === 'info'" role="status">{{ message }}</div>
+  <div *ngIf="loadingMedicines" class="notice info-notice">Loading active medicines from inventory…</div>
+
+  <div class="content-grid">
+    <main class="main-content">
+      <section class="card">
+        <div class="card-header"><div><h2>Receiving Information</h2><p>Enter supplier and receipt details.</p></div><span class="status-badge"><i class="bi bi-box-seam"></i> Goods Receipt</span></div>
+        <div class="form-grid">
+          <div class="form-group"><label>Purchase Order <span>*</span></label><select class="form-control" [(ngModel)]="purchaseOrder" (ngModelChange)="onPurchaseOrderChange()" [disabled]="loadingPurchaseOrders || loadingMedicines || loadingExistingGrns || !!existingGrnsLoadError || !purchaseOrders.length || saving"><option value="">Select submitted purchase order</option><option *ngFor="let order of purchaseOrders" [value]="order.orderNumber">{{ order.orderNumber }} — {{ order.supplierName }} ({{ order.status }})</option></select><small class="field-note">Submitted purchase orders are loaded from the backend.</small></div>
+          <div class="form-group">
+            <label>Receiving Store <span>*</span></label>
+            <select
+              class="form-control"
+              [(ngModel)]="selectedStoreId"
+              [disabled]="loadingStores || saving || !stores.length">
+              <option [ngValue]="''">Select receiving store</option>
+              <option *ngFor="let store of stores" [ngValue]="store.id">
+                {{ store.name }} — {{ store.storeCode }}
+              </option>
+            </select>
+            <small class="field-note" *ngIf="loadingStores">Loading active stores…</small>
+            <small class="field-note" *ngIf="storeLoadError" role="alert">{{ storeLoadError }}</small>
+          </div>
+          <div class="form-group"><label>Supplier <span>*</span></label><input type="text" class="form-control" [(ngModel)]="supplier" readonly placeholder="Select a purchase order first" /></div>
+          <div class="form-group"><label>Received Date <span>*</span></label><input type="date" class="form-control" [(ngModel)]="receivedDate" /></div>
+          <div class="form-group"><label>Supplier Invoice No. <span>*</span></label><input type="text" class="form-control" [(ngModel)]="invoiceNumber" placeholder="e.g. INV-2026-458" /></div>
+          <div class="form-group"><label>Received By</label><input type="text" class="form-control" [(ngModel)]="receivedBy" readonly /></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header"><div><h2>Received Items</h2><p>Active medicines are loaded from the tenant inventory API.</p></div><button type="button" class="btn btn-primary btn-sm" (click)="addItem()" [disabled]="saving"><i class="bi bi-plus-lg"></i> Add Item</button></div>
+        <div class="barcode-row"><label for="grnBarcode">Scan barcode / enter SKU</label><div class="barcode-control"><input id="grnBarcode" type="text" [(ngModel)]="barcodeSearch" (keyup.enter)="scanBarcode()" placeholder="Scan barcode or type SKU" [disabled]="saving" /><button type="button" class="btn btn-primary" (click)="scanBarcode()" [disabled]="saving || !barcodeSearch.trim()">Find & Select</button></div><small>Medicine is selected in the last row.</small></div>
+        <div class="table-wrapper"><table><thead><tr><th>#</th><th>Medicine</th><th>Ordered</th><th>Previously received</th><th>Remaining</th><th>Receive now</th><th>Batch No.</th><th>Manufactured</th><th>Expiry</th><th>Purchase Cost</th><th>Selling Price</th><th>Total</th><th></th></tr></thead>
+          <tbody><tr *ngFor="let item of items; let i = index">
+            <td class="serial">{{ i + 1 }}</td>
+            <td class="medicine-cell"><select [(ngModel)]="item.inventoryItemId" (ngModelChange)="onMedicineChange(item)" class="table-control" [disabled]="saving"><option value="">Select medicine</option><option *ngFor="let medicine of medicines" [disabled]="!isMedicineInPurchaseOrder(medicine.id)" [ngValue]="medicine.id">{{ medicine.name }}{{ medicine.strength ? ' · ' + medicine.strength : '' }} ({{ medicine.sku }})</option></select><small *ngIf="item.inventoryItemId">Current stock: {{ getMedicineStock(item) }}</small></td>
+            <td>{{ item.orderedQty }}</td>
+            <td>{{ item.previouslyReceivedQty }}</td>
+            <td>{{ item.remainingQty }}</td>
+            <td><input type="number" [(ngModel)]="item.receivedQty" class="table-control quantity-input" min="0" [max]="item.remainingQty" [disabled]="saving" /></td>
+            <td><input type="text" [(ngModel)]="item.batchNumber" class="table-control" placeholder="Batch" [disabled]="saving" /></td>
+            <td><input type="date" [(ngModel)]="item.manufactureDate" class="table-control date-control" [disabled]="saving" /></td>
+            <td><input type="date" [(ngModel)]="item.expiryDate" class="table-control date-control" [disabled]="saving" /></td>
+            <td><input type="number" [(ngModel)]="item.purchasePrice" class="table-control price-input" min="0.01" step="0.01" [disabled]="saving" /></td>
+            <td><input type="number" [(ngModel)]="item.sellingPrice" class="table-control price-input" min="0.01" step="0.01" [disabled]="saving" /></td>
+            <td class="item-total">৳{{ lineTotal(item) | number:'1.2-2' }}</td>
+            <td><button type="button" class="remove-btn" (click)="removeItem(i)" [disabled]="items.length === 1 || saving" title="Remove item"><i class="bi bi-trash3"></i></button></td>
+          </tr></tbody></table></div>
+        <div class="table-note"><i class="bi bi-info-circle"></i> Batch number, manufacturing/expiry date, quantity and prices are submitted to the inventory batch API.</div>
+      </section>
+
+      <section class="card"><div class="card-header simple-header"><div><h2>Additional Notes</h2><p>Notes are currently form-only; the batch API does not persist them.</p></div></div><div class="notes-wrapper"><textarea [(ngModel)]="notes" rows="4" placeholder="Damaged items, short quantity or other remarks…" [disabled]="saving"></textarea></div></section>
+    </main>
+
+    <aside class="summary-column">
+      <section class="summary-card"><div class="summary-header"><div><h2>Receipt Summary</h2><p>Calculated from current rows</p></div><div class="summary-icon"><i class="bi bi-receipt"></i></div></div>
+        <div class="summary-info"><div class="summary-row"><span>Items</span><strong>{{ totalItems }}</strong></div><div class="summary-row"><span>Received Quantity</span><strong>{{ totalReceivedQty }}</strong></div><div class="summary-row"><span>Subtotal</span><strong>৳{{ subtotal | number:'1.2-2' }}</strong></div><div class="summary-row"><span>Tax estimate (5%)</span><strong>৳{{ tax | number:'1.2-2' }}</strong></div></div>
+        <div class="grand-total"><span>Estimated Total</span><strong>৳{{ grandTotal | number:'1.2-2' }}</strong></div>
+        <div class="action-buttons"><button type="button" class="btn btn-secondary" (click)="saveDraft()" [disabled]="saving"><i class="bi bi-file-earmark"></i> Save Draft</button><button type="button" class="btn btn-success" (click)="receiveGoods()" [disabled]="saving || loadingMedicines || loadingStores || loadingExistingGrns || !!existingGrnsLoadError || !medicines.length || !selectedStoreId"><i class="bi" [class.bi-check2-circle]="!saving" [class.bi-arrow-repeat]="saving"></i> {{ saving ? 'Saving batches…' : 'Receive Goods' }}</button><button type="button" class="btn btn-cancel" (click)="cancel()" [disabled]="saving">Cancel</button></div>
+        <p class="api-disclaimer">GRN header, supplier invoice, purchase order, received batches, stock movements and receiving-store allocation are saved by the backend. The displayed 5% tax is an estimate only.</p>
+      </section>
+      <section class="help-card"><div class="help-icon"><i class="bi bi-lightbulb"></i></div><div><h3>Receiving Tip</h3><p>Verify batch number, manufacturing date, expiry date and prices before receiving medicines into stock.</p></div></section>
+    </aside>
+  </div>
+</div>

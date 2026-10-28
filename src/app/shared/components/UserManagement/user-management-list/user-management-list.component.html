@@ -1,0 +1,192 @@
+<section class="user-list-card">
+  <div class="list-heading">
+    <div>
+      <span class="eyebrow">PEOPLE & ACCESS</span>
+      <h2>Team directory</h2>
+      <p>Manage your pharmacy team, roles and access status.</p>
+    </div>
+
+    <button
+      type="button"
+      class="refresh-btn"
+      (click)="loadUsers()"
+      [disabled]="loading">
+      <span>↻</span> Refresh
+    </button>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat">
+      <span>Total members</span>
+      <strong>{{ users.length }}</strong>
+      <small>Registered in this view</small>
+    </div>
+
+    <div class="stat">
+      <span>Active members</span>
+      <strong>{{ activeCount }}</strong>
+      <small>Currently enabled</small>
+    </div>
+
+    <div class="stat">
+      <span>Showing</span>
+      <strong>{{ filteredUsers.length }}</strong>
+      <small>Matching your filters</small>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <span>⌕</span>
+      <input
+        [(ngModel)]="search"
+        placeholder="Search by name or email..."
+        aria-label="Search users">
+    </div>
+
+    <select [(ngModel)]="roleFilter" aria-label="Filter by role">
+      <option value="ALL">All roles</option>
+      <option value="PHARMACY_ADMIN">Pharmacy Admin</option>
+      <option value="MANAGER">Manager</option>
+      <option value="STORE_KEEPER">Store Keeper</option>
+      <option value="PHARMACIST">Pharmacist</option>
+      <option value="STAFF">Staff</option>
+      <option value="CASHIER">Cashier</option>
+    </select>
+  </div>
+
+  <div class="feedback" *ngIf="loading">
+    <span class="spinner"></span>
+    Loading team members...
+  </div>
+
+  <div class="feedback error" *ngIf="!loading && error">
+    {{ error }}
+  </div>
+
+  <div class="feedback success" *ngIf="success">
+    {{ success }}
+  </div>
+
+  <div class="loading-state" *ngIf="loading && users.length === 0">
+    Fetching your team from the server
+  </div>
+
+  <div class="user-grid" *ngIf="!loading && !error">
+    <article
+      class="user-card"
+      *ngFor="let user of filteredUsers; trackBy: trackById"
+      [class.user-inactive]="!isActive(user)">
+
+      <div class="card-top">
+        <div class="identity">
+          <div class="avatar">
+            {{ getName(user).charAt(0).toUpperCase() }}
+          </div>
+
+          <div class="identity-text">
+            <h3>{{ getName(user) }}</h3>
+            <p>{{ user.email }}</p>
+          </div>
+        </div>
+
+        <span
+          class="status-chip"
+          [class.inactive]="!isActive(user)">
+          <span class="status-dot"></span>
+          {{ isActive(user) ? 'Active' : 'Inactive' }}
+        </span>
+      </div>
+
+      <div class="card-divider"></div>
+
+      <div class="member-details">
+        <div>
+          <span class="detail-label">ROLE</span>
+
+          <ng-container
+            *ngIf="editingUserId !== (user.userId ?? user.id); else roleEditor">
+            <span class="role-chip">{{ getRole(user) }}</span>
+          </ng-container>
+
+          <ng-template #roleEditor>
+            <select
+              class="role-select"
+              [(ngModel)]="selectedRole"
+              [attr.aria-label]="'Role for ' + getName(user)">
+              <option *ngFor="let role of roles" [value]="role">
+                {{ getRoleLabel(role) }}
+              </option>
+            </select>
+          </ng-template>
+        </div>
+
+        <div class="member-id">
+          <span class="detail-label">USER ID</span>
+          <strong>#{{ user.userId ?? user.id }}</strong>
+        </div>
+      </div>
+
+      <div class="card-actions" *ngIf="!isSuperAdmin">
+        <ng-container
+          *ngIf="editingUserId !== (user.userId ?? user.id); else editActions">
+
+          <button
+            type="button"
+            class="action-btn edit-btn"
+            (click)="startRoleEdit(user)"
+            [disabled]="actionLoadingId !== null">
+            <span>✎</span> Edit role
+          </button>
+
+          <button
+            type="button"
+            class="action-btn status-btn"
+            (click)="toggleStatus(user)"
+            [disabled]="actionLoadingId !== null ||
+              getRole(user) === 'TENANT OWNER' ||
+              (getRole(user) === 'PHARMACY ADMIN' && !isActive(user))">
+            {{
+              actionLoadingId === (user.userId ?? user.id)
+                ? 'Saving...'
+                : (isActive(user) ? 'Deactivate' : 'Activate')
+            }}
+          </button>
+
+          <button
+            type="button"
+            class="action-btn delete-btn"
+            (click)="deleteUser(user)"
+            [disabled]="actionLoadingId !== null ||
+              getRole(user) === 'TENANT OWNER'">
+            Delete
+          </button>
+        </ng-container>
+
+        <ng-template #editActions>
+          <button
+            type="button"
+            class="action-btn save-btn"
+            (click)="saveRole(user)"
+            [disabled]="actionLoadingId !== null">
+            Save changes
+          </button>
+
+          <button
+            type="button"
+            class="action-btn cancel-btn"
+            (click)="cancelRoleEdit()"
+            [disabled]="actionLoadingId !== null">
+            Cancel
+          </button>
+        </ng-template>
+      </div>
+    </article>
+
+    <div class="empty-state" *ngIf="filteredUsers.length === 0">
+      <div class="empty-icon">⌕</div>
+      <h3>No team members found</h3>
+      <p>Try another search or select a different role filter.</p>
+    </div>
+  </div>
+</section>

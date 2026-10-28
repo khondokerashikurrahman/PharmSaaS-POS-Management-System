@@ -1,0 +1,90 @@
+<div class="cart-item">
+
+  <!-- PRODUCT -->
+  <div class="product-info">
+
+    <div class="product-icon">
+      <i class="bi bi-capsule"></i>
+    </div>
+
+    <div class="product-details">
+
+      <h4>
+        {{ item.productName }}
+      </h4>
+
+      <div class="product-meta">
+        SKU: {{ item.sku || 'N/A' }}
+      </div>
+
+      <div class="batch-meta">
+        Batch: {{ item.batchNumber || 'N/A' }}
+      </div>
+
+      <div
+        class="expiry-meta"
+        *ngIf="item.expiryDate">
+
+        EXP:
+        {{ item.expiryDate | date:'dd MMM yyyy' }}
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- QUANTITY -->
+  <div class="quantity-control">
+
+    <button
+      type="button"
+      [disabled]="item.quantity <= 1"
+      (click)="decreaseQuantity()">
+
+      <i class="bi bi-dash"></i>
+
+    </button>
+
+    <span>
+      {{ item.quantity }}
+    </span>
+
+    <button
+      type="button"
+      [disabled]="item.stock !== undefined && item.quantity >= item.stock"
+      (click)="increaseQuantity()">
+
+      <i class="bi bi-plus"></i>
+
+    </button>
+
+  </div>
+
+
+  <!-- PRICE -->
+  <div class="price">
+
+    <span>
+      ৳{{ item.unitPrice | number:'1.2-2' }}
+    </span>
+
+    <strong>
+      ৳{{ item.totalPrice | number:'1.2-2' }}
+    </strong>
+
+  </div>
+
+
+  <!-- REMOVE -->
+  <button
+    type="button"
+    class="remove-btn"
+    (click)="removeItem()">
+
+    <i class="bi bi-trash3"></i>
+
+  </button>
+
+</div>

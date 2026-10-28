@@ -1,0 +1,72 @@
+<section class="dosage-page">
+  <div class="page-heading">
+    <div>
+      <h2>Dosage Form Management</h2>
+      <p>Medicine ও OTC product-এর dosage form পরিচালনা করো।</p>
+    </div>
+    <button type="button" class="btn btn-outline-secondary" (click)="load()">
+      Refresh
+    </button>
+  </div>
+
+  <div class="dosage-form-card">
+    <label for="dosageName">Dosage Form Name</label>
+    <div class="form-row">
+      <input
+        id="dosageName"
+        class="form-control"
+        type="text"
+        maxlength="100"
+        [(ngModel)]="name"
+        (keyup.enter)="save()"
+        placeholder="যেমন: Tablet, Capsule, Syrup"
+      />
+      <button
+        type="button"
+        class="btn btn-primary"
+        [disabled]="saving"
+        (click)="save()"
+      >{{ saving ? 'Saving...' : (editingId ? 'Update' : 'Add Dosage Form') }}</button>
+      <button
+        *ngIf="editingId"
+        type="button"
+        class="btn btn-outline-secondary"
+        (click)="cancelEdit()"
+      >Cancel</button>
+    </div>
+
+    <div *ngIf="errorMessage" class="alert alert-danger mt-3 mb-0">
+      {{ errorMessage }}
+    </div>
+    <div *ngIf="successMessage" class="alert alert-success mt-3 mb-0">
+      {{ successMessage }}
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr><th>#</th><th>Dosage Form</th><th>Status</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="loading">
+          <td colspan="4" class="text-center">Loading dosage forms...</td>
+        </tr>
+        <tr *ngFor="let item of items; let i = index">
+          <td>{{ i + 1 }}</td>
+          <td>{{ item.name }}</td>
+          <td><span class="badge text-bg-success">Active</span></td>
+          <td class="actions">
+            <button type="button" class="btn btn-sm btn-outline-primary" (click)="edit(item)">Edit</button>
+            <button type="button" class="btn btn-sm btn-outline-danger" (click)="archive(item)">Archive</button>
+          </td>
+        </tr>
+        <tr *ngIf="!loading && items.length === 0">
+          <td colspan="4" class="text-center text-muted">
+            কোনো dosage form পাওয়া যায়নি।
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

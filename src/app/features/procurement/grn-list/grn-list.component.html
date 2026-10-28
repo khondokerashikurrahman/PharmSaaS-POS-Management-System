@@ -1,0 +1,337 @@
+
+<div class="grn-list-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div>
+      <div class="breadcrumb">
+        <span>Procurement</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>GRN List</span>
+      </div>
+
+      <h1>Goods Received Notes</h1>
+      <p>Manage and track received goods against purchase orders.</p>
+    </div>
+
+    <div class="page-actions">
+      <button
+        type="button"
+        class="btn btn-outline"
+        (click)="loadGrns()"
+        [disabled]="loading"
+      >
+        <i class="bi bi-arrow-clockwise"></i>
+        {{ loading ? 'Refreshing…' : 'Refresh' }}
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="createGrn()"
+      >
+        <i class="bi bi-plus-lg"></i>
+        New GRN
+      </button>
+    </div>
+
+  </div>
+
+
+  <div *ngIf="loading" class="notice info-notice" role="status">
+    Loading GRN records from backend…
+  </div>
+
+  <div *ngIf="loadError" class="notice error-notice" role="alert">
+    {{ loadError }}
+    <button type="button" class="btn btn-outline" (click)="loadGrns()">
+      Try Again
+    </button>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="summary-grid">
+
+    <div class="summary-card">
+
+      <div class="summary-icon total">
+        <i class="bi bi-receipt"></i>
+      </div>
+
+      <div>
+        <span>Total GRNs</span>
+        <h3>{{ totalGrns }}</h3>
+        <small>All receiving notes</small>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon received">
+        <i class="bi bi-check2-circle"></i>
+      </div>
+
+      <div>
+        <span>Received</span>
+        <h3>{{ receivedGrns }}</h3>
+        <small>Completed receipts</small>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon partial">
+        <i class="bi bi-hourglass-split"></i>
+      </div>
+
+      <div>
+        <span>Partially Received</span>
+        <h3>{{ partialGrns }}</h3>
+        <small>Awaiting completion</small>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon draft">
+        <i class="bi bi-file-earmark"></i>
+      </div>
+
+      <div>
+        <span>Drafts</span>
+        <h3>{{ draftGrns }}</h3>
+        <small>Pending submission</small>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- TOTAL VALUE -->
+  <div class="value-card">
+
+    <div class="value-icon">
+      <i class="bi bi-box-seam"></i>
+    </div>
+
+    <div>
+      <span>Total Received Value</span>
+
+      <strong>
+        ৳{{ totalReceivedValue | number:'1.2-2' }}
+      </strong>
+    </div>
+
+    <div class="value-note">
+      Excludes cancelled GRNs
+    </div>
+
+  </div>
+
+
+  <!-- LIST CARD -->
+  <div class="list-card">
+
+    <div class="list-header">
+
+      <div>
+        <h2>GRN Records</h2>
+        <p>Search and manage goods received notes.</p>
+      </div>
+
+    </div>
+
+
+    <!-- FILTERS -->
+    <div class="filter-bar">
+
+      <div class="search-box">
+
+        <i class="bi bi-search"></i>
+
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          placeholder="Search GRN, PO, supplier or invoice..."
+        />
+
+      </div>
+
+
+      <div class="status-filter">
+
+        <label>Status</label>
+
+        <select
+          [(ngModel)]="selectedStatus"
+          class="filter-select"
+        >
+          <option value="All">All Status</option>
+          <option value="Received">Received</option>
+          <option value="Partially Received">
+            Partially Received
+          </option>
+          <option value="Draft">Draft</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+
+      </div>
+
+
+      <div class="record-count">
+        {{ filteredGrns.length }} records
+      </div>
+
+    </div>
+
+
+    <!-- TABLE -->
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>GRN No.</th>
+            <th>Purchase Order</th>
+            <th>Supplier</th>
+            <th>Received Date</th>
+            <th>Invoice No.</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="
+              let grn of filteredGrns;
+              trackBy: trackByGrnId
+            "
+          >
+
+            <td>
+              <span class="grn-number">
+                {{ grn.id }}
+              </span>
+            </td>
+
+            <td>
+              <span class="po-number">
+                {{ grn.purchaseOrder }}
+              </span>
+            </td>
+
+            <td>
+              <span class="supplier-name">
+                {{ grn.supplier }}
+              </span>
+            </td>
+
+            <td class="date-cell">
+              {{ grn.receivedDate }}
+            </td>
+
+            <td class="invoice-cell">
+              {{ grn.invoiceNumber }}
+            </td>
+
+            <td>
+              <span class="items-count">
+                {{ grn.items }}
+              </span>
+            </td>
+
+            <td class="amount">
+              ৳{{ grn.total | number:'1.2-2' }}
+            </td>
+
+            <td>
+              <span
+                class="status-badge"
+                [ngClass]="getStatusClass(grn.status)"
+              >
+                {{ grn.status }}
+              </span>
+            </td>
+
+            <td>
+
+              <div class="action-buttons">
+
+                <button
+                  class="action-btn view"
+                  title="View"
+                  (click)="viewGrn(grn)"
+                >
+                  <i class="bi bi-eye"></i>
+                </button>
+
+                <button
+                  class="action-btn edit"
+                  title="Edit"
+                  *ngIf="
+                    grn.status.toLowerCase() === 'draft' ||
+                    grn.status.toLowerCase() === 'partially received'
+                  "
+                  (click)="editGrn(grn)"
+                >
+                  <i class="bi bi-pencil"></i>
+                </button>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+
+          <!-- EMPTY -->
+          <tr *ngIf="!loading && !loadError && filteredGrns.length === 0">
+
+            <td
+              colspan="9"
+              class="empty-cell"
+            >
+
+              <div class="empty-state">
+
+                <div class="empty-icon">
+                  <i class="bi bi-receipt"></i>
+                </div>
+
+                <h3>No GRN records found</h3>
+
+                <p>
+                  {{ grns.length ? 'Try changing your search or status filter.' : 'No GRN records have been returned by the backend yet.' }}
+                </p>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>

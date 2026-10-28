@@ -1,0 +1,360 @@
+.navbar {
+  height: 70px;
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 24px;
+
+  background: #ffffff;
+
+  border-bottom: 1px solid #e5e7eb;
+
+  box-sizing: border-box;
+
+  position: sticky;
+  top: 0;
+
+  z-index: 1000;
+}
+
+
+// =====================================================
+// LEFT
+// =====================================================
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+
+  min-width: 0;
+}
+
+
+// =====================================================
+// BRAND
+// =====================================================
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+
+  text-decoration: none;
+  color: #1f2937;
+
+  flex-shrink: 0;
+}
+
+.brand-icon {
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #3f72af;
+
+  color: #ffffff;
+
+  border-radius: 10px;
+
+  font-size: 20px;
+}
+
+.brand-info {
+  display: flex;
+  flex-direction: column;
+
+  line-height: 1.2;
+}
+
+.brand-info strong {
+  font-size: 16px;
+  font-weight: 700;
+
+  color: #1f2937;
+}
+
+.brand-info span {
+  margin-top: 3px;
+
+  font-size: 11px;
+
+  color: #6b7280;
+}
+
+
+// =====================================================
+// TENANT
+// =====================================================
+
+.tenant-info {
+  display: flex;
+  align-items: center;
+
+  margin-left: 28px;
+
+  min-width: 0;
+}
+
+.tenant-divider {
+  width: 1px;
+  height: 34px;
+
+  margin-right: 18px;
+
+  background: #e5e7eb;
+}
+
+.tenant-icon {
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-right: 10px;
+
+  background: #f3f6fa;
+
+  color: #3f72af;
+
+  border-radius: 9px;
+
+  font-size: 16px;
+}
+
+.tenant-details {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+}
+
+.tenant-details strong {
+  max-width: 220px;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  color: #1f2937;
+}
+
+.tenant-details span {
+  margin-top: 3px;
+
+  font-size: 11px;
+
+  color: #6b7280;
+}
+
+
+// =====================================================
+// SUPER ADMIN
+// =====================================================
+
+.admin-context .tenant-icon {
+  background: #f5f3ff;
+  color: #6d5bd0;
+}
+
+
+// =====================================================
+// RIGHT
+// =====================================================
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+
+  gap: 18px;
+
+  flex-shrink: 0;
+}
+
+
+// =====================================================
+// NOTIFICATION
+// =====================================================
+
+.nav-icon-btn {
+  position: relative;
+
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+
+  background: #ffffff;
+
+  color: #4b5563;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.nav-icon-btn:hover {
+  background: #f8fafc;
+
+  border-color: #d1d5db;
+
+  color: #3f72af;
+}
+
+.nav-icon-btn i {
+  font-size: 17px;
+}
+
+.notification-dot {
+  position: absolute;
+
+  top: 8px;
+  right: 8px;
+
+  width: 7px;
+  height: 7px;
+
+  background: #dc3545;
+
+  border: 2px solid #ffffff;
+
+  border-radius: 50%;
+}
+
+
+// =====================================================
+// USER
+// =====================================================
+
+.user-menu {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding-left: 4px;
+
+  cursor: pointer;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #3f72af;
+
+  color: #ffffff;
+
+  border-radius: 50%;
+
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+
+  line-height: 1.2;
+}
+
+.user-info strong {
+  font-size: 13px;
+  font-weight: 600;
+
+  color: #1f2937;
+
+  white-space: nowrap;
+}
+
+.user-info span {
+  margin-top: 3px;
+
+  font-size: 11px;
+
+  color: #6b7280;
+
+  white-space: nowrap;
+}
+
+.user-arrow {
+  margin-left: 3px;
+
+  font-size: 11px;
+
+  color: #6b7280;
+}
+
+
+// =====================================================
+// RESPONSIVE
+// =====================================================
+
+@media (max-width: 900px) {
+
+  .tenant-info {
+    margin-left: 16px;
+  }
+
+  .tenant-details strong {
+    max-width: 150px;
+  }
+
+  .brand-info span {
+    display: none;
+  }
+}
+
+
+@media (max-width: 700px) {
+
+  .navbar {
+    padding: 0 15px;
+  }
+
+  .brand-info {
+    display: none;
+  }
+
+  .tenant-details {
+    display: none;
+  }
+
+  .tenant-divider {
+    margin-right: 10px;
+  }
+
+  .tenant-info {
+    margin-left: 12px;
+  }
+
+  .user-info {
+    display: none;
+  }
+
+  .navbar-right {
+    gap: 10px;
+  }
+}

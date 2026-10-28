@@ -1,0 +1,544 @@
+<div class="pos-page">
+
+  <!-- ================= HEADER ================= -->
+
+  <div class="pos-header">
+
+    <div>
+      <div class="breadcrumb">
+        <span>Pharmacy</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>POS Terminal</span>
+      </div>
+
+      <h1>POS Terminal</h1>
+
+      <p>
+        Process sales quickly and efficiently.
+      </p>
+    </div>
+
+
+    <div class="header-actions">
+
+      <div class="pos-store-selector" *ngIf="activeStores.length !== 1">
+        <label for="posStoreSelect">Store</label>
+        <select
+          id="posStoreSelect"
+          [value]="selectedStoreId ?? ''"
+          (change)="onStoreChange($any($event.target).value)"
+          [disabled]="loadingStores || processingSale"
+          aria-label="Select store for this sale">
+          <option value="">{{ loadingStores ? 'Loading stores...' : storeLoadFailed ? 'Store loading failed' : activeStores.length === 0 ? 'No active stores available' : 'Select store' }}</option>
+          <option *ngFor="let store of activeStores" [value]="store.id">
+            {{ store.name }} ({{ store.storeCode }})
+          </option>
+        </select>
+        <small *ngIf="!loadingStores && storeLoadFailed">
+          Store list load হয়নি। Retry করো।
+        </small>
+        <small *ngIf="!loadingStores && !storeLoadFailed && activeStores.length === 0">
+          কোনো Active Store পাওয়া যায়নি। Store তৈরি বা Active করতে হবে।
+        </small>
+        <button
+          *ngIf="storeLoadFailed"
+          type="button"
+          (click)="loadStores()"
+          [disabled]="loadingStores || processingSale">
+          Retry Store Loading
+        </button>
+      </div>
+
+      <div class="pos-store-selector"
+           *ngIf="!loadingStores && !storeLoadFailed && activeStores.length === 1">
+        <label>Store</label>
+        <span class="single-store-name">
+          {{ activeStores[0].name }} ({{ activeStores[0].storeCode }})
+        </span>
+      </div>
+
+      <button
+        type="button"
+        class="secondary-btn"
+        (click)="openHoldCart()">
+
+        <i class="bi bi-pause-circle"></i>
+
+        Held Carts
+
+      </button>
+
+
+      <button
+        type="button"
+        class="secondary-btn return-btn"
+        (click)="openReturnSale(null)">
+
+        <i class="bi bi-arrow-return-left"></i>
+
+        Return Sale
+
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- ================= MAIN LAYOUT ================= -->
+
+  <div class="pos-layout">
+
+
+    <!-- ================= LEFT ================= -->
+
+    <div class="pos-left">
+
+
+      <!-- PRODUCT SEARCH -->
+
+      <div class="pos-card search-card">
+
+        <div class="card-title">
+
+          <div class="title-icon">
+
+            <i class="bi bi-search"></i>
+
+          </div>
+
+          <div>
+
+            <h2>Product Search</h2>
+
+            <p>
+              Search and add medicines to cart.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <app-product-search
+          (productSelected)="onProductSelected($event)">
+        </app-product-search>
+
+      </div>
+
+
+      <!-- CUSTOMER -->
+
+      <div class="pos-card">
+
+        <div class="card-title">
+
+          <div class="title-icon customer-icon">
+
+            <i class="bi bi-person"></i>
+
+          </div>
+
+          <div>
+
+            <h2>Customer</h2>
+
+            <p>
+              Select customer for this sale.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <app-customer-selector
+          (customerSelected)="onCustomerSelected($event)">
+        </app-customer-selector>
+
+      </div>
+
+
+      <!-- CART -->
+
+      <div class="pos-card cart-card">
+
+        <div class="cart-header">
+
+          <div class="card-title no-margin">
+
+            <div class="title-icon cart-icon">
+
+              <i class="bi bi-cart3"></i>
+
+            </div>
+
+
+            <div>
+
+              <h2>Shopping Cart</h2>
+
+              <p>
+                {{ totalItems }} item(s) in cart
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <button
+            *ngIf="cartItems.length > 0"
+            type="button"
+            class="clear-btn"
+            (click)="clearCart()">
+
+            <i class="bi bi-trash3"></i>
+
+            Clear Cart
+
+          </button>
+
+        </div>
+
+
+        <app-cart-list
+          [cartItems]="cartItems"
+          (cartItemsChange)="onCartUpdated($event)">
+        </app-cart-list>
+
+      </div>
+
+    </div>
+
+
+    <!-- ================= RIGHT ================= -->
+
+    <div class="pos-right">
+
+
+      <!-- SALE SUMMARY -->
+
+      <div class="pos-card summary-card">
+
+
+        <div class="summary-header">
+
+          <div>
+
+            <h2>Sale Summary</h2>
+
+            <span>
+              {{ customerName }}
+            </span>
+
+          </div>
+
+
+          <div class="summary-cart-icon">
+
+            <i class="bi bi-receipt"></i>
+
+          </div>
+
+        </div>
+
+
+        <!-- SUMMARY -->
+
+        <div class="summary-body">
+
+
+          <div class="summary-row">
+
+            <span>Items</span>
+
+            <strong>
+              {{ totalItems }}
+            </strong>
+
+          </div>
+
+
+          <div class="summary-row">
+
+            <span>Subtotal</span>
+
+            <strong>
+              ৳{{ subtotal | number:'1.2-2' }}
+            </strong>
+
+          </div>
+
+
+          <div
+            class="summary-row discount-row"
+            *ngIf="discountAmount > 0">
+
+            <span>Discount</span>
+
+            <strong>
+              -৳{{ discountAmount | number:'1.2-2' }}
+            </strong>
+
+          </div>
+
+
+          <div class="summary-row">
+
+            <span>Tax</span>
+
+            <strong>
+              ৳{{ taxAmount | number:'1.2-2' }}
+            </strong>
+
+          </div>
+
+
+          <div class="summary-divider"></div>
+
+
+          <div class="total-row">
+
+            <span>Total</span>
+
+            <strong>
+              ৳{{ totalAmount | number:'1.2-2' }}
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <!-- ================= DISCOUNT ================= -->
+
+        <div class="discount-section">
+
+
+          <!-- APPLY DISCOUNT -->
+
+          <button
+            *ngIf="discountAmount <= 0"
+            type="button"
+            class="discount-button"
+            (click)="openDiscountModal()">
+
+            <i class="bi bi-tag"></i>
+
+            <span>
+              Apply Discount
+            </span>
+
+          </button>
+
+
+          <!-- DISCOUNT APPLIED -->
+
+          <div
+            *ngIf="discountAmount > 0"
+            class="discount-applied">
+
+
+            <div>
+
+              <i class="bi bi-tag-fill"></i>
+
+
+              <span>
+
+                Discount Applied
+
+                <small>
+
+                  {{
+                    discountType === 'percentage'
+                      ? discount + '%'
+                      : '৳' + discount
+                  }}
+
+                </small>
+
+              </span>
+
+            </div>
+
+
+            <button
+              type="button"
+              title="Remove discount"
+              (click)="removeDiscount()">
+
+              <i class="bi bi-x"></i>
+
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <!-- ================= SALE ACTIONS ================= -->
+
+        <div class="sale-actions">
+
+
+          <button
+            type="button"
+            class="hold-btn"
+            [disabled]="cartItems.length === 0"
+            (click)="holdCurrentCart()">
+
+            <i class="bi bi-pause-circle"></i>
+
+            Hold Cart
+
+          </button>
+
+
+          <button
+            type="button"
+            class="payment-btn"
+            [disabled]="cartItems.length === 0"
+            (click)="openPayment()">
+
+
+            <span>
+
+              <i class="bi bi-credit-card"></i>
+
+              Proceed to Payment
+
+            </span>
+
+
+            <strong>
+
+              ৳{{ totalAmount | number:'1.2-2' }}
+
+            </strong>
+
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <!-- ================= QUICK INFO ================= -->
+
+      <div class="quick-info">
+
+
+        <div class="quick-item">
+
+          <i class="bi bi-shield-check"></i>
+
+
+          <div>
+
+            <strong>
+              Secure Sale
+            </strong>
+
+            <span>
+              Transaction protected
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div class="quick-item">
+
+          <i class="bi bi-lightning-charge"></i>
+
+
+          <div>
+
+            <strong>
+              Fast Checkout
+            </strong>
+
+            <span>
+              Quick payment process
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ================= MODALS ================= -->
+
+
+  <!-- BATCH -->
+
+  <app-batch-selector-modal
+    *ngIf="showBatchModal"
+    [product]="selectedProduct"
+    [visible]="showBatchModal"
+    (batchSelected)="onBatchSelected($event)"
+    (closed)="closeBatchModal()" [tenantId]="currentTenantId" [storeId]="selectedStoreId">
+  </app-batch-selector-modal>
+
+
+  <!-- DISCOUNT -->
+
+  <app-discount-modal
+    *ngIf="showDiscountModal"
+    [visible]="showDiscountModal"
+    [subtotal]="subtotal"
+    [currentDiscount]="discount"
+    (discountApplied)="onDiscountApplied($event)"
+    (closed)="closeDiscountModal()">
+  </app-discount-modal>
+
+
+  <!-- PAYMENT -->
+
+  <app-payment-panel
+    *ngIf="showPaymentPanel"
+    [totalAmount]="totalAmount"
+    (paymentChanged)="onPaymentChanged($event)"
+    (paymentCompleted)="onPaymentCompleted($event)"
+    (closed)="closePayment()">
+  </app-payment-panel>
+
+
+  <!-- INVOICE -->
+
+  <app-invoice-receipt
+    *ngIf="showInvoiceReceipt && invoiceReceiptData"
+    [visible]="showInvoiceReceipt"
+    [receipt]="invoiceReceiptData"
+    (closed)="closeInvoice()">
+  </app-invoice-receipt>
+
+
+  <!-- HOLD CART -->
+
+  <app-hold-cart
+    *ngIf="showHoldCart"
+    (closed)="closeHoldCart()"
+    (cartResumed)="resumeHeldCart($event)">
+  </app-hold-cart>
+
+
+  <!-- RETURN SALE -->
+
+  <app-return-sale
+    *ngIf="showReturnSale"
+    [sale]="returnSaleTarget"
+    (closed)="closeReturnSale()"
+    (returned)="completeReturn($event)">
+  </app-return-sale>
+
+</div>

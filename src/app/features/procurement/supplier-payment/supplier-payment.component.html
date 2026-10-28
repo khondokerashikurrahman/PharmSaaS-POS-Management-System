@@ -1,0 +1,531 @@
+
+<div class="supplier-payment-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div>
+      <div class="breadcrumb">
+        <span>Procurement</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Supplier Payment</span>
+      </div>
+
+      <h1>Supplier Payments</h1>
+
+      <p>
+        Manage supplier payments and payment transactions.
+      </p>
+    </div>
+
+    <button
+      class="btn btn-primary"
+      (click)="openPaymentForm()"
+    >
+      <i class="bi bi-plus-lg"></i>
+      New Payment
+    </button>
+
+  </div>
+
+
+  <!-- SUMMARY -->
+  <div class="summary-grid">
+
+    <div class="summary-card">
+
+      <div class="summary-icon total">
+        <i class="bi bi-wallet2"></i>
+      </div>
+
+      <div>
+        <span>Total Payments</span>
+        <h3>{{ totalPayments }}</h3>
+        <small>All transactions</small>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon paid">
+        <i class="bi bi-check-circle"></i>
+      </div>
+
+      <div>
+        <span>Paid</span>
+        <h3>{{ paidPayments }}</h3>
+        <small>Completed payments</small>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon pending">
+        <i class="bi bi-clock-history"></i>
+      </div>
+
+      <div>
+        <span>Pending</span>
+        <h3>{{ pendingPayments }}</h3>
+        <small>Awaiting approval</small>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon cancelled">
+        <i class="bi bi-x-circle"></i>
+      </div>
+
+      <div>
+        <span>Cancelled</span>
+        <h3>{{ cancelledPayments }}</h3>
+        <small>Cancelled payments</small>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- PAYMENT VALUE -->
+  <div class="amount-grid">
+
+    <div class="amount-card paid-amount">
+
+      <div class="amount-icon">
+        <i class="bi bi-cash-stack"></i>
+      </div>
+
+      <div>
+        <span>Total Paid Amount</span>
+
+        <strong>
+          ৳{{ totalPaidAmount | number:'1.2-2' }}
+        </strong>
+      </div>
+
+    </div>
+
+
+    <div class="amount-card pending-amount">
+
+      <div class="amount-icon">
+        <i class="bi bi-hourglass-split"></i>
+      </div>
+
+      <div>
+        <span>Pending Amount</span>
+
+        <strong>
+          ৳{{ totalPendingAmount | number:'1.2-2' }}
+        </strong>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- PAYMENT LIST -->
+  <div class="list-card">
+
+    <div class="list-header">
+
+      <div>
+        <h2>Payment Transactions</h2>
+
+        <p>
+          Search and manage supplier payment records.
+        </p>
+      </div>
+
+    </div>
+
+
+    <!-- FILTER BAR -->
+    <div class="filter-bar">
+
+      <div class="search-box">
+
+        <i class="bi bi-search"></i>
+
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          placeholder="Search payment, supplier or reference..."
+        />
+
+      </div>
+
+
+      <div class="status-filter">
+
+        <label>Status</label>
+
+        <select
+          [(ngModel)]="selectedStatus"
+          class="filter-select"
+        >
+          <option value="All">All Status</option>
+          <option value="Paid">Paid</option>
+          <option value="Pending">Pending</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+
+      </div>
+
+
+      <div class="record-count">
+        {{ filteredPayments.length }} records
+      </div>
+
+    </div>
+
+
+    <!-- TABLE -->
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>Payment ID</th>
+            <th>Supplier</th>
+            <th>Date</th>
+            <th>Reference</th>
+            <th>Payment Method</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="
+              let payment of filteredPayments;
+              trackBy: trackByPaymentId
+            "
+          >
+
+            <td>
+              <span class="payment-id">
+                {{ payment.id }}
+              </span>
+            </td>
+
+
+            <td>
+              <span class="supplier-name">
+                {{ payment.supplier }}
+              </span>
+            </td>
+
+
+            <td class="date-cell">
+              {{ payment.date }}
+            </td>
+
+
+            <td class="reference-cell">
+              {{ payment.reference }}
+            </td>
+
+
+            <td>
+
+              <span
+                class="method-badge"
+                [ngClass]="getMethodClass(payment.paymentMethod)"
+              >
+                <i
+                  class="bi"
+                  [ngClass]="{
+                    'bi-cash': payment.paymentMethod === 'Cash',
+                    'bi-bank': payment.paymentMethod === 'Bank Transfer',
+                    'bi-credit-card': payment.paymentMethod === 'Card',
+                    'bi-phone': payment.paymentMethod === 'Mobile Banking'
+                  }"
+                ></i>
+
+                {{ payment.paymentMethod }}
+              </span>
+
+            </td>
+
+
+            <td class="amount">
+              ৳{{ payment.amount | number:'1.2-2' }}
+            </td>
+
+
+            <td>
+
+              <span
+                class="status-badge"
+                [ngClass]="getStatusClass(payment.status)"
+              >
+                {{ payment.status }}
+              </span>
+
+            </td>
+
+
+            <td>
+
+              <div class="action-buttons">
+
+                <button
+                  class="action-btn view"
+                  title="View Payment"
+                  (click)="viewPayment(payment)"
+                >
+                  <i class="bi bi-eye"></i>
+                </button>
+
+
+                <button
+                  *ngIf="payment.status === 'Pending'"
+                  class="action-btn cancel"
+                  title="Cancel Payment"
+                  (click)="cancelPayment(payment)"
+                >
+                  <i class="bi bi-x-lg"></i>
+                </button>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+
+          <!-- EMPTY -->
+          <tr *ngIf="filteredPayments.length === 0">
+
+            <td
+              colspan="8"
+              class="empty-cell"
+            >
+
+              <div class="empty-state">
+
+                <div class="empty-icon">
+                  <i class="bi bi-wallet2"></i>
+                </div>
+
+                <h3>No payment records found</h3>
+
+                <p>
+                  Try changing your search or status filter.
+                </p>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+
+  <!-- PAYMENT MODAL -->
+  <div
+    class="modal-overlay"
+    *ngIf="showPaymentForm"
+    (click)="closePaymentForm()"
+  >
+
+    <div
+      class="payment-modal"
+      (click)="$event.stopPropagation()"
+    >
+
+      <!-- MODAL HEADER -->
+      <div class="modal-header">
+
+        <div>
+          <h2>New Supplier Payment</h2>
+          <p>Record a payment made to a supplier.</p>
+        </div>
+
+        <button
+          class="close-btn"
+          (click)="closePaymentForm()"
+        >
+          <i class="bi bi-x-lg"></i>
+        </button>
+
+      </div>
+
+
+      <!-- FORM -->
+      <div class="modal-body">
+
+        <div class="form-grid">
+
+          <!-- SUPPLIER -->
+          <div class="form-group full">
+
+            <label>
+              Supplier <span>*</span>
+            </label>
+
+            <select
+              [(ngModel)]="selectedSupplier"
+            >
+              <option value="">
+                Select supplier
+              </option>
+
+              <option
+                *ngFor="let supplier of suppliers"
+                [value]="supplier"
+              >
+                {{ supplier }}
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- DATE -->
+          <div class="form-group">
+
+            <label>
+              Payment Date <span>*</span>
+            </label>
+
+            <input
+              type="date"
+              [(ngModel)]="paymentDate"
+            />
+
+          </div>
+
+
+          <!-- PAYMENT METHOD -->
+          <div class="form-group">
+
+            <label>
+              Payment Method <span>*</span>
+            </label>
+
+            <select
+              [(ngModel)]="paymentMethod"
+            >
+              <option value="Cash">Cash</option>
+              <option value="Bank Transfer">
+                Bank Transfer
+              </option>
+              <option value="Card">Card</option>
+              <option value="Mobile Banking">
+                Mobile Banking
+              </option>
+            </select>
+
+          </div>
+
+
+          <!-- AMOUNT -->
+          <div class="form-group">
+
+            <label>
+              Amount <span>*</span>
+            </label>
+
+            <div class="input-with-prefix">
+
+              <span>৳</span>
+
+              <input
+                type="number"
+                min="0"
+                [(ngModel)]="amount"
+                placeholder="0.00"
+              />
+
+            </div>
+
+          </div>
+
+
+          <!-- REFERENCE -->
+          <div class="form-group">
+
+            <label>
+              Payment Reference <span>*</span>
+            </label>
+
+            <input
+              type="text"
+              [(ngModel)]="reference"
+              placeholder="e.g. TRX-2026-001"
+            />
+
+          </div>
+
+
+          <!-- NOTE -->
+          <div class="form-group full">
+
+            <label>
+              Note
+            </label>
+
+            <textarea
+              [(ngModel)]="note"
+              rows="3"
+              placeholder="Add payment note..."
+            ></textarea>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- MODAL FOOTER -->
+      <div class="modal-footer">
+
+        <button
+          class="btn btn-secondary"
+          (click)="closePaymentForm()"
+        >
+          Cancel
+        </button>
+
+        <button
+          class="btn btn-primary"
+          (click)="savePayment()"
+        >
+          <i class="bi bi-check-lg"></i>
+          Record Payment
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

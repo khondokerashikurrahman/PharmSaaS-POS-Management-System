@@ -1,0 +1,282 @@
+<div
+  class="receipt-overlay"
+  *ngIf="visible && receipt"
+  (click)="close()">
+
+  <div
+    class="receipt-modal"
+    (click)="$event.stopPropagation()">
+
+
+    <!-- HEADER -->
+
+    <div class="receipt-header">
+
+      <div>
+
+        <div class="success-icon">
+          <i class="bi bi-check-lg"></i>
+        </div>
+
+        <h2>Sale Completed</h2>
+
+        <p>
+          Invoice generated successfully
+        </p>
+
+      </div>
+
+      <button
+        type="button"
+        class="close-btn"
+        (click)="close()">
+
+        <i class="bi bi-x-lg"></i>
+
+      </button>
+
+    </div>
+
+
+    <!-- RECEIPT -->
+
+    <div class="receipt-content">
+
+      <!-- PHARMACY -->
+
+      <div class="business-info">
+
+        <h1>PharmSaaS</h1>
+
+        <p>Pharmacy Management System</p>
+
+        <span>Sales Invoice / Receipt</span>
+
+      </div>
+
+
+      <!-- INVOICE INFO -->
+
+      <div class="invoice-info">
+
+        <div>
+          <span>Invoice Number</span>
+          <strong>{{ receipt.invoiceNumber }}</strong>
+        </div>
+
+        <div>
+          <span>Date</span>
+          <strong>{{ receipt.date }}</strong>
+        </div>
+
+        <div>
+          <span>Customer</span>
+          <strong>{{ receipt.customerName }}</strong>
+        </div>
+
+        <div>
+          <span>Payment</span>
+          <strong>{{ receipt.paymentMethod }}</strong>
+        </div>
+
+      </div>
+
+
+      <!-- ITEMS -->
+
+      <div class="items-section">
+
+        <div class="items-header">
+
+          <span>Item</span>
+          <span>Qty</span>
+          <span>Price</span>
+          <span>Total</span>
+
+        </div>
+
+
+        <div
+          class="item-row"
+          *ngFor="let item of receipt.items">
+
+          <div class="item-name">
+
+            <strong>
+              {{ item.productName }}
+            </strong>
+
+            <small *ngIf="item.sku">
+              SKU: {{ item.sku }}
+            </small>
+
+            <small *ngIf="item.batchNumber">
+              Batch: {{ item.batchNumber }}
+            </small>
+
+          </div>
+
+          <span>
+            {{ item.quantity }}
+          </span>
+
+          <span>
+            ৳{{ item.unitPrice | number:'1.2-2' }}
+          </span>
+
+          <strong>
+            ৳{{ item.totalPrice | number:'1.2-2' }}
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <!-- SUMMARY -->
+
+      <div class="receipt-summary">
+
+        <div class="summary-row">
+
+          <span>Subtotal</span>
+
+          <strong>
+            ৳{{ receipt.subtotal | number:'1.2-2' }}
+          </strong>
+
+        </div>
+
+
+        <div
+          class="summary-row"
+          *ngIf="receipt.discount > 0">
+
+          <span>Discount</span>
+
+          <strong class="discount">
+
+            - ৳{{ receipt.discount | number:'1.2-2' }}
+
+          </strong>
+
+        </div>
+
+
+        <div class="summary-row">
+
+          <span>Tax</span>
+
+          <strong>
+            ৳{{ receipt.tax | number:'1.2-2' }}
+          </strong>
+
+        </div>
+
+
+        <div class="summary-divider"></div>
+
+
+        <div class="summary-total">
+
+          <span>Total</span>
+
+          <strong>
+            ৳{{ receipt.totalAmount | number:'1.2-2' }}
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <!-- PAYMENT -->
+
+      <div class="payment-summary">
+
+        <div>
+
+          <span>Payment Method</span>
+
+          <strong>
+            {{ receipt.paymentMethod }}
+          </strong>
+
+        </div>
+
+
+        <div>
+
+          <span>Amount Received</span>
+
+          <strong>
+            ৳{{ receipt.amountReceived | number:'1.2-2' }}
+          </strong>
+
+        </div>
+
+
+        <div>
+
+          <span>Change</span>
+
+          <strong class="change">
+
+            ৳{{ receipt.change | number:'1.2-2' }}
+
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <!-- FOOTER -->
+
+      <div class="receipt-footer">
+
+        <p>
+          Thank you for shopping with us.
+        </p>
+
+        <span>
+          Powered by PharmSaaS
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- ACTIONS -->
+
+    <div class="receipt-actions">
+
+      <button
+        type="button"
+        class="secondary-btn"
+        (click)="close()">
+
+        <i class="bi bi-x-circle"></i>
+
+        Close
+
+      </button>
+
+
+      <button
+        type="button"
+        class="primary-btn"
+        (click)="printReceipt()">
+
+        <i class="bi bi-printer"></i>
+
+        Print Receipt
+
+      </button>
+
+    </div>
+
+  </div>
+
+</div>

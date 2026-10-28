@@ -1,0 +1,296 @@
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Router, ActivatedRoute } from '@angular/router';
+
+interface Purchase {
+  invoice: string;
+  date: string;
+  items: number;
+  amount: number;
+  paid: number;
+  due: number;
+  status: 'Paid' | 'Partial';
+}
+
+interface Supplier {
+  id: string;
+  name: string;
+  contactPerson: string;
+  phone: string;
+  email: string;
+  address: string;
+  status: 'Active' | 'Inactive';
+  totalPurchases: number;
+  totalPaid: number;
+  dueAmount: number;
+  totalOrders: number;
+  lastPurchase: string;
+  memberSince: string;
+  purchases: Purchase[];
+}
+
+@Component({
+  selector: 'app-supplier-details',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './supplier-details.component.html',
+  styleUrl: './supplier-details.component.scss'
+})
+export class SupplierDetailsComponent {
+
+  supplierId = '';
+  supplier: Supplier | null = null;
+
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute
+  ) {}
+
+  ngOnInit(): void {
+    this.supplierId =
+      this.route.snapshot.paramMap.get('id') || '';
+
+    this.loadSupplier();
+  }
+
+  loadSupplier(): void {
+
+    const suppliers: Record<string, Supplier> = {
+
+      'SUP-001': {
+        id: 'SUP-001',
+        name: 'Square Pharmaceuticals Ltd.',
+        contactPerson: 'Abdul Karim',
+        phone: '+880 1712-345678',
+        email: 'contact@squarepharma.com',
+        address: 'Mohakhali, Dhaka, Bangladesh',
+        status: 'Active',
+        totalPurchases: 1250000,
+        totalPaid: 1100000,
+        dueAmount: 150000,
+        totalOrders: 42,
+        lastPurchase: '12 Sep 2026',
+        memberSince: '15 Jan 2025',
+        purchases: [
+          {
+            invoice: 'PO-2026-0145',
+            date: '12 Sep 2026',
+            items: 18,
+            amount: 185000,
+            paid: 150000,
+            due: 35000,
+            status: 'Partial'
+          },
+          {
+            invoice: 'PO-2026-0128',
+            date: '28 Aug 2026',
+            items: 24,
+            amount: 245000,
+            paid: 245000,
+            due: 0,
+            status: 'Paid'
+          },
+          {
+            invoice: 'PO-2026-0104',
+            date: '10 Aug 2026',
+            items: 16,
+            amount: 178000,
+            paid: 178000,
+            due: 0,
+            status: 'Paid'
+          },
+          {
+            invoice: 'PO-2026-0089',
+            date: '25 Jul 2026',
+            items: 21,
+            amount: 210000,
+            paid: 175000,
+            due: 35000,
+            status: 'Partial'
+          }
+        ]
+      },
+
+      'SUP-002': {
+        id: 'SUP-002',
+        name: 'Beximco Pharmaceuticals Ltd.',
+        contactPerson: 'Rahim Ahmed',
+        phone: '+880 1812-456789',
+        email: 'info@beximco.com',
+        address: 'Dhanmondi, Dhaka, Bangladesh',
+        status: 'Active',
+        totalPurchases: 985000,
+        totalPaid: 900000,
+        dueAmount: 85000,
+        totalOrders: 31,
+        lastPurchase: '08 Sep 2026',
+        memberSince: '20 Mar 2025',
+        purchases: [
+          {
+            invoice: 'PO-2026-0139',
+            date: '08 Sep 2026',
+            items: 15,
+            amount: 165000,
+            paid: 120000,
+            due: 45000,
+            status: 'Partial'
+          },
+          {
+            invoice: 'PO-2026-0115',
+            date: '20 Aug 2026',
+            items: 19,
+            amount: 220000,
+            paid: 220000,
+            due: 0,
+            status: 'Paid'
+          },
+          {
+            invoice: 'PO-2026-0098',
+            date: '02 Aug 2026',
+            items: 13,
+            amount: 145000,
+            paid: 145000,
+            due: 0,
+            status: 'Paid'
+          }
+        ]
+      },
+
+      'SUP-003': {
+        id: 'SUP-003',
+        name: 'Renata Limited',
+        contactPerson: 'Karim Hasan',
+        phone: '+880 1912-567890',
+        email: 'contact@renata-ltd.com',
+        address: 'Mirpur, Dhaka, Bangladesh',
+        status: 'Active',
+        totalPurchases: 765000,
+        totalPaid: 700000,
+        dueAmount: 65000,
+        totalOrders: 25,
+        lastPurchase: '05 Sep 2026',
+        memberSince: '05 May 2025',
+        purchases: [
+          {
+            invoice: 'PO-2026-0132',
+            date: '05 Sep 2026',
+            items: 12,
+            amount: 135000,
+            paid: 70000,
+            due: 65000,
+            status: 'Partial'
+          },
+          {
+            invoice: 'PO-2026-0102',
+            date: '14 Aug 2026',
+            items: 17,
+            amount: 185000,
+            paid: 185000,
+            due: 0,
+            status: 'Paid'
+          },
+          {
+            invoice: 'PO-2026-0081',
+            date: '22 Jul 2026',
+            items: 10,
+            amount: 120000,
+            paid: 120000,
+            due: 0,
+            status: 'Paid'
+          }
+        ]
+      },
+
+      'SUP-004': {
+        id: 'SUP-004',
+        name: 'ACME Laboratories Ltd.',
+        contactPerson: 'Sakib Khan',
+        phone: '+880 1612-678901',
+        email: 'info@acme.com.bd',
+        address: 'Tongi, Gazipur, Bangladesh',
+        status: 'Active',
+        totalPurchases: 645000,
+        totalPaid: 645000,
+        dueAmount: 0,
+        totalOrders: 19,
+        lastPurchase: '01 Sep 2026',
+        memberSince: '12 Jun 2025',
+        purchases: [
+          {
+            invoice: 'PO-2026-0121',
+            date: '01 Sep 2026',
+            items: 14,
+            amount: 165000,
+            paid: 165000,
+            due: 0,
+            status: 'Paid'
+          },
+          {
+            invoice: 'PO-2026-0094',
+            date: '12 Aug 2026',
+            items: 11,
+            amount: 140000,
+            paid: 140000,
+            due: 0,
+            status: 'Paid'
+          },
+          {
+            invoice: 'PO-2026-0072',
+            date: '18 Jul 2026',
+            items: 9,
+            amount: 115000,
+            paid: 115000,
+            due: 0,
+            status: 'Paid'
+          }
+        ]
+      }
+    };
+
+    const data = suppliers[this.supplierId];
+
+    if (data) {
+      this.supplier = { ...data };
+    } else {
+      alert('Supplier not found.');
+      this.goBack();
+    }
+  }
+
+  goBack(): void {
+    this.router.navigate(['/app/stakeholders/suppliers']);
+  }
+
+  openLedger(): void {
+    if (!this.supplier) return;
+
+    this.router.navigate(
+      ['/app/stakeholders/suppliers/ledger'],
+      {
+        queryParams: {
+          supplierId: this.supplier.id
+        }
+      }
+    );
+  }
+
+  editSupplier(): void {
+    alert('Supplier edit form will be connected here.');
+  }
+
+  printDetails(): void {
+    window.print();
+  }
+
+  getStatusClass(status: string): string {
+    return status === 'Active'
+      ? 'status-active'
+      : 'status-inactive';
+  }
+
+  getPurchaseStatusClass(status: string): string {
+    return status === 'Paid'
+      ? 'purchase-paid'
+      : 'purchase-partial';
+  }
+}

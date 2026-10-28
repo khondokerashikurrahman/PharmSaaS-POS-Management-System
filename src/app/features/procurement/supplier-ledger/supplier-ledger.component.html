@@ -1,0 +1,356 @@
+
+<div class="ledger-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div>
+      <div class="breadcrumb">
+        <span>Procurement</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Supplier Ledger</span>
+      </div>
+
+      <h1>Supplier Ledger</h1>
+      <p>Track supplier purchases, payments and outstanding balances.</p>
+    </div>
+
+    <div class="header-actions">
+
+      <button
+        class="btn btn-outline"
+        (click)="backToProcurement()"
+      >
+        <i class="bi bi-arrow-left"></i>
+        Back
+      </button>
+
+      <button
+        class="btn btn-primary"
+        (click)="exportLedger()"
+      >
+        <i class="bi bi-download"></i>
+        Export
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- SUPPLIER SELECT -->
+  <div class="supplier-card">
+
+    <div class="supplier-select-area">
+
+      <div class="supplier-icon">
+        <i class="bi bi-building"></i>
+      </div>
+
+      <div class="supplier-content">
+
+        <label>Select Supplier</label>
+
+        <select
+          [(ngModel)]="selectedSupplier"
+          (change)="onSupplierChange()"
+          class="supplier-select"
+        >
+          <option
+            *ngFor="let supplier of suppliers"
+            [value]="supplier"
+          >
+            {{ supplier }}
+          </option>
+        </select>
+
+      </div>
+
+    </div>
+
+    <div class="supplier-status">
+      <span class="active-dot"></span>
+      Active Supplier
+    </div>
+
+  </div>
+
+
+  <!-- SUMMARY CARDS -->
+  <div class="summary-grid">
+
+    <div class="summary-card">
+
+      <div class="summary-icon purchase">
+        <i class="bi bi-cart3"></i>
+      </div>
+
+      <div>
+        <span>Total Purchases</span>
+        <h3>৳{{ totalDebit | number:'1.2-2' }}</h3>
+        <small>{{ purchaseCount }} purchase entries</small>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon payment">
+        <i class="bi bi-wallet2"></i>
+      </div>
+
+      <div>
+        <span>Total Payments</span>
+        <h3>৳{{ totalCredit | number:'1.2-2' }}</h3>
+        <small>{{ paymentCount }} payment entries</small>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon balance">
+        <i class="bi bi-clipboard-data"></i>
+      </div>
+
+      <div>
+        <span>Outstanding Balance</span>
+        <h3>৳{{ currentBalance | number:'1.2-2' }}</h3>
+        <small>Amount payable</small>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon return">
+        <i class="bi bi-arrow-return-left"></i>
+      </div>
+
+      <div>
+        <span>Returns</span>
+        <h3>{{ returnCount }}</h3>
+        <small>Return transactions</small>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- LEDGER CARD -->
+  <div class="ledger-card">
+
+    <!-- LEDGER HEADER -->
+    <div class="ledger-header">
+
+      <div>
+        <h2>Transaction Ledger</h2>
+        <p>
+          Showing transaction history for
+          <strong>{{ selectedSupplier }}</strong>
+        </p>
+      </div>
+
+      <button
+        class="btn btn-success"
+        (click)="makePayment()"
+      >
+        <i class="bi bi-plus-lg"></i>
+        Make Payment
+      </button>
+
+    </div>
+
+
+    <!-- FILTER -->
+    <div class="filter-bar">
+
+      <div class="search-box">
+
+        <i class="bi bi-search"></i>
+
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          placeholder="Search reference, description or type..."
+        />
+
+      </div>
+
+      <div class="ledger-count">
+        {{ filteredEntries.length }} transactions
+      </div>
+
+    </div>
+
+
+    <!-- TABLE -->
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Reference</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th class="text-right">Debit</th>
+            <th class="text-right">Credit</th>
+            <th class="text-right">Balance</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <tr
+            *ngFor="
+              let entry of filteredEntries;
+              trackBy: trackByReference
+            "
+          >
+
+            <td class="date-cell">
+              {{ entry.date }}
+            </td>
+
+            <td>
+              <span class="reference">
+                {{ entry.reference }}
+              </span>
+            </td>
+
+            <td>
+              <span
+                class="type-badge"
+                [ngClass]="getTypeClass(entry.type)"
+              >
+                <i
+                  [class]="
+                    entry.type === 'Purchase'
+                      ? 'bi bi-cart3'
+                      : entry.type === 'Payment'
+                      ? 'bi bi-wallet2'
+                      : 'bi bi-arrow-return-left'
+                  "
+                ></i>
+
+                {{ entry.type }}
+              </span>
+            </td>
+
+            <td class="description">
+              {{ entry.description }}
+            </td>
+
+            <td class="amount debit">
+              <ng-container *ngIf="entry.debit > 0">
+                ৳{{ entry.debit | number:'1.2-2' }}
+              </ng-container>
+
+              <span *ngIf="entry.debit === 0">—</span>
+            </td>
+
+            <td class="amount credit">
+              <ng-container *ngIf="entry.credit > 0">
+                ৳{{ entry.credit | number:'1.2-2' }}
+              </ng-container>
+
+              <span *ngIf="entry.credit === 0">—</span>
+            </td>
+
+            <td class="amount balance">
+              ৳{{ entry.balance | number:'1.2-2' }}
+            </td>
+
+          </tr>
+
+
+          <!-- EMPTY STATE -->
+          <tr *ngIf="filteredEntries.length === 0">
+
+            <td
+              colspan="7"
+              class="empty-cell"
+            >
+
+              <div class="empty-state">
+
+                <div class="empty-icon">
+                  <i class="bi bi-receipt"></i>
+                </div>
+
+                <h3>No transactions found</h3>
+
+                <p>
+                  Try changing your search or select another supplier.
+                </p>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+
+        <!-- TABLE FOOTER -->
+        <tfoot *ngIf="filteredEntries.length > 0">
+
+          <tr>
+
+            <td
+              colspan="4"
+              class="footer-label"
+            >
+              Total
+            </td>
+
+            <td class="amount debit">
+              ৳{{ totalDebit | number:'1.2-2' }}
+            </td>
+
+            <td class="amount credit">
+              ৳{{ totalCredit | number:'1.2-2' }}
+            </td>
+
+            <td class="amount balance">
+              ৳{{ currentBalance | number:'1.2-2' }}
+            </td>
+
+          </tr>
+
+        </tfoot>
+
+      </table>
+
+    </div>
+
+  </div>
+
+
+  <!-- INFO CARD -->
+  <div class="info-card">
+
+    <div class="info-icon">
+      <i class="bi bi-info-circle"></i>
+    </div>
+
+    <div>
+      <h3>Supplier Account Information</h3>
+
+      <p>
+        Debit represents purchases or amounts payable to the supplier.
+        Credit represents payments and purchase returns. The outstanding
+        balance shows the current amount payable.
+      </p>
+    </div>
+
+  </div>
+
+</div>

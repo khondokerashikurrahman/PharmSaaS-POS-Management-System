@@ -1,0 +1,137 @@
+<div class="returned-stock-page">
+  <div class="page-header">
+    <div>
+      <div class="breadcrumb">
+        <span>Inventory</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Returned Stock</span>
+      </div>
+      <h1>Returned Stock / Quarantine</h1>
+      <p>Inspect returned products before releasing them back into sellable inventory.</p>
+    </div>
+
+    <button type="button" class="action-button secondary" (click)="refresh()" [disabled]="loading">
+      <i class="bi bi-arrow-clockwise"></i>
+      Refresh
+    </button>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <span>Awaiting Inspection</span>
+      <strong>{{ quarantinedCount | number }}</strong>
+    </div>
+    <div class="summary-card">
+      <span>Units Quarantined</span>
+      <strong>{{ quarantinedQuantity | number }}</strong>
+    </div>
+    <div class="summary-card">
+      <span>Released to Stock</span>
+      <strong>{{ restockedCount | number }}</strong>
+    </div>
+  </div>
+
+  <section class="records-card">
+    <div class="filter-row">
+      <div>
+        <h2>Returned Items</h2>
+        <p>Only backend-confirmed dispositions are shown.</p>
+      </div>
+
+      <div class="filters">
+        <input
+          type="search"
+          [(ngModel)]="searchTerm"
+          placeholder="Search product, batch, invoice..."
+          aria-label="Search returned stock">
+
+        <select [(ngModel)]="selectedDisposition" aria-label="Filter stock disposition">
+          <option value="QUARANTINED">Awaiting Inspection</option>
+          <option value="RESTOCKED">Restocked</option>
+          <option value="ALL">All Items</option>
+        </select>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="message-state">
+      <i class="bi bi-arrow-repeat"></i>
+      Loading returned items...
+    </div>
+
+    <div *ngIf="!loading && loadError" class="message-state error">
+      <i class="bi bi-exclamation-circle"></i>
+      {{ loadError }}
+      <button type="button" class="action-button secondary" (click)="refresh()">Retry</button>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!loading && !loadError && filteredRows.length">
+      <table>
+        <thead>
+          <tr>
+            <th>RETURN / INVOICE</th>
+            <th>PRODUCT / BATCH</th>
+            <th>REASON</th>
+            <th>QUANTITY</th>
+            <th>REFUND AMOUNT</th>
+            <th>DISPOSITION</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of filteredRows">
+            <td>
+              <strong>{{ item.refundNumber }}</strong>
+              <small>Invoice: {{ item.invoiceNumber }}</small>
+              <small>{{ formatDate(item.createdAt) }}</small>
+            </td>
+            <td>
+              <strong>{{ item.productName }}</strong>
+              <small>Batch: {{ item.batchNumber }}</small>
+              <small>{{ item.customerName }}</small>
+            </td>
+            <td>{{ item.reason }}</td>
+            <td>{{ item.quantity | number }}</td>
+            <td>৳{{ item.refundAmount | number:'1.2-2' }}</td>
+            <td>
+              <span class="status-pill"
+                [class.quarantined]="item.stockDisposition.toUpperCase() === 'QUARANTINED'"
+                [class.restocked]="item.stockDisposition.toUpperCase() === 'RESTOCKED'">
+                {{ item.stockDisposition }}
+              </span>
+            </td>
+            <td>
+              <button
+                *ngIf="item.stockDisposition.toUpperCase() === 'QUARANTINED'"
+                type="button"
+                class="action-button primary"
+                [disabled]="processingItemId === item.returnItemId"
+                (click)="restock(item)">
+                <i class="bi bi-shield-check"></i>
+                {{ processingItemId === item.returnItemId ? 'Processing...' : 'Inspect & Release' }}
+              </button>
+              <span *ngIf="item.stockDisposition.toUpperCase() === 'RESTOCKED'" class="done-label">
+                <i class="bi bi-check-circle"></i>
+                Released
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="!loading && !loadError && !filteredRows.length" class="empty-state">
+      <div class="empty-icon"><i class="bi bi-shield-check"></i></div>
+      <h3>No returned items found</h3>
+      <p>Returned items waiting for inspection will appear here.</p>
+    </div>
+  </section>
+
+  <div class="information-note">
+    <i class="bi bi-info-circle"></i>
+    <span>
+      Returned stock stays quarantined until an authorised user releases it.
+      The backend validates the batch, product status, and expiry date before adding
+      the quantity to sellable stock. This action does not issue a card or mobile payment refund.
+    </span>
+  </div>
+</div>

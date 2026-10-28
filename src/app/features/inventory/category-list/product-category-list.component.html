@@ -1,0 +1,125 @@
+<div class="category-page">
+  <header class="page-header">
+    <div>
+      <div class="breadcrumb">
+        <span>Inventory</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Categories</span>
+      </div>
+      <h1>Product Categories</h1>
+      <p>Manage categories separately for each Product Type.</p>
+    </div>
+  </header>
+
+  <section class="category-layout">
+    <div class="category-card editor-card">
+      <div class="card-heading">
+        <div class="icon-box"><i class="bi bi-tags"></i></div>
+        <div>
+          <h2>{{ editingId === null ? 'Add Category' : 'Edit Category' }}</h2>
+          <p>Create reusable categories for your product catalogue.</p>
+        </div>
+      </div>
+
+      <form (ngSubmit)="saveCategory()" #categoryForm="ngForm">
+        <div class="form-group">
+          <label for="productType">Product Type</label>
+          <select id="productType" name="productType"
+                  [(ngModel)]="selectedProductType"
+                  (ngModelChange)="onProductTypeChange()" required>
+            <option *ngFor="let type of productTypes" [value]="type">
+              {{ getProductTypeLabel(type) }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="categoryName">Category Name</label>
+          <input id="categoryName" name="categoryName"
+                 type="text" [(ngModel)]="categoryName"
+                 maxlength="100" required
+                 placeholder="e.g. Pain Relief" />
+        </div>
+
+        <div class="form-actions">
+          <button class="primary-btn" type="submit" [disabled]="saving">
+            <i class="bi bi-check2-circle"></i>
+            {{ saving ? 'Saving...' : (editingId === null ? 'Add Category' : 'Update Category') }}
+          </button>
+          <button *ngIf="editingId !== null"
+                  class="secondary-btn" type="button" (click)="cancelEdit()">
+            Cancel
+          </button>
+        </div>
+      </form>
+
+      <p class="hint">
+        <i class="bi bi-info-circle"></i>
+        Category names must be unique within the same Product Type.
+      </p>
+    </div>
+
+    <div class="category-card list-card">
+      <div class="list-header">
+        <div>
+          <h2>{{ getProductTypeLabel(selectedProductType) }} Categories</h2>
+          <p>{{ categories.length }} active categories</p>
+        </div>
+        <button type="button" class="refresh-btn"
+                (click)="loadCategories()" [disabled]="loading">
+          <i class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
+      </div>
+
+      <div *ngIf="successMessage" class="success-message">
+        <i class="bi bi-check-circle"></i> {{ successMessage }}
+      </div>
+      <div *ngIf="errorMessage" class="error-message">
+        <i class="bi bi-exclamation-circle"></i> {{ errorMessage }}
+      </div>
+
+      <div *ngIf="loading" class="empty-state">
+        <i class="bi bi-arrow-repeat"></i>
+        <p>Loading categories...</p>
+      </div>
+
+      <div class="category-table-wrap" *ngIf="!loading">
+        <table>
+          <thead>
+            <tr>
+              <th>Category Name</th>
+              <th>Product Type</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let category of categories; trackBy: trackById">
+              <td><strong>{{ category.name }}</strong></td>
+              <td>
+                <span class="type-badge">
+                  {{ getProductTypeLabel(category.productType) }}
+                </span>
+              </td>
+              <td>
+                <div class="row-actions">
+                  <button type="button" title="Edit category"
+                          (click)="editCategory(category)">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button type="button" class="archive-btn"
+                          title="Archive category"
+                          (click)="archiveCategory(category)">
+                    <i class="bi bi-archive"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="!errorMessage && categories.length === 0">
+              <td colspan="3" class="no-data">No active categories found.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>

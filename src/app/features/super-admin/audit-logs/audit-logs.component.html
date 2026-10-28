@@ -1,0 +1,370 @@
+<div class="audit-page">
+
+  <!-- PAGE HEADER -->
+
+  <div class="page-header">
+
+    <div>
+
+      <div class="breadcrumb">
+
+        <span>Super Admin</span>
+
+        <i class="bi bi-chevron-right"></i>
+
+        <span>Audit Logs</span>
+
+      </div>
+
+      <h1>Audit Logs</h1>
+
+      <p>
+        Monitor and track important activities performed across the platform.
+      </p>
+
+    </div>
+
+    <button class="export-btn">
+      <i class="bi bi-download"></i>
+      Export Logs
+    </button>
+
+  </div>
+
+
+  <!-- SUMMARY CARDS -->
+
+  <div class="summary-grid">
+
+    <div class="summary-card">
+
+      <div class="summary-icon blue">
+        <i class="bi bi-journal-text"></i>
+      </div>
+
+      <div>
+        <span>Total Activities</span>
+        <h2>{{ totalLogs }}</h2>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon green">
+        <i class="bi bi-check-circle"></i>
+      </div>
+
+      <div>
+        <span>Successful</span>
+        <h2>{{ successLogs }}</h2>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon orange">
+        <i class="bi bi-exclamation-triangle"></i>
+      </div>
+
+      <div>
+        <span>Warnings</span>
+        <h2>{{ warningLogs }}</h2>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon red">
+        <i class="bi bi-x-circle"></i>
+      </div>
+
+      <div>
+        <span>Failed</span>
+        <h2>{{ failedLogs }}</h2>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- TOOLBAR -->
+
+  <div class="toolbar">
+
+    <div class="search-box">
+
+      <i class="bi bi-search"></i>
+
+      <input
+        type="text"
+        placeholder="Search logs, users, actions..."
+        [(ngModel)]="searchText"
+        (input)="searchLogs()"
+      />
+
+    </div>
+
+
+    <div class="filter-buttons">
+
+      <button
+        [class.active]="selectedFilter === 'All'"
+        (click)="filterLogs('All')">
+        All
+      </button>
+
+      <button
+        [class.active]="selectedFilter === 'Success'"
+        (click)="filterLogs('Success')">
+        Success
+      </button>
+
+      <button
+        [class.active]="selectedFilter === 'Warning'"
+        (click)="filterLogs('Warning')">
+        Warning
+      </button>
+
+      <button
+        [class.active]="selectedFilter === 'Failed'"
+        (click)="filterLogs('Failed')">
+        Failed
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- AUDIT TABLE -->
+
+  <div class="table-card">
+
+    <div class="table-header">
+
+      <div>
+
+        <h3>Activity History</h3>
+
+        <p>
+          {{ filteredLogs.length }} log entries found
+        </p>
+
+      </div>
+
+      <div class="security-label">
+
+        <i class="bi bi-shield-check"></i>
+
+        System Activity Monitoring
+
+      </div>
+
+    </div>
+
+
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>Log</th>
+            <th>User</th>
+            <th>Activity</th>
+            <th>Module</th>
+            <th>IP Address</th>
+            <th>Date & Time</th>
+            <th>Status</th>
+            <th>Action</th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <tr *ngFor="let log of filteredLogs">
+
+            <!-- LOG -->
+
+            <td>
+
+              <div class="log-id">
+
+                <div class="log-icon">
+                  <i class="bi bi-file-earmark-text"></i>
+                </div>
+
+                <div>
+
+                  <strong>
+                    {{ log.id }}
+                  </strong>
+
+                  <span>
+                    {{ log.userId }}
+                  </span>
+
+                </div>
+
+              </div>
+
+            </td>
+
+
+            <!-- USER -->
+
+            <td>
+
+              <div class="user-info">
+
+                <div class="avatar">
+                  {{ log.userName.charAt(0) }}
+                </div>
+
+                <div>
+
+                  <strong>
+                    {{ log.userName }}
+                  </strong>
+
+                </div>
+
+              </div>
+
+            </td>
+
+
+            <!-- ACTIVITY -->
+
+            <td>
+
+              <div class="activity-info">
+
+                <strong>
+                  {{ log.action }}
+                </strong>
+
+                <span>
+                  {{ log.description }}
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <!-- MODULE -->
+
+            <td>
+
+              <span class="module-badge">
+
+                <i class="bi bi-grid"></i>
+
+                {{ log.module }}
+
+              </span>
+
+            </td>
+
+
+            <!-- IP -->
+
+            <td>
+
+              <span class="ip-address">
+                {{ log.ipAddress }}
+              </span>
+
+            </td>
+
+
+            <!-- DATE -->
+
+            <td>
+
+              <span class="date-time">
+                {{ log.date }}
+              </span>
+
+            </td>
+
+
+            <!-- STATUS -->
+
+            <td>
+
+              <span
+                class="status-badge"
+                [class.success]="log.status === 'Success'"
+                [class.warning]="log.status === 'Warning'"
+                [class.failed]="log.status === 'Failed'"
+              >
+
+                <span class="status-dot"></span>
+
+                {{ log.status }}
+
+              </span>
+
+            </td>
+
+
+            <!-- ACTION -->
+
+            <td>
+
+              <button
+                class="view-btn"
+                title="View Details"
+                (click)="viewLog(log)"
+              >
+
+                <i class="bi bi-eye"></i>
+
+              </button>
+
+            </td>
+
+          </tr>
+
+
+          <!-- EMPTY -->
+
+          <tr *ngIf="filteredLogs.length === 0">
+
+            <td colspan="8" class="empty-state">
+
+              <i class="bi bi-journal-x"></i>
+
+              <h3>No audit logs found</h3>
+
+              <p>
+                Try changing your search or filter.
+              </p>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>

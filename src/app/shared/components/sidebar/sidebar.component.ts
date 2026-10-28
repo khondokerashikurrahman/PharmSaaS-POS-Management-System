@@ -1,0 +1,184 @@
+
+import {
+  Component,
+  EventEmitter,
+  OnInit,
+  Output
+} from '@angular/core';
+
+import {
+  RouterLink,
+  RouterLinkActive
+} from '@angular/router';
+
+import { CommonModule } from '@angular/common';
+
+import {
+  AuthService,
+  User
+} from '../../../core/services/auth.service';
+
+import { PermissionService } from '../../../core/services/permission.service';
+
+@Component({
+  selector: 'app-sidebar',
+  standalone: true,
+  imports: [
+    CommonModule,
+    RouterLink,
+    RouterLinkActive
+  ],
+  templateUrl: './sidebar.component.html',
+  styleUrl: './sidebar.component.scss'
+})
+export class SidebarComponent implements OnInit {
+
+  currentUser: User | null = null;
+
+  isCollapsed = false;
+  isReportsOpen = false;
+  isSettingsOpen = false;
+
+  @Output()
+  sidebarToggle = new EventEmitter<boolean>();
+
+  constructor(
+    private readonly authService: AuthService,
+    private readonly permissionService: PermissionService
+  ) {}
+
+  ngOnInit(): void {
+    this.currentUser = this.authService.getCurrentUser();
+  }
+
+  canAccessPath(path: string): boolean {
+    return this.permissionService.canAccessUrl(path);
+  }
+
+  isSuperAdmin(): boolean {
+    return this.currentUser?.role === 'SUPER_ADMIN';
+  }
+
+  isTenantAdmin(): boolean {
+    return (
+      this.currentUser?.role === 'TENANT_ADMIN' ||
+      this.currentUser?.membershipRole === 'TENANT_OWNER' ||
+      this.currentUser?.membershipRole === 'PHARMACY_ADMIN'
+    );
+  }
+
+  isManager(): boolean {
+    return (
+      this.currentUser?.membershipRole === 'MANAGER' ||
+      this.currentUser?.role === 'MANAGER'
+    );
+  }
+
+  isStaff(): boolean {
+    return (
+      this.currentUser?.membershipRole === 'STAFF' ||
+      this.currentUser?.role === 'STAFF'
+    );
+  }
+
+  isStoreKeeper(): boolean {
+    return (
+      this.currentUser?.membershipRole === 'STORE_KEEPER' ||
+      this.currentUser?.role === 'STORE_KEEPER'
+    );
+  }
+
+  isTenantUser(): boolean {
+    const role = this.currentUser?.role;
+    const membershipRole = this.currentUser?.membershipRole;
+
+    return (
+      role === 'TENANT_ADMIN' ||
+      role === 'MANAGER' ||
+      role === 'STAFF' ||
+      role === 'STORE_KEEPER' ||
+      membershipRole === 'TENANT_OWNER' ||
+      membershipRole === 'PHARMACY_ADMIN' ||
+      membershipRole === 'MANAGER' ||
+      membershipRole === 'STORE_KEEPER' ||
+      membershipRole === 'PHARMACIST' ||
+      membershipRole === 'STAFF' ||
+      membershipRole === 'CASHIER'
+    );
+  }
+
+  canManageUsers(): boolean {
+    return (
+      this.canAccessPath('/app/settings/users') &&
+      (this.isTenantAdmin() || this.isSuperAdmin())
+    );
+  }
+
+  toggleSidebar(): void {
+    this.isCollapsed = !this.isCollapsed;
+
+    if (this.isCollapsed) {
+      this.isReportsOpen = false;
+    }
+
+    this.sidebarToggle.emit(this.isCollapsed);
+  }
+
+  toggleReports(): void {
+    if (this.isCollapsed) {
+      this.isCollapsed = false;
+      this.sidebarToggle.emit(false);
+    }
+
+    this.isReportsOpen = !this.isReportsOpen;
+  }
+
+  getUserInitial(): string {
+    const name =
+      this.currentUser?.name ||
+      this.currentUser?.name ||
+      '';
+
+    return name.charAt(0).toUpperCase() || 'U';
+  }
+
+  getRoleLabel(): string {
+    const role =
+      this.currentUser?.membershipRole ??
+      this.currentUser?.role;
+
+    switch (role) {
+      case 'SUPER_ADMIN':
+        return 'Super Administrator';
+
+      case 'TENANT_OWNER':
+        return 'Tenant Owner';
+
+      case 'PHARMACY_ADMIN':
+      case 'TENANT_ADMIN':
+        return 'Pharmacy Administrator';
+
+      case 'MANAGER':
+        return 'Manager';
+
+      case 'STORE_KEEPER':
+        return 'Store Keeper';
+
+      case 'PHARMACIST':
+        return 'Pharmacist';
+
+      case 'CASHIER':
+        return 'Cashier';
+
+      case 'STAFF':
+        return 'Staff';
+
+      default:
+        return 'User';
+    }
+  }
+
+  logout(): void {
+    this.authService.logout();
+  }
+}

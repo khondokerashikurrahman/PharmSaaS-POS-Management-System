@@ -1,0 +1,138 @@
+<div class="product-search">
+
+  <!-- Search Header -->
+  <div class="search-header">
+
+    <div class="search-title">
+      <div class="title-icon">
+        <i class="bi bi-search"></i>
+      </div>
+
+      <div>
+        <h3>Product Search</h3>
+        <p>Search medicine by name, SKU or barcode</p>
+      </div>
+    </div>
+
+    <span class="product-count">
+      {{ filteredProducts.length }} Products
+    </span>
+
+  </div>
+
+  <!-- Search Box -->
+  <div class="search-box">
+
+    <i class="bi bi-search"></i>
+
+    <input
+      type="text"
+      [(ngModel)]="searchTerm"
+      (keydown.enter)="onSearchEnter()"
+      placeholder="Search product, SKU, barcode..."
+      autocomplete="off"
+    />
+
+    <button
+      *ngIf="searchTerm"
+      type="button"
+      class="clear-btn"
+      (click)="clearSearch()"
+      aria-label="Clear search"
+    >
+      <i class="bi bi-x"></i>
+    </button>
+
+    <span class="shortcut">
+      Search
+    </span>
+
+  </div>
+
+  <p *ngIf="loading">
+    Inventory লোড হচ্ছে...
+  </p>
+
+  <p *ngIf="errorMessage" role="alert">
+    {{ errorMessage }}
+  </p>
+
+  <!-- Product List -->
+  <div class="product-list">
+
+    <div
+      class="product-card"
+      *ngFor="let product of filteredProducts"
+      (click)="selectProduct(product)"
+    >
+
+      <div class="product-icon">
+        <i class="bi bi-capsule"></i>
+      </div>
+
+      <div class="product-info">
+
+        <h4>{{ product.name }}</h4>
+
+        <div class="product-meta">
+          <span>
+            <strong>SKU:</strong> {{ product.sku }}
+          </span>
+
+          <span>
+            <strong>Category:</strong> {{ product.category }}
+          </span>
+        </div>
+
+        <div class="product-meta">
+          <span>
+            <strong>Unit:</strong> {{ product.unit }}
+          </span>
+
+          <span *ngIf="product.barcode">
+            <strong>Barcode:</strong> {{ product.barcode }}
+          </span>
+        </div>
+
+      </div>
+
+      <div class="product-price">
+        <span>Price</span>
+        <strong>৳{{ product.sellingPrice | number:'1.2-2' }}</strong>
+      </div>
+
+      <button
+        type="button"
+        class="add-btn"
+        (click)="$event.stopPropagation(); selectProduct(product)"
+      >
+        <i class="bi bi-plus-lg"></i>
+        Add
+      </button>
+
+    </div>
+
+    <!-- Empty State -->
+    <div
+      class="empty-state"
+      *ngIf="filteredProducts.length === 0"
+    >
+      <i class="bi bi-search"></i>
+
+      <h4>No products found</h4>
+
+      <p>
+        Try searching with another product name, SKU or barcode.
+      </p>
+
+      <button
+        type="button"
+        (click)="clearSearch()"
+      >
+        Clear Search
+      </button>
+    </div>
+
+  </div>
+
+</div>

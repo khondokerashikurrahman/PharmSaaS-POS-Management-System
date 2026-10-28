@@ -1,0 +1,220 @@
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+
+interface Supplier {
+  id: string;
+  name: string;
+  contactPerson: string;
+  phone: string;
+  email: string;
+  address: string;
+  totalPurchases: number;
+  totalPaid: number;
+  dueAmount: number;
+  status: 'Active' | 'Inactive';
+  lastPurchase: string;
+}
+
+@Component({
+  selector: 'app-supplier-list',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  templateUrl: './supplier-list.component.html',
+  styleUrl: './supplier-list.component.scss'
+})
+export class SupplierListComponent {
+
+  searchTerm = '';
+  statusFilter = 'All';
+
+  suppliers: Supplier[] = [
+    {
+      id: 'SUP-001',
+      name: 'Square Pharmaceuticals Ltd.',
+      contactPerson: 'Abdul Karim',
+      phone: '+880 1712-345678',
+      email: 'contact@squarepharma.com',
+      address: 'Mohakhali, Dhaka',
+      totalPurchases: 485000,
+      totalPaid: 450000,
+      dueAmount: 35000,
+      status: 'Active',
+      lastPurchase: '2026-09-12'
+    },
+    {
+      id: 'SUP-002',
+      name: 'Beximco Pharmaceuticals Ltd.',
+      contactPerson: 'Rahim Ahmed',
+      phone: '+880 1812-456789',
+      email: 'info@beximco.com',
+      address: 'Dhanmondi, Dhaka',
+      totalPurchases: 392500,
+      totalPaid: 365000,
+      dueAmount: 27500,
+      status: 'Active',
+      lastPurchase: '2026-09-10'
+    },
+    {
+      id: 'SUP-003',
+      name: 'Renata Limited',
+      contactPerson: 'Karim Hasan',
+      phone: '+880 1912-567890',
+      email: 'contact@renata-ltd.com',
+      address: 'Mirpur, Dhaka',
+      totalPurchases: 275800,
+      totalPaid: 275800,
+      dueAmount: 0,
+      status: 'Active',
+      lastPurchase: '2026-09-08'
+    },
+    {
+      id: 'SUP-004',
+      name: 'ACME Laboratories Ltd.',
+      contactPerson: 'Sakib Khan',
+      phone: '+880 1612-678901',
+      email: 'info@acme.com.bd',
+      address: 'Tongi, Gazipur',
+      totalPurchases: 198500,
+      totalPaid: 180000,
+      dueAmount: 18500,
+      status: 'Active',
+      lastPurchase: '2026-09-06'
+    },
+    {
+      id: 'SUP-005',
+      name: 'Incepta Pharmaceuticals Ltd.',
+      contactPerson: 'Nayeem Islam',
+      phone: '+880 1512-789012',
+      email: 'info@inceptapharma.com',
+      address: 'Savar, Dhaka',
+      totalPurchases: 346200,
+      totalPaid: 320000,
+      dueAmount: 26200,
+      status: 'Active',
+      lastPurchase: '2026-09-04'
+    },
+    {
+      id: 'SUP-006',
+      name: 'Aristopharma Ltd.',
+      contactPerson: 'Tanvir Hasan',
+      phone: '+880 1812-890123',
+      email: 'info@aristopharma.com',
+      address: 'Tejgaon, Dhaka',
+      totalPurchases: 154750,
+      totalPaid: 154750,
+      dueAmount: 0,
+      status: 'Inactive',
+      lastPurchase: '2026-08-25'
+    },
+    {
+      id: 'SUP-007',
+      name: 'Healthcare Pharmaceuticals Ltd.',
+      contactPerson: 'Fahim Rahman',
+      phone: '+880 1711-223344',
+      email: 'info@healthcarepharma.com',
+      address: 'Banani, Dhaka',
+      totalPurchases: 225400,
+      totalPaid: 210000,
+      dueAmount: 15400,
+      status: 'Active',
+      lastPurchase: '2026-08-30'
+    },
+    {
+      id: 'SUP-008',
+      name: 'Drug International Ltd.',
+      contactPerson: 'Mahmud Hasan',
+      phone: '+880 1911-334455',
+      email: 'contact@drug-international.com',
+      address: 'Dhaka, Bangladesh',
+      totalPurchases: 187600,
+      totalPaid: 170000,
+      dueAmount: 17600,
+      status: 'Active',
+      lastPurchase: '2026-08-28'
+    }
+  ];
+
+  constructor(private router: Router) {}
+
+  get filteredSuppliers(): Supplier[] {
+    const search = this.searchTerm.trim().toLowerCase();
+
+    return this.suppliers.filter(supplier => {
+
+      const matchesSearch =
+        !search ||
+        supplier.id.toLowerCase().includes(search) ||
+        supplier.name.toLowerCase().includes(search) ||
+        supplier.contactPerson.toLowerCase().includes(search) ||
+        supplier.phone.toLowerCase().includes(search) ||
+        supplier.email.toLowerCase().includes(search);
+
+      const matchesStatus =
+        this.statusFilter === 'All' ||
+        supplier.status === this.statusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+  }
+
+  get totalSuppliers(): number {
+    return this.suppliers.length;
+  }
+
+  get activeSuppliers(): number {
+    return this.suppliers.filter(
+      supplier => supplier.status === 'Active'
+    ).length;
+  }
+
+  get inactiveSuppliers(): number {
+    return this.suppliers.filter(
+      supplier => supplier.status === 'Inactive'
+    ).length;
+  }
+
+  get totalDue(): number {
+    return this.suppliers.reduce(
+      (total, supplier) => total + supplier.dueAmount,
+      0
+    );
+  }
+
+  get totalPurchases(): number {
+    return this.suppliers.reduce(
+      (total, supplier) => total + supplier.totalPurchases,
+      0
+    );
+  }
+
+  getInitial(name: string): string {
+    return name.charAt(0).toUpperCase();
+  }
+
+  getStatusClass(status: string): string {
+    return status === 'Active'
+      ? 'status-active'
+      : 'status-inactive';
+  }
+
+  viewSupplier(id: string): void {
+    alert(`Supplier details for ${id} will open here.`);
+  }
+
+  openLedger(id: string): void {
+    this.router.navigate(
+      ['/app/stakeholders/suppliers/ledger'],
+      {
+        queryParams: {
+          supplierId: id
+        }
+      }
+    );
+  }
+
+  addSupplier(): void {
+    alert('Add Supplier form will open here.');
+  }
+}

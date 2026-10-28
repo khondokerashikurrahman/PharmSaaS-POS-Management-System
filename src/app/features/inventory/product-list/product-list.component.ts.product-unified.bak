@@ -1,0 +1,225 @@
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+
+interface Product {
+  id: string;
+  name: string;
+  genericName: string;
+  category: string;
+  company: string;
+  stock: number;
+  purchasePrice: number;
+  salePrice: number;
+  reorderLevel: number;
+  status: 'In Stock' | 'Low Stock' | 'Out of Stock';
+}
+
+@Component({
+  selector: 'app-product-list',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  templateUrl: './product-list.component.html',
+  styleUrl: './product-list.component.scss'
+})
+export class ProductListComponent {
+
+  searchTerm = '';
+  selectedCategory = 'All';
+  selectedStatus = 'All';
+
+  products: Product[] = [
+    {
+      id: 'PRD-001',
+      name: 'Napa 500mg',
+      genericName: 'Paracetamol',
+      category: 'Tablet',
+      company: 'Square Pharmaceuticals Ltd.',
+      stock: 250,
+      purchasePrice: 2.10,
+      salePrice: 2.50,
+      reorderLevel: 50,
+      status: 'In Stock'
+    },
+    {
+      id: 'PRD-002',
+      name: 'Seclo 20mg',
+      genericName: 'Omeprazole',
+      category: 'Capsule',
+      company: 'Square Pharmaceuticals Ltd.',
+      stock: 180,
+      purchasePrice: 3.70,
+      salePrice: 4.20,
+      reorderLevel: 40,
+      status: 'In Stock'
+    },
+    {
+      id: 'PRD-003',
+      name: 'Fexo 120mg',
+      genericName: 'Fexofenadine',
+      category: 'Tablet',
+      company: 'Beximco Pharmaceuticals Ltd.',
+      stock: 35,
+      purchasePrice: 3.20,
+      salePrice: 3.80,
+      reorderLevel: 50,
+      status: 'Low Stock'
+    },
+    {
+      id: 'PRD-004',
+      name: 'Napa Extra',
+      genericName: 'Paracetamol + Caffeine',
+      category: 'Tablet',
+      company: 'Beximco Pharmaceuticals Ltd.',
+      stock: 200,
+      purchasePrice: 3.00,
+      salePrice: 3.50,
+      reorderLevel: 50,
+      status: 'In Stock'
+    },
+    {
+      id: 'PRD-005',
+      name: 'DPH 10mg',
+      genericName: 'Domperidone',
+      category: 'Tablet',
+      company: 'Renata Limited',
+      stock: 15,
+      purchasePrice: 2.40,
+      salePrice: 2.90,
+      reorderLevel: 30,
+      status: 'Low Stock'
+    },
+    {
+      id: 'PRD-006',
+      name: 'Sergel 20mg',
+      genericName: 'Esomeprazole',
+      category: 'Capsule',
+      company: 'Incepta Pharmaceuticals Ltd.',
+      stock: 0,
+      purchasePrice: 4.60,
+      salePrice: 5.20,
+      reorderLevel: 30,
+      status: 'Out of Stock'
+    },
+    {
+      id: 'PRD-007',
+      name: 'Ace 500mg',
+      genericName: 'Paracetamol',
+      category: 'Tablet',
+      company: 'Square Pharmaceuticals Ltd.',
+      stock: 320,
+      purchasePrice: 1.80,
+      salePrice: 2.20,
+      reorderLevel: 60,
+      status: 'In Stock'
+    },
+    {
+      id: 'PRD-008',
+      name: 'Histacin 10mg',
+      genericName: 'Cetirizine',
+      category: 'Tablet',
+      company: 'ACME Laboratories Ltd.',
+      stock: 85,
+      purchasePrice: 1.90,
+      salePrice: 2.50,
+      reorderLevel: 30,
+      status: 'In Stock'
+    }
+  ];
+
+  constructor(private router: Router) {}
+
+  get categories(): string[] {
+    return [
+      'All',
+      ...Array.from(
+        new Set(this.products.map(product => product.category))
+      )
+    ];
+  }
+
+  get filteredProducts(): Product[] {
+    const search = this.searchTerm.trim().toLowerCase();
+
+    return this.products.filter(product => {
+
+      const matchesSearch =
+        !search ||
+        product.id.toLowerCase().includes(search) ||
+        product.name.toLowerCase().includes(search) ||
+        product.genericName.toLowerCase().includes(search) ||
+        product.company.toLowerCase().includes(search);
+
+      const matchesCategory =
+        this.selectedCategory === 'All' ||
+        product.category === this.selectedCategory;
+
+      const matchesStatus =
+        this.selectedStatus === 'All' ||
+        product.status === this.selectedStatus;
+
+      return matchesSearch &&
+             matchesCategory &&
+             matchesStatus;
+    });
+  }
+
+  get totalProducts(): number {
+    return this.products.length;
+  }
+
+  get totalStock(): number {
+    return this.products.reduce(
+      (total, product) => total + product.stock,
+      0
+    );
+  }
+
+  get lowStockProducts(): number {
+    return this.products.filter(
+      product => product.status === 'Low Stock'
+    ).length;
+  }
+
+  get outOfStockProducts(): number {
+    return this.products.filter(
+      product => product.status === 'Out of Stock'
+    ).length;
+  }
+
+  getStatusClass(status: Product['status']): string {
+    switch (status) {
+      case 'In Stock':
+        return 'in-stock';
+
+      case 'Low Stock':
+        return 'low-stock';
+
+      case 'Out of Stock':
+        return 'out-of-stock';
+
+      default:
+        return '';
+    }
+  }
+
+  viewProduct(product: Product): void {
+    console.log('View product:', product);
+  }
+
+  editProduct(product: Product): void {
+    console.log('Edit product:', product);
+  }
+
+  addProduct(): void {
+    alert('Add Product form will be connected here.');
+  }
+
+  trackByProductId(
+    index: number,
+    product: Product
+  ): string {
+    return product.id;
+  }
+}

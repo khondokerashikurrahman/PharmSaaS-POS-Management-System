@@ -1,0 +1,429 @@
+<div class="tenant-approval-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div class="header-left">
+
+      <button
+        class="back-btn"
+        type="button"
+        (click)="goBack()">
+
+        <i class="bi bi-arrow-left"></i>
+
+      </button>
+
+      <div>
+
+        <div class="breadcrumb">
+
+          <span>Super Admin</span>
+
+          <i class="bi bi-chevron-right"></i>
+
+          <span>Tenant Management</span>
+
+          <i class="bi bi-chevron-right"></i>
+
+          <strong>Tenant Approval</strong>
+
+        </div>
+
+        <h2>Tenant Approval</h2>
+
+        <p>
+          Review and approve new pharmacy tenant registrations
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- SUMMARY CARDS -->
+
+  <div class="summary-grid">
+
+    <div class="summary-card">
+
+      <div class="summary-icon pending-icon">
+        <i class="bi bi-hourglass-split"></i>
+      </div>
+
+      <div>
+
+        <span>Pending Approval</span>
+
+        <h3>{{ pendingCount }}</h3>
+
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon approved-icon">
+        <i class="bi bi-check-circle"></i>
+      </div>
+
+      <div>
+
+        <span>Approved</span>
+
+        <h3>{{ approvedCount }}</h3>
+
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon rejected-icon">
+        <i class="bi bi-x-circle"></i>
+      </div>
+
+      <div>
+
+        <span>Rejected</span>
+
+        <h3>{{ rejectedCount }}</h3>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- MAIN CARD -->
+
+  <div class="content-card">
+
+    <!-- CARD HEADER -->
+
+    <div class="card-header">
+
+      <div>
+
+        <h3>Pending Tenant Requests</h3>
+
+        <p>
+          Review pharmacy registrations waiting for approval
+        </p>
+
+      </div>
+
+      <span class="pending-count">
+        {{ pendingCount }} Pending
+      </span>
+
+    </div>
+
+
+    <!-- SEARCH -->
+
+    <div class="toolbar">
+
+      <div class="search-box">
+
+        <i class="bi bi-search"></i>
+
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          placeholder="Search tenant, owner, email or ID...">
+
+      </div>
+
+    </div>
+
+
+    <!-- TABLE -->
+
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>Tenant</th>
+
+            <th>Owner</th>
+
+            <th>Contact</th>
+
+            <th>Plan</th>
+
+            <th>Registration</th>
+
+            <th>Status</th>
+
+            <th>Actions</th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <tr *ngFor="let tenant of filteredTenants">
+
+            <!-- TENANT -->
+
+            <td>
+
+              <div class="tenant-cell">
+
+                <div class="tenant-icon">
+                  <i class="bi bi-hospital"></i>
+                </div>
+
+                <div>
+
+                  <strong>{{ tenant.name }}</strong>
+
+                  <span>{{ tenant.id }}</span>
+
+                </div>
+
+              </div>
+
+            </td>
+
+
+            <!-- OWNER -->
+
+            <td>
+
+              <span class="owner-name">
+                {{ tenant.owner }}
+              </span>
+
+            </td>
+
+
+            <!-- CONTACT -->
+
+            <td>
+
+              <div class="contact-info">
+
+                <span>
+                  <i class="bi bi-envelope"></i>
+                  {{ tenant.email }}
+                </span>
+
+                <span>
+                  <i class="bi bi-telephone"></i>
+                  {{ tenant.phone }}
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <!-- PLAN -->
+
+            <td>
+
+              <span
+                class="plan-badge"
+                [class.basic]="tenant.plan === 'Basic'"
+                [class.standard]="tenant.plan === 'Standard'"
+                [class.premium]="tenant.plan === 'Premium'">
+
+                {{ tenant.plan }}
+
+              </span>
+
+            </td>
+
+
+            <!-- REGISTRATION -->
+
+            <td>
+
+              <span class="registration-date">
+                {{ tenant.registrationDate }}
+              </span>
+
+            </td>
+
+
+            <!-- STATUS -->
+
+            <td>
+
+              <span class="status-badge">
+
+                <span class="status-dot"></span>
+
+                {{ tenant.status }}
+
+              </span>
+
+            </td>
+
+
+            <!-- ACTIONS -->
+
+            <td>
+
+              <div class="action-buttons">
+
+                <!-- VIEW -->
+
+                <button
+                  type="button"
+                  class="action-btn view-btn"
+                  title="View Details"
+                  (click)="viewTenant(tenant)">
+
+                  <i class="bi bi-eye"></i>
+
+                </button>
+
+
+                <!-- APPROVE -->
+
+                <button
+                  type="button"
+                  class="action-btn approve-btn"
+                  title="Approve"
+                  (click)="approveTenant(tenant)">
+
+                  <i class="bi bi-check-lg"></i>
+
+                </button>
+
+
+                <!-- REJECT -->
+
+                <button
+                  type="button"
+                  class="action-btn reject-btn"
+                  title="Reject"
+                  (click)="openRejectModal(tenant)">
+
+                  <i class="bi bi-x-lg"></i>
+
+                </button>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+
+          <!-- EMPTY -->
+
+          <tr *ngIf="filteredTenants.length === 0">
+
+            <td
+              colspan="7"
+              class="empty-state">
+
+              <div>
+
+                <i class="bi bi-check2-circle"></i>
+
+                <h3>No Pending Tenants</h3>
+
+                <p>
+                  There are currently no tenant registrations
+                  waiting for approval.
+                </p>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+
+  <!-- REJECT MODAL -->
+
+  <div
+    class="modal-overlay"
+    *ngIf="showRejectModal"
+    (click)="closeRejectModal()">
+
+    <div
+      class="reject-modal"
+      (click)="$event.stopPropagation()">
+
+      <div class="modal-icon">
+        <i class="bi bi-exclamation-triangle"></i>
+      </div>
+
+      <h3>Reject Tenant</h3>
+
+      <p>
+
+        Are you sure you want to reject
+
+        <strong>
+          {{ selectedTenant?.name }}
+        </strong>?
+
+      </p>
+
+
+      <label>
+        Rejection Reason
+      </label>
+
+      <textarea
+        [(ngModel)]="rejectionReason"
+        rows="4"
+        placeholder="Enter reason for rejecting this tenant...">
+      </textarea>
+
+
+      <div class="modal-actions">
+
+        <button
+          type="button"
+          class="cancel-btn"
+          (click)="closeRejectModal()">
+
+          Cancel
+
+        </button>
+
+        <button
+          type="button"
+          class="confirm-reject-btn"
+          (click)="rejectTenant()">
+
+          <i class="bi bi-x-circle"></i>
+
+          Reject Tenant
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

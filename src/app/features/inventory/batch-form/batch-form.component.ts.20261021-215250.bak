@@ -1,0 +1,239 @@
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router, ActivatedRoute } from '@angular/router';
+
+interface BatchForm {
+  medicine: string;
+  batchNumber: string;
+  manufacturingDate: string;
+  expiryDate: string;
+  purchasePrice: number;
+  sellingPrice: number;
+  quantity: number;
+  supplier: string;
+  location: string;
+  status: 'Active' | 'Expired' | 'Near Expiry';
+}
+
+@Component({
+  selector: 'app-batch-form',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  templateUrl: './batch-form.component.html',
+  styleUrl: './batch-form.component.scss'
+})
+export class BatchFormComponent {
+
+  isEditMode = false;
+  batchId: string | null = null;
+  submitted = false;
+
+  medicines = [
+    'Napa 500mg',
+    'Napa Extra',
+    'Seclo 20mg',
+    'Fexo 120mg',
+    'Sergel 20mg',
+    'DPH 10mg'
+  ];
+
+  suppliers = [
+    'Square Pharmaceuticals',
+    'Beximco Pharmaceuticals',
+    'Renata Limited',
+    'Incepta Pharmaceuticals',
+    'ACI Limited'
+  ];
+
+  locations = [
+    'Main Store',
+    'Counter 01',
+    'Counter 02',
+    'Warehouse'
+  ];
+
+  batch: BatchForm = {
+    medicine: '',
+    batchNumber: '',
+    manufacturingDate: '',
+    expiryDate: '',
+    purchasePrice: 0,
+    sellingPrice: 0,
+    quantity: 0,
+    supplier: '',
+    location: 'Main Store',
+    status: 'Active'
+  };
+
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute
+  ) {}
+
+  ngOnInit(): void {
+    this.batchId = this.route.snapshot.paramMap.get('id');
+
+    if (this.batchId) {
+      this.isEditMode = true;
+      this.loadBatch();
+    }
+  }
+
+  loadBatch(): void {
+    // Demo edit data
+    this.batch = {
+      medicine: 'Napa 500mg',
+      batchNumber: 'BTH-NAPA-2401',
+      manufacturingDate: '2025-01-15',
+      expiryDate: '2027-01-14',
+      purchasePrice: 2.00,
+      sellingPrice: 2.50,
+      quantity: 500,
+      supplier: 'Square Pharmaceuticals',
+      location: 'Main Store',
+      status: 'Active'
+    };
+  }
+
+  calculateMargin(): number {
+    if (
+      this.batch.purchasePrice <= 0 ||
+      this.batch.sellingPrice <= 0
+    ) {
+      return 0;
+    }
+
+    return (
+      ((this.batch.sellingPrice - this.batch.purchasePrice) /
+        this.batch.purchasePrice) *
+      100
+    );
+  }
+
+  calculateStockValue(): number {
+    return this.batch.quantity * this.batch.purchasePrice;
+  }
+
+  calculateSellingValue(): number {
+    return this.batch.quantity * this.batch.sellingPrice;
+  }
+
+  updateStatus(): void {
+    if (!this.batch.expiryDate) {
+      this.batch.status = 'Active';
+      return;
+    }
+
+    const today = new Date();
+    const expiry = new Date(this.batch.expiryDate);
+
+    if (expiry < today) {
+      this.batch.status = 'Expired';
+      return;
+    }
+
+    const difference =
+      expiry.getTime() - today.getTime();
+
+    const days =
+      difference / (1000 * 60 * 60 * 24);
+
+    if (days <= 90) {
+      this.batch.status = 'Near Expiry';
+    } else {
+      this.batch.status = 'Active';
+    }
+  }
+
+  saveBatch(): void {
+    this.submitted = true;
+
+    this.updateStatus();
+
+    if (
+      !this.batch.medicine ||
+      !this.batch.batchNumber ||
+      !this.batch.manufacturingDate ||
+      !this.batch.expiryDate ||
+      !this.batch.supplier ||
+      this.batch.quantity <= 0 ||
+      this.batch.purchasePrice <= 0 ||
+      this.batch.sellingPrice <= 0
+    ) {
+      return;
+    }
+
+    if (
+      new Date(this.batch.expiryDate) <=
+      new Date(this.batch.manufacturingDate)
+    ) {
+      alert(
+        'Expiry date must be later than manufacturing date.'
+      );
+      return;
+    }
+
+    if (
+      this.batch.sellingPrice <
+      this.batch.purchasePrice
+    ) {
+      const confirmed = confirm(
+        'Selling price is lower than purchase price. Do you want to continue?'
+      );
+
+      if (!confirmed) {
+        return;
+      }
+    }
+
+    if (this.isEditMode) {
+      alert(
+        `Batch ${this.batch.batchNumber} updated successfully.`
+      );
+    } else {
+      alert(
+        `Batch ${this.batch.batchNumber} created successfully.`
+      );
+    }
+
+    this.router.navigate(['/app/inventory']);
+  }
+
+  resetForm(): void {
+    this.submitted = false;
+
+    this.batch = {
+      medicine: '',
+      batchNumber: '',
+      manufacturingDate: '',
+      expiryDate: '',
+      purchasePrice: 0,
+      sellingPrice: 0,
+      quantity: 0,
+      supplier: '',
+      location: 'Main Store',
+      status: 'Active'
+    };
+  }
+
+  cancel(): void {
+    this.router.navigate(['/app/inventory']);
+  }
+
+  getStatusClass(): string {
+    switch (this.batch.status) {
+      case 'Active':
+        return 'status-active';
+
+      case 'Expired':
+        return 'status-expired';
+
+      case 'Near Expiry':
+        return 'status-warning';
+
+      default:
+        return '';
+    }
+  }
+}

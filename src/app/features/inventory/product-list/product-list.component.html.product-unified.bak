@@ -1,0 +1,297 @@
+<div class="product-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div>
+      <div class="breadcrumb">
+        <span>Inventory</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Product List</span>
+      </div>
+
+      <h1>Product List</h1>
+      <p>Manage medicines, stock levels, pricing and product status.</p>
+    </div>
+
+    <button class="add-btn" (click)="addProduct()">
+      <i class="bi bi-plus-lg"></i>
+      Add Product
+    </button>
+
+  </div>
+
+  <!-- STAT CARDS -->
+  <div class="stats-grid">
+
+    <div class="stat-card">
+      <div class="stat-icon blue">
+        <i class="bi bi-capsule"></i>
+      </div>
+
+      <div>
+        <span>Total Products</span>
+        <strong>{{ totalProducts }}</strong>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon green">
+        <i class="bi bi-box-seam"></i>
+      </div>
+
+      <div>
+        <span>Total Stock</span>
+        <strong>{{ totalStock | number }}</strong>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon orange">
+        <i class="bi bi-exclamation-triangle"></i>
+      </div>
+
+      <div>
+        <span>Low Stock</span>
+        <strong>{{ lowStockProducts }}</strong>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon red">
+        <i class="bi bi-x-circle"></i>
+      </div>
+
+      <div>
+        <span>Out of Stock</span>
+        <strong>{{ outOfStockProducts }}</strong>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CONTENT CARD -->
+  <div class="content-card">
+
+    <!-- FILTER BAR -->
+    <div class="filter-bar">
+
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          placeholder="Search product, generic name or company..."
+        />
+      </div>
+
+      <div class="filters">
+
+        <div class="filter-group">
+          <label>Category</label>
+
+          <select [(ngModel)]="selectedCategory">
+            <option
+              *ngFor="let category of categories"
+              [value]="category">
+              {{ category }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Status</label>
+
+          <select [(ngModel)]="selectedStatus">
+            <option value="All">All Status</option>
+            <option value="In Stock">In Stock</option>
+            <option value="Low Stock">Low Stock</option>
+            <option value="Out of Stock">Out of Stock</option>
+          </select>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Generic Name</th>
+            <th>Category</th>
+            <th>Company</th>
+            <th>Stock</th>
+            <th>Purchase Price</th>
+            <th>Sale Price</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <tr
+            *ngFor="
+              let product of filteredProducts;
+              trackBy: trackByProductId
+            ">
+
+            <!-- PRODUCT -->
+            <td>
+              <div class="product-cell">
+
+                <div class="product-icon">
+                  <i class="bi bi-capsule"></i>
+                </div>
+
+                <div>
+                  <strong>{{ product.name }}</strong>
+                  <small>{{ product.id }}</small>
+                </div>
+
+              </div>
+            </td>
+
+            <!-- GENERIC -->
+            <td>
+              {{ product.genericName }}
+            </td>
+
+            <!-- CATEGORY -->
+            <td>
+              <span class="category-badge">
+                {{ product.category }}
+              </span>
+            </td>
+
+            <!-- COMPANY -->
+            <td>
+              <span class="company-name">
+                {{ product.company }}
+              </span>
+            </td>
+
+            <!-- STOCK -->
+            <td>
+              <div class="stock-cell">
+
+                <strong
+                  [class.stock-warning]="product.stock <= product.reorderLevel"
+                  [class.stock-zero]="product.stock === 0">
+
+                  {{ product.stock }}
+
+                </strong>
+
+                <small>
+                  Reorder: {{ product.reorderLevel }}
+                </small>
+
+              </div>
+            </td>
+
+            <!-- PURCHASE PRICE -->
+            <td>
+              ৳{{ product.purchasePrice | number:'1.2-2' }}
+            </td>
+
+            <!-- SALE PRICE -->
+            <td>
+              <strong class="sale-price">
+                ৳{{ product.salePrice | number:'1.2-2' }}
+              </strong>
+            </td>
+
+            <!-- STATUS -->
+            <td>
+
+              <span
+                class="status-badge"
+                [ngClass]="getStatusClass(product.status)">
+
+                <span class="status-dot"></span>
+
+                {{ product.status }}
+
+              </span>
+
+            </td>
+
+            <!-- ACTIONS -->
+            <td>
+
+              <div class="actions">
+
+                <button
+                  class="icon-btn view"
+                  title="View Product"
+                  (click)="viewProduct(product)">
+
+                  <i class="bi bi-eye"></i>
+
+                </button>
+
+                <button
+                  class="icon-btn edit"
+                  title="Edit Product"
+                  (click)="editProduct(product)">
+
+                  <i class="bi bi-pencil"></i>
+
+                </button>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+          <!-- EMPTY -->
+          <tr *ngIf="filteredProducts.length === 0">
+
+            <td colspan="9">
+
+              <div class="empty-state">
+
+                <div class="empty-icon">
+                  <i class="bi bi-capsule"></i>
+                </div>
+
+                <h3>No products found</h3>
+
+                <p>
+                  Try changing your search or filter.
+                </p>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="table-footer">
+
+      Showing
+      <strong>{{ filteredProducts.length }}</strong>
+      of
+      <strong>{{ products.length }}</strong>
+      products
+
+    </div>
+
+  </div>
+
+</div>

@@ -1,0 +1,329 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { StorageService } from '../../../core/services/storage.service';
+
+interface Medicine {
+  id: number;
+  name: string;
+  generic: string;
+  company: string;
+  category: string;
+  strength: string;
+  dosageForm?: string;
+  unitPrice: number;
+  stock: number;
+  reorderLevel: number;
+  status: 'In Stock' | 'Low Stock' | 'Out of Stock';
+  description?: string;
+}
+
+@Component({
+  selector: 'app-medicine-list',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule
+  ],
+  templateUrl: './medicine-list.component.html',
+  styleUrl: './medicine-list.component.scss'
+})
+export class MedicineListComponent implements OnInit {
+
+  constructor(
+    private router: Router,
+    private storageService: StorageService
+  ) {}
+
+  searchTerm = '';
+
+  selectedCategory = 'All';
+
+  medicines: Medicine[] = [
+
+    {
+      id: 1,
+      name: 'Napa 500mg',
+      generic: 'Paracetamol',
+      company: 'Square Pharmaceuticals',
+      category: 'Pain Relief',
+      strength: '500mg',
+      unitPrice: 2.50,
+      stock: 120,
+      reorderLevel: 30,
+      status: 'In Stock'
+    },
+
+    {
+      id: 2,
+      name: 'Seclo 20mg',
+      generic: 'Omeprazole',
+      company: 'Square Pharmaceuticals',
+      category: 'Gastric',
+      strength: '20mg',
+      unitPrice: 7.00,
+      stock: 85,
+      reorderLevel: 20,
+      status: 'In Stock'
+    },
+
+    {
+      id: 3,
+      name: 'Monas 10mg',
+      generic: 'Montelukast',
+      company: 'ACME Laboratories',
+      category: 'Allergy',
+      strength: '10mg',
+      unitPrice: 12.00,
+      stock: 18,
+      reorderLevel: 25,
+      status: 'Low Stock'
+    },
+
+    {
+      id: 4,
+      name: 'DP 500mg',
+      generic: 'Metformin',
+      company: 'Renata Limited',
+      category: 'Diabetes',
+      strength: '500mg',
+      unitPrice: 3.00,
+      stock: 92,
+      reorderLevel: 25,
+      status: 'In Stock'
+    },
+
+    {
+      id: 5,
+      name: 'Napa Extend',
+      generic: 'Paracetamol',
+      company: 'Square Pharmaceuticals',
+      category: 'Pain Relief',
+      strength: '665mg',
+      unitPrice: 3.50,
+      stock: 12,
+      reorderLevel: 20,
+      status: 'Low Stock'
+    },
+
+    {
+      id: 6,
+      name: 'DP-Ten 10mg',
+      generic: 'Dapagliflozin',
+      company: 'Square Pharmaceuticals',
+      category: 'Diabetes',
+      strength: '10mg',
+      unitPrice: 18.00,
+      stock: 0,
+      reorderLevel: 15,
+      status: 'Out of Stock'
+    },
+
+    {
+      id: 7,
+      name: 'Esotid 20mg',
+      generic: 'Esomeprazole',
+      company: 'Beximco Pharmaceuticals',
+      category: 'Gastric',
+      strength: '20mg',
+      unitPrice: 6.00,
+      stock: 64,
+      reorderLevel: 20,
+      status: 'In Stock'
+    },
+
+    {
+      id: 8,
+      name: 'Fexo 120mg',
+      generic: 'Fexofenadine',
+      company: 'Square Pharmaceuticals',
+      category: 'Allergy',
+      strength: '120mg',
+      unitPrice: 4.50,
+      stock: 8,
+      reorderLevel: 15,
+      status: 'Low Stock'
+    }
+
+  ];
+
+  ngOnInit(): void {
+    this.loadMedicines();
+  }
+
+  loadMedicines(): void {
+
+    const savedMedicines =
+      this.storageService.getMedicines<Medicine>();
+
+    // প্রথমবার হলে demo medicines localStorage-এ save হবে
+    if (savedMedicines.length === 0) {
+
+      this.storageService.saveMedicines(this.medicines);
+
+      return;
+    }
+
+    // localStorage থেকে medicines load
+    this.medicines = savedMedicines;
+
+    // পুরোনো data হলে status আবার calculate
+    this.medicines = this.medicines.map(medicine => ({
+      ...medicine,
+      status: this.getMedicineStatus(
+        medicine.stock,
+        medicine.reorderLevel
+      )
+    }));
+
+    this.storageService.saveMedicines(this.medicines);
+  }
+
+  getMedicineStatus(
+    stock: number,
+    reorderLevel: number
+  ): Medicine['status'] {
+
+    if (stock <= 0) {
+      return 'Out of Stock';
+    }
+
+    if (stock <= reorderLevel) {
+      return 'Low Stock';
+    }
+
+    return 'In Stock';
+  }
+
+  get categories(): string[] {
+
+    return [
+      'All',
+      'Pain Relief',
+      'Gastric',
+      'Diabetes',
+      'Allergy',
+      'Antibiotic',
+      'Vitamin & Supplement',
+      'Cardiovascular',
+      'Other'
+    ];
+
+  }
+
+  get filteredMedicines(): Medicine[] {
+
+    const term =
+      this.searchTerm
+        .toLowerCase()
+        .trim();
+
+    return this.medicines.filter(medicine => {
+
+      const matchesSearch =
+        !term ||
+        medicine.name.toLowerCase().includes(term) ||
+        medicine.generic.toLowerCase().includes(term) ||
+        medicine.company.toLowerCase().includes(term);
+
+      const matchesCategory =
+        this.selectedCategory === 'All' ||
+        medicine.category === this.selectedCategory;
+
+      return matchesSearch && matchesCategory;
+
+    });
+
+  }
+
+  get totalMedicines(): number {
+
+    return this.medicines.length;
+
+  }
+
+  get totalStock(): number {
+
+    return this.medicines.reduce(
+      (total, medicine) =>
+        total + medicine.stock,
+      0
+    );
+
+  }
+
+  get lowStockCount(): number {
+
+    return this.medicines.filter(
+      medicine =>
+        medicine.status === 'Low Stock'
+    ).length;
+
+  }
+
+  get outOfStockCount(): number {
+
+    return this.medicines.filter(
+      medicine =>
+        medicine.status === 'Out of Stock'
+    ).length;
+
+  }
+
+  selectCategory(category: string): void {
+
+    this.selectedCategory = category;
+
+  }
+
+  addMedicine(): void {
+
+    this.router.navigate([
+      '/app/inventory/medicines/new'
+    ]);
+
+  }
+
+  viewMedicine(medicine: Medicine): void {
+
+    this.router.navigate([
+      '/app/inventory/medicines',
+      medicine.id
+    ]);
+
+  }
+
+  editMedicine(medicine: Medicine): void {
+
+    this.router.navigate([
+      '/app/inventory/medicines',
+      medicine.id,
+      'edit'
+    ]);
+
+  }
+
+  getStatusClass(
+    status: Medicine['status']
+  ): string {
+
+    switch (status) {
+
+      case 'In Stock':
+        return 'in-stock';
+
+      case 'Low Stock':
+        return 'low-stock';
+
+      case 'Out of Stock':
+        return 'out-of-stock';
+
+      default:
+        return '';
+
+    }
+
+  }
+
+}

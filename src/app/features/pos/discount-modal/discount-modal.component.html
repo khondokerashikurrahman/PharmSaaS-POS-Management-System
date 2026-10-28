@@ -1,0 +1,250 @@
+<div
+  class="discount-overlay"
+  *ngIf="visible"
+  (click)="close()"
+>
+
+  <div
+    class="discount-modal"
+    (click)="$event.stopPropagation()"
+  >
+
+    <!-- HEADER -->
+
+    <div class="discount-header">
+
+      <div class="discount-title">
+
+        <div class="title-icon">
+
+          <i class="bi bi-tag"></i>
+
+        </div>
+
+        <div>
+
+          <h2>Apply Discount</h2>
+
+          <p>
+            Add a discount to this sale.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="close-btn"
+        (click)="close()"
+      >
+
+        <i class="bi bi-x-lg"></i>
+
+      </button>
+
+    </div>
+
+
+    <!-- BODY -->
+
+    <div class="discount-body">
+
+
+      <!-- SUBTOTAL -->
+
+      <div class="subtotal-box">
+
+        <span>Current Subtotal</span>
+
+        <strong>
+          ৳{{ subtotal | number:'1.2-2' }}
+        </strong>
+
+      </div>
+
+
+      <!-- DISCOUNT TYPE -->
+
+      <div class="field-title">
+
+        Discount Type
+
+      </div>
+
+
+      <div class="discount-types">
+
+        <button
+          type="button"
+          [class.active]="discountType === 'percentage'"
+          (click)="selectDiscountType('percentage')"
+        >
+
+          <i class="bi bi-percent"></i>
+
+          <span>Percentage</span>
+
+        </button>
+
+
+        <button
+          type="button"
+          [class.active]="discountType === 'amount'"
+          (click)="selectDiscountType('amount')"
+        >
+
+          <i class="bi bi-currency-exchange"></i>
+
+          <span>Fixed Amount</span>
+
+        </button>
+
+      </div>
+
+
+      <!-- DISCOUNT VALUE -->
+
+      <div class="discount-input-section">
+
+        <label>
+
+          Discount Value
+
+        </label>
+
+
+        <div class="discount-input">
+
+          <span>
+
+            {{ discountType === 'percentage' ? '%' : '৳' }}
+
+          </span>
+
+
+          <input
+            type="number"
+            min="0"
+            [max]="discountType === 'percentage'
+              ? 100
+              : subtotal"
+            step="0.01"
+            [(ngModel)]="discountValue"
+            placeholder="Enter discount"
+          />
+
+        </div>
+
+
+        <small>
+
+          <ng-container
+            *ngIf="discountType === 'percentage'; else amountHint"
+          >
+
+            Maximum discount: 100%
+
+          </ng-container>
+
+
+          <ng-template #amountHint>
+
+            Maximum discount:
+            ৳{{ subtotal | number:'1.2-2' }}
+
+          </ng-template>
+
+        </small>
+
+      </div>
+
+
+      <!-- PREVIEW -->
+
+      <div
+        class="discount-preview"
+        *ngIf="discountValue > 0"
+      >
+
+        <div>
+
+          <span>Discount</span>
+
+          <strong>
+            {{
+              discountType === 'percentage'
+                ? (subtotal * discountValue / 100 | number:'1.2-2')
+                : (discountValue | number:'1.2-2')
+            }}
+          </strong>
+
+        </div>
+
+
+        <div class="preview-total">
+
+          <span>New Subtotal</span>
+
+          <strong>
+
+            ৳{{
+              (
+                subtotal -
+                (
+                  discountType === 'percentage'
+                    ? subtotal * discountValue / 100
+                    : discountValue
+                )
+              ) | number:'1.2-2'
+            }}
+
+          </strong>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- FOOTER -->
+
+    <div class="discount-footer">
+
+      <button
+        type="button"
+        class="cancel-btn"
+        (click)="close()"
+      >
+
+        <i class="bi bi-x-circle"></i>
+
+        Cancel
+
+      </button>
+
+
+      <button
+        type="button"
+        class="apply-btn"
+        [disabled]="
+          discountValue < 0 ||
+          (discountType === 'percentage' && discountValue > 100) ||
+          (discountType === 'amount' && discountValue > subtotal)
+        "
+        (click)="applyDiscount()"
+      >
+
+        <i class="bi bi-check2"></i>
+
+        Apply Discount
+
+      </button>
+
+    </div>
+
+  </div>
+
+</div>

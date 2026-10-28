@@ -1,0 +1,234 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { forkJoin } from 'rxjs';
+import {
+  InventoryBatch,
+  InventoryBatchApiService
+} from '../../../core/services/inventory-batch-api.service';
+import {
+  TenantInventoryApiService,
+  TenantInventoryItem
+} from '../../../core/services/tenant-inventory-api.service';
+
+type BatchStatus = 'Good' | 'Expiring Soon' | 'Expired' | 'Out of Stock';
+
+interface Batch {
+  id: number;
+  medicineId: number;
+  medicineName: string;
+  generic: string;
+  batchNumber: string;
+  expiryDate: string;
+  quantity: number;
+  purchasePrice: number;
+  sellingPrice: number;
+  supplier: string;
+  status: BatchStatus;
+}
+
+@Component({
+  selector: 'app-batch-expiry-grid',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  templateUrl: './batch-expiry-grid.component.html',
+  styleUrl: './batch-expiry-grid.component.scss'
+})
+export class BatchExpiryGridComponent implements OnInit {
+  constructor(
+    private router: Router,
+    private batchApi: InventoryBatchApiService,
+    private inventoryApi: TenantInventoryApiService
+  ) {}
+
+  searchTerm = '';
+  selectedStatus = 'All';
+  loading = false;
+  errorMessage = '';
+  batches: Batch[] = [];
+
+  ngOnInit(): void {
+    this.loadBatches();
+  }
+
+  loadBatches(): void {
+    const tenantId = Number(localStorage.getItem('tenantId'));
+
+    if (!Number.isInteger(tenantId) || tenantId <= 0) {
+      this.batches = [];
+      this.errorMessage = 'Tenant ID পাওয়া যায়নি। আবার login করে চেষ্টা করুন।';
+      return;
+    }
+
+    this.loading = true;
+    this.errorMessage = '';
+
+    forkJoin({
+      batches: this.batchApi.list(tenantId),
+      medicines: this.inventoryApi.list(tenantId)
+    }).subscribe({
+      next: ({ batches, medicines }) => {
+        const medicineMap = new Map<number, TenantInventoryItem>(
+          medicines.map(medicine => [medicine.id, medicine])
+        );
+
+        this.batches = batches.map(batch =>
+          this.mapBatch(batch, medicineMap.get(batch.inventoryItemId))
+        );
+
+        this.loading = false;
+      },
+      error: error => {
+        this.batches = [];
+        this.loading = false;
+
+        if (error?.status === 401) {
+          this.errorMessage =
+            'Authentication ব্যর্থ হয়েছে। Login session/token যাচাই করুন।';
+        } else if (error?.status === 403) {
+          this.errorMessage =
+            'এই inventory দেখার অনুমতি নেই। Tenant status ও membership যাচাই করুন।';
+        } else {
+          this.errorMessage =
+            error?.error?.message ||
+            'Backend থেকে batch data load করা যায়নি। Backend/API connection যাচাই করুন।';
+        }
+      }
+    });
+  }
+
+  private mapBatch(
+    batch: InventoryBatch,
+    medicine?: TenantInventoryItem
+  ): Batch {
+    return {
+      id: batch.id,
+      medicineId: batch.inventoryItemId,
+      medicineName: batch.medicineName || medicine?.name || 'Unknown medicine',
+      generic: medicine?.genericName || '—',
+      batchNumber: batch.batchNumber,
+      expiryDate: batch.expiryDate,
+      quantity: batch.quantity,
+      purchasePrice: Number(batch.purchasePrice) || 0,
+      sellingPrice: Number(medicine?.sellingPrice) || 0,
+      supplier: '—',
+      status: this.calculateStatus(batch.expiryDate, batch.quantity)
+    };
+  }
+
+  private calculateStatus(expiryDate: string, quantity: number): BatchStatus {
+    const days = this.getDaysUntilExpiry(expiryDate);
+
+    if (days < 0) {
+      return 'Expired';
+    }
+
+    if (quantity <= 0) {
+      return 'Out of Stock';
+    }
+
+    if (days <= 90) {
+      return 'Expiring Soon';
+    }
+
+    return 'Good';
+  }
+
+  get filteredBatches(): Batch[] {
+    const term = this.searchTerm.toLowerCase().trim();
+
+    return this.batches.filter(batch => {
+      const matchesSearch =
+        !term ||
+        batch.medicineName.toLowerCase().includes(term) ||
+        batch.generic.toLowerCase().includes(term) ||
+        batch.batchNumber.toLowerCase().includes(term) ||
+        batch.supplier.toLowerCase().includes(term);
+
+      const matchesStatus =
+        this.selectedStatus === 'All' ||
+        batch.status === this.selectedStatus;
+
+      return matchesSearch && matchesStatus;
+    });
+  }
+
+  get totalBatches(): number {
+    return this.batches.length;
+  }
+
+  get totalQuantity(): number {
+    return this.batches.reduce((total, batch) => total + batch.quantity, 0);
+  }
+
+  get expiringSoonCount(): number {
+    return this.batches.filter(batch => batch.status === 'Expiring Soon').length;
+  }
+
+  get expiredCount(): number {
+    return this.batches.filter(batch => batch.status === 'Expired').length;
+  }
+
+  selectStatus(status: string): void {
+    this.selectedStatus = status;
+  }
+
+  getStatusClass(status: BatchStatus): string {
+    switch (status) {
+      case 'Good':
+        return 'good';
+      case 'Expiring Soon':
+        return 'expiring';
+      case 'Expired':
+        return 'expired';
+      case 'Out of Stock':
+        return 'out-of-stock';
+      default:
+        return '';
+    }
+  }
+
+  formatDate(date: string): string {
+    if (!date) {
+      return '—';
+    }
+
+    const parsed = new Date(`${date}T00:00:00`);
+
+    if (Number.isNaN(parsed.getTime())) {
+      return '—';
+    }
+
+    return parsed.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
+  }
+
+  getDaysUntilExpiry(expiryDate: string): number {
+    if (!expiryDate) {
+      return 0;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const expiry = new Date(`${expiryDate}T00:00:00`);
+
+    if (Number.isNaN(expiry.getTime())) {
+      return 0;
+    }
+
+    return Math.ceil((expiry.getTime() - today.getTime()) / 86400000);
+  }
+
+  viewMedicine(batch: Batch): void {
+    this.router.navigate(['/app/inventory/medicines', batch.medicineId]);
+  }
+
+  goBack(): void {
+    this.router.navigate(['/app/inventory/medicines']);
+  }
+}

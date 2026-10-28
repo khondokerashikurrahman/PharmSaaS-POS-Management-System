@@ -1,0 +1,262 @@
+.product-search {
+  background: #ffffff;
+  border: 1px solid #e8edf2;
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.search-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 18px;
+}
+
+.search-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #eef5ff;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.search-title h3 {
+  margin: 0 0 3px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #172033;
+}
+
+.search-title p {
+  margin: 0;
+  color: #7b8494;
+  font-size: 12px;
+}
+
+.product-count {
+  background: #f3f6fa;
+  color: #536174;
+  padding: 7px 11px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.search-box {
+  height: 48px;
+  border: 1px solid #dfe5ec;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  padding: 0 13px;
+  gap: 10px;
+  margin-bottom: 16px;
+  transition: 0.2s ease;
+}
+
+.search-box:focus-within {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+}
+
+.search-box > i {
+  color: #7b8494;
+  font-size: 16px;
+}
+
+.search-box input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  color: #172033;
+}
+
+.search-box input::placeholder {
+  color: #9aa4b2;
+}
+
+.clear-btn {
+  border: none;
+  background: transparent;
+  color: #7b8494;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 3px;
+}
+
+.shortcut {
+  font-size: 11px;
+  color: #9aa4b2;
+  white-space: nowrap;
+}
+
+.product-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.product-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid #edf0f4;
+  border-radius: 11px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.product-card:hover {
+  border-color: #cbd9ee;
+  box-shadow: 0 4px 14px rgba(30, 50, 80, 0.07);
+  transform: translateY(-1px);
+}
+
+.product-icon {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  border-radius: 9px;
+  background: #f3f7fc;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.product-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.product-info h4 {
+  margin: 0 0 7px;
+  color: #172033;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.product-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  color: #7b8494;
+  font-size: 11px;
+}
+
+.product-meta strong {
+  color: #596579;
+}
+
+.product-price {
+  min-width: 75px;
+  text-align: right;
+}
+
+.product-price span {
+  display: block;
+  color: #929baa;
+  font-size: 10px;
+  margin-bottom: 3px;
+}
+
+.product-price strong {
+  color: #172033;
+  font-size: 15px;
+}
+
+.add-btn {
+  border: none;
+  background: #2563eb;
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 9px 13px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.add-btn:hover {
+  background: #1d4ed8;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  border: 1px dashed #dfe5ec;
+  border-radius: 10px;
+}
+
+.empty-state > i {
+  font-size: 30px;
+  color: #a0a9b7;
+}
+
+.empty-state h4 {
+  margin: 10px 0 5px;
+  color: #364152;
+  font-size: 15px;
+}
+
+.empty-state p {
+  margin: 0 0 15px;
+  color: #8b95a5;
+  font-size: 12px;
+}
+
+.empty-state button {
+  border: 1px solid #d9e0e8;
+  background: #ffffff;
+  color: #364152;
+  padding: 8px 13px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+@media (max-width: 700px) {
+  .search-header {
+    align-items: flex-start;
+  }
+
+  .product-card {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .product-info {
+    width: calc(100% - 60px);
+  }
+
+  .product-price {
+    margin-left: 56px;
+    text-align: left;
+  }
+
+  .add-btn {
+    margin-left: auto;
+  }
+
+  .product-meta {
+    flex-direction: column;
+    gap: 4px;
+  }
+}

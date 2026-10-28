@@ -1,0 +1,38 @@
+<div class="cart-list">
+
+  <!-- CART ITEMS -->
+  <div
+    class="cart-items"
+    *ngIf="cartItems.length > 0">
+
+    <app-cart-item
+      *ngFor="let item of cartItems"
+      [item]="item"
+      (increase)="increaseQuantity($event)"
+      (decrease)="decreaseQuantity($event)"
+      (remove)="removeItem($event)">
+    </app-cart-item>
+
+  </div>
+
+
+  <!-- EMPTY CART -->
+  <div
+    class="empty-cart"
+    *ngIf="cartItems.length === 0">
+
+    <div class="empty-cart-icon">
+      <i class="bi bi-cart3"></i>
+    </div>
+
+    <h3>
+      Your cart is empty
+    </h3>
+
+    <p>
+      Search and select a product to start a sale.
+    </p>
+
+  </div>
+
+</div>

@@ -1,0 +1,268 @@
+import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { TenantInventoryApiService } from '../../../core/services/tenant-inventory-api.service';
+
+interface Medicine {
+  id: number;
+  name: string;
+  generic: string;
+  company: string;
+  category: string;
+  strength: string;
+  dosageForm: string;
+  unitPrice: number;
+  stock: number;
+  reorderLevel: number;
+  description: string;
+  sku?: string;
+  purchasePrice?: number;
+  barcode?: string;
+}
+
+@Component({
+  selector: 'app-medicine-form',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  templateUrl: './medicine-form.component.html',
+  styleUrl: './medicine-form.component.scss'
+})
+export class MedicineFormComponent implements OnInit {
+
+  private inventoryApi = inject(TenantInventoryApiService);
+
+  isEditMode = false;
+
+  medicine: Medicine = {
+    id: 0,
+    name: '',
+    generic: '',
+    company: '',
+    category: '',
+    strength: '',
+    dosageForm: '',
+    unitPrice: 0,
+    stock: 0,
+    reorderLevel: 10,
+    description: ''
+  };
+
+  categories = [
+    'Pain Relief',
+    'Gastric',
+    'Diabetes',
+    'Allergy',
+    'Antibiotic',
+    'Vitamin & Supplement',
+    'Cardiovascular',
+    'Other'
+  ];
+
+  dosageForms = [
+    'Tablet',
+    'Capsule',
+    'Syrup',
+    'Injection',
+    'Cream',
+    'Ointment',
+    'Drops',
+    'Inhaler',
+    'Other'
+  ];
+
+  companies = [
+    'Square Pharmaceuticals',
+    'Beximco Pharmaceuticals',
+    'ACME Laboratories',
+    'Renata Limited',
+    'Incepta Pharmaceuticals',
+    'Healthcare Pharmaceuticals',
+    'Opsonin Pharma'
+  ];
+
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute
+  ) {}
+
+  ngOnInit(): void {
+
+    const id =
+      this.route.snapshot.paramMap.get('id');
+
+    if (id) {
+
+      this.isEditMode = true;
+
+      this.loadMedicine(Number(id));
+
+    }
+
+  }
+
+  loadMedicine(id: number): void {
+    const tenantId = Number(localStorage.getItem('tenantId'));
+
+    if (!tenantId) {
+      alert('Tenant ID not found. Please log in again.');
+      this.router.navigate(['/app/inventory/medicines']);
+      return;
+    }
+
+    this.inventoryApi.get(tenantId, id).subscribe({
+      next: item => {
+        this.medicine = {
+          id: item.id,
+          name: item.name,
+          generic: item.genericName || '',
+          company: item.brandName || '',
+          category: item.category || 'Other',
+          strength: item.strength || '',
+          dosageForm: item.dosageForm || '',
+          unitPrice: Number(item.sellingPrice || 0),
+          stock: Number(item.stockQuantity || 0),
+          reorderLevel: Number(item.reorderLevel || 0),
+          description: item.description || '',
+          sku: item.sku,
+          purchasePrice: Number(item.purchasePrice || 0),
+          barcode: item.barcode || ''
+        };
+      },
+      error: err => {
+        console.error('Failed to load medicine', err);
+        alert(err?.error?.message || 'Medicine not found or access denied.');
+        this.router.navigate(['/app/inventory/medicines']);
+      }
+    });
+  }
+
+
+  saveMedicine(): void {
+
+    // =========================
+    // VALIDATION
+    // =========================
+
+    if (!this.medicine.name.trim()) {
+      alert('Please enter medicine name.');
+      return;
+    }
+
+    if (!this.medicine.generic.trim()) {
+      alert('Please enter generic name.');
+      return;
+    }
+
+    if (!this.medicine.company) {
+      alert('Please select company.');
+      return;
+    }
+
+    if (!this.medicine.category) {
+      alert('Please select category.');
+      return;
+    }
+
+    if (!this.medicine.dosageForm) {
+      alert('Please select dosage form.');
+      return;
+    }
+
+    if (this.medicine.unitPrice <= 0) {
+      alert('Please enter a valid unit price.');
+      return;
+    }
+
+    const tenantId = Number(localStorage.getItem('tenantId'));
+
+    if (!tenantId) {
+      alert('Tenant ID not found. Please log in again.');
+      return;
+    }
+
+    const request = {
+      name: this.medicine.name.trim(),
+      genericName: this.medicine.generic.trim(),
+      brandName: this.medicine.company.trim(),
+      strength: this.medicine.strength || '',
+      dosageForm: this.medicine.dosageForm,
+      category: this.medicine.category || 'Other',
+      description: this.medicine.description?.trim() || '',
+      sku: this.medicine.sku?.trim() || `MED-${Date.now()}`,
+      barcode: this.medicine.barcode || '',
+      purchasePrice: Number(this.medicine.purchasePrice ?? 0),
+      sellingPrice: Number(this.medicine.unitPrice),
+      stockQuantity: 0,
+      reorderLevel: Number(this.medicine.reorderLevel || 0),
+      status: 'ACTIVE' as const
+    };
+
+    const save$ = this.isEditMode
+      ? this.inventoryApi.update(tenantId, this.medicine.id, request)
+      : this.inventoryApi.create(tenantId, request);
+
+    save$.subscribe({
+      next: saved => {
+        this.medicine.id = saved.id;
+        alert(this.isEditMode
+          ? 'Medicine updated successfully.'
+          : 'Medicine added successfully.');
+        this.router.navigate(['/app/inventory/medicines']);
+      },
+      error: err => {
+        console.error('Failed to save medicine', err);
+        alert(err?.error?.message || 'Could not save medicine to the backend.');
+      }
+    });
+  }
+
+  goToStockManagement(destination: 'grn' | 'adjustment'): void {
+    if (!this.isEditMode || !this.medicine.id) {
+      return;
+    }
+
+    if (destination === 'grn') {
+      this.router.navigate(['/app/procurement/grn']);
+      return;
+    }
+
+    this.router.navigate(['/app/inventory/stock-adjustment']);
+  }
+
+  resetForm(): void {
+
+    if (this.isEditMode) {
+
+      const id = this.medicine.id;
+
+      this.loadMedicine(id);
+
+      return;
+    }
+
+    this.medicine = {
+      id: 0,
+      name: '',
+      generic: '',
+      company: '',
+      category: '',
+      strength: '',
+      dosageForm: '',
+      unitPrice: 0,
+      stock: 0,
+      reorderLevel: 10,
+      description: ''
+    };
+
+  }
+
+  cancel(): void {
+
+    this.router.navigate([
+      '/app/inventory/medicines'
+    ]);
+
+  }
+
+}

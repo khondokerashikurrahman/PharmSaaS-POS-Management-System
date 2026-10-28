@@ -1,0 +1,150 @@
+<div class="hold-overlay" (click)="close()">
+
+  <div
+    class="hold-modal"
+    (click)="$event.stopPropagation()">
+
+    <!-- HEADER -->
+
+    <div class="modal-header">
+
+      <div>
+        <div class="title-row">
+          <div class="title-icon">
+            <i class="bi bi-pause-circle"></i>
+          </div>
+
+          <div>
+            <h2>Held Carts</h2>
+            <p>Resume a previously held sale.</p>
+          </div>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="close-btn"
+        (click)="close()">
+
+        <i class="bi bi-x-lg"></i>
+
+      </button>
+
+    </div>
+
+
+    <!-- CONTENT -->
+
+    <div class="modal-body">
+
+      <!-- EMPTY -->
+
+      <div
+        class="empty-state"
+        *ngIf="heldCarts.length === 0">
+
+        <div class="empty-icon">
+          <i class="bi bi-cart-x"></i>
+        </div>
+
+        <h3>No Held Carts</h3>
+
+        <p>
+          Carts that are put on hold will appear here.
+        </p>
+
+      </div>
+
+
+      <!-- CART LIST -->
+
+      <div
+        class="held-list"
+        *ngIf="heldCarts.length > 0">
+
+        <div
+          class="held-card"
+          *ngFor="let cart of heldCarts">
+
+          <div class="cart-info">
+
+            <div class="cart-icon">
+              <i class="bi bi-cart3"></i>
+            </div>
+
+            <div>
+
+              <strong>
+                {{ cart.customerName }}
+              </strong>
+
+              <span>
+                {{ cart.items.length }} item(s)
+                • {{ cart.createdAt }}
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <div class="cart-total">
+
+            <span>Total</span>
+
+            <strong>
+              ৳{{ cart.total | number:'1.2-2' }}
+            </strong>
+
+          </div>
+
+
+          <div class="cart-actions">
+
+            <button
+              type="button"
+              class="delete-btn"
+              (click)="deleteCart(cart)">
+
+              <i class="bi bi-trash3"></i>
+
+            </button>
+
+            <button
+              type="button"
+              class="resume-btn"
+              (click)="resumeCart(cart)">
+
+              <i class="bi bi-arrow-counterclockwise"></i>
+
+              Resume
+
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- FOOTER -->
+
+    <div class="modal-footer">
+
+      <button
+        type="button"
+        class="close-footer-btn"
+        (click)="close()">
+
+        Close
+
+      </button>
+
+    </div>
+
+  </div>
+
+</div>

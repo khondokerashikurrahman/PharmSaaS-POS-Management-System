@@ -1,0 +1,430 @@
+<div class="salesman-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div>
+
+      <div class="breadcrumb">
+
+        <span>Inventory</span>
+
+        <i class="bi bi-chevron-right"></i>
+
+        <span>Salesmen</span>
+
+      </div>
+
+      <h1>Salesmen</h1>
+
+      <p>
+        Manage pharmaceutical sales representatives and territories.
+      </p>
+
+    </div>
+
+
+    <button
+      type="button"
+      class="add-btn"
+      (click)="addSalesman()"
+    >
+
+      <i class="bi bi-plus-lg"></i>
+
+      <span>
+        Add Salesman
+      </span>
+
+    </button>
+
+  </div>
+
+
+  <!-- SUMMARY CARDS -->
+
+  <div class="summary-grid">
+
+    <!-- TOTAL -->
+
+    <div class="summary-card">
+
+      <div class="card-icon blue">
+        <i class="bi bi-person-badge"></i>
+      </div>
+
+      <div class="card-content">
+
+        <span>Total Salesmen</span>
+
+        <strong>
+          {{ totalSalesmen }}
+        </strong>
+
+        <small>
+          Registered representatives
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <!-- ACTIVE -->
+
+    <div class="summary-card">
+
+      <div class="card-icon green">
+        <i class="bi bi-person-check"></i>
+      </div>
+
+      <div class="card-content">
+
+        <span>Active</span>
+
+        <strong>
+          {{ activeSalesmen }}
+        </strong>
+
+        <small>
+          Currently active
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <!-- INACTIVE -->
+
+    <div class="summary-card">
+
+      <div class="card-icon orange">
+        <i class="bi bi-person-x"></i>
+      </div>
+
+      <div class="card-content">
+
+        <span>Inactive</span>
+
+        <strong>
+          {{ inactiveSalesmen }}
+        </strong>
+
+        <small>
+          Currently inactive
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <!-- SALES -->
+
+    <div class="summary-card">
+
+      <div class="card-icon purple">
+        <i class="bi bi-graph-up-arrow"></i>
+      </div>
+
+      <div class="card-content">
+
+        <span>Total Sales</span>
+
+        <strong>
+          ৳{{ totalSales | number:'1.0-0' }}
+        </strong>
+
+        <small>
+          Representative sales
+        </small>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- FILTER PANEL -->
+
+  <div class="filter-panel">
+
+    <div class="search-box">
+
+      <i class="bi bi-search"></i>
+
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        placeholder="Search by name, company, territory..."
+      />
+
+    </div>
+
+
+    <div class="status-filter">
+
+      <label>
+        Status
+      </label>
+
+      <select [(ngModel)]="statusFilter">
+
+        <option value="All">
+          All Status
+        </option>
+
+        <option value="Active">
+          Active
+        </option>
+
+        <option value="Inactive">
+          Inactive
+        </option>
+
+      </select>
+
+    </div>
+
+  </div>
+
+
+  <!-- TABLE -->
+
+  <div class="table-panel">
+
+    <div class="table-header">
+
+      <div>
+
+        <h2>
+          Sales Representatives
+        </h2>
+
+        <p>
+          {{ filteredSalesmen.length }} representatives found
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>SALESMAN</th>
+
+            <th>COMPANY</th>
+
+            <th>PHONE</th>
+
+            <th>TERRITORY</th>
+
+            <th>COMMISSION</th>
+
+            <th>TOTAL SALES</th>
+
+            <th>STATUS</th>
+
+            <th>ACTIONS</th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="let salesman of filteredSalesmen"
+          >
+
+            <!-- SALESMAN -->
+
+            <td>
+
+              <div class="salesman-cell">
+
+                <div class="avatar">
+                  {{ getInitial(salesman.name) }}
+                </div>
+
+                <div>
+
+                  <strong>
+                    {{ salesman.name }}
+                  </strong>
+
+                  <span>
+                    {{ salesman.id }}
+                  </span>
+
+                </div>
+
+              </div>
+
+            </td>
+
+
+            <!-- COMPANY -->
+
+            <td>
+
+              <span class="company">
+                {{ salesman.company }}
+              </span>
+
+            </td>
+
+
+            <!-- PHONE -->
+
+            <td>
+
+              <span class="phone">
+                {{ salesman.phone }}
+              </span>
+
+            </td>
+
+
+            <!-- TERRITORY -->
+
+            <td>
+
+              <span class="territory">
+
+                <i class="bi bi-geo-alt"></i>
+
+                {{ salesman.territory }}
+
+              </span>
+
+            </td>
+
+
+            <!-- COMMISSION -->
+
+            <td>
+
+              <span class="commission">
+                {{ salesman.commission }}%
+              </span>
+
+            </td>
+
+
+            <!-- TOTAL SALES -->
+
+            <td>
+
+              <strong class="sales-value">
+                ৳{{ salesman.totalSales | number:'1.0-0' }}
+              </strong>
+
+            </td>
+
+
+            <!-- STATUS -->
+
+            <td>
+
+              <span
+                class="status-badge"
+                [ngClass]="getStatusClass(salesman.status)"
+              >
+
+                <i
+                  class="bi"
+                  [ngClass]="
+                    salesman.status === 'Active'
+                      ? 'bi-check-circle-fill'
+                      : 'bi-x-circle-fill'
+                  "
+                ></i>
+
+                {{ salesman.status }}
+
+              </span>
+
+            </td>
+
+
+            <!-- ACTIONS -->
+
+            <td>
+
+              <div class="actions">
+
+                <button
+                  type="button"
+                  class="action-btn view"
+                  title="View"
+                  (click)="viewSalesman(salesman.id)"
+                >
+
+                  <i class="bi bi-eye"></i>
+
+                </button>
+
+
+                <button
+                  type="button"
+                  class="action-btn edit"
+                  title="Edit"
+                  (click)="editSalesman(salesman.id)"
+                >
+
+                  <i class="bi bi-pencil"></i>
+
+                </button>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+
+          <!-- EMPTY STATE -->
+
+          <tr
+            *ngIf="filteredSalesmen.length === 0"
+          >
+
+            <td
+              colspan="8"
+              class="empty-state"
+            >
+
+              <i class="bi bi-person-x"></i>
+
+              <strong>
+                No salesmen found
+              </strong>
+
+              <span>
+                Try changing your search or status filter.
+              </span>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>

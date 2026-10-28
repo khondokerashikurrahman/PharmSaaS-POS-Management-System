@@ -1,0 +1,376 @@
+<div class="billing-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div>
+
+      <div class="breadcrumb">
+        <span>Super Admin</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Billing Transactions</span>
+      </div>
+
+      <h1>Billing Transactions</h1>
+
+      <p>
+        Track subscription payments, invoices and transaction history.
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <!-- SUMMARY CARDS -->
+
+  <div class="summary-grid">
+
+    <div class="summary-card">
+
+      <div class="summary-icon blue">
+        <i class="bi bi-receipt"></i>
+      </div>
+
+      <div>
+        <span>Total Transactions</span>
+        <h2>{{ totalTransactions }}</h2>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon green">
+        <i class="bi bi-check-circle"></i>
+      </div>
+
+      <div>
+        <span>Paid Transactions</span>
+        <h2>{{ paidTransactions }}</h2>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon orange">
+        <i class="bi bi-clock-history"></i>
+      </div>
+
+      <div>
+        <span>Pending</span>
+        <h2>{{ pendingTransactions }}</h2>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon purple">
+        <i class="bi bi-cash-stack"></i>
+      </div>
+
+      <div>
+        <span>Total Revenue</span>
+        <h2>
+          ৳{{ totalRevenue | number:'1.0-0' }}
+        </h2>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- TOOLBAR -->
+
+  <div class="toolbar">
+
+    <div class="search-box">
+
+      <i class="bi bi-search"></i>
+
+      <input
+        type="text"
+        placeholder="Search transaction, pharmacy, invoice..."
+        [(ngModel)]="searchText"
+        (input)="searchTransactions()"
+      />
+
+    </div>
+
+
+    <div class="filter-buttons">
+
+      <button
+        [class.active]="selectedFilter === 'All'"
+        (click)="filterTransactions('All')">
+        All
+      </button>
+
+      <button
+        [class.active]="selectedFilter === 'Paid'"
+        (click)="filterTransactions('Paid')">
+        Paid
+      </button>
+
+      <button
+        [class.active]="selectedFilter === 'Pending'"
+        (click)="filterTransactions('Pending')">
+        Pending
+      </button>
+
+      <button
+        [class.active]="selectedFilter === 'Failed'"
+        (click)="filterTransactions('Failed')">
+        Failed
+      </button>
+
+      <button
+        [class.active]="selectedFilter === 'Refunded'"
+        (click)="filterTransactions('Refunded')">
+        Refunded
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- TRANSACTION TABLE -->
+
+  <div class="table-card">
+
+    <div class="table-header">
+
+      <div>
+
+        <h3>Transaction History</h3>
+
+        <p>
+          {{ filteredTransactions.length }}
+          transactions found
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>Transaction</th>
+
+            <th>Pharmacy</th>
+
+            <th>Plan</th>
+
+            <th>Amount</th>
+
+            <th>Payment Method</th>
+
+            <th>Date</th>
+
+            <th>Status</th>
+
+            <th>Action</th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="let transaction of filteredTransactions"
+          >
+
+            <!-- TRANSACTION -->
+
+            <td>
+
+              <div class="transaction-info">
+
+                <strong>
+                  {{ transaction.id }}
+                </strong>
+
+                <span>
+                  {{ transaction.invoiceNumber }}
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <!-- PHARMACY -->
+
+            <td>
+
+              <div class="pharmacy-info">
+
+                <strong>
+                  {{ transaction.pharmacyName }}
+                </strong>
+
+                <span>
+                  {{ transaction.tenantId }}
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <!-- PLAN -->
+
+            <td>
+
+              <span
+                class="plan-badge"
+                [class.basic]="transaction.plan === 'Basic'"
+                [class.standard]="transaction.plan === 'Standard'"
+                [class.premium]="transaction.plan === 'Premium'"
+              >
+                {{ transaction.plan }}
+              </span>
+
+            </td>
+
+
+            <!-- AMOUNT -->
+
+            <td>
+
+              <strong class="amount">
+                ৳{{ transaction.amount | number:'1.0-0' }}
+              </strong>
+
+            </td>
+
+
+            <!-- PAYMENT -->
+
+            <td>
+
+              <span class="payment-method">
+
+                <i
+                  class="bi"
+                  [class.bi-credit-card]="transaction.paymentMethod === 'Card'"
+                  [class.bi-phone]="
+                    transaction.paymentMethod === 'bKash' ||
+                    transaction.paymentMethod === 'Nagad'
+                  "
+                  [class.bi-bank]="transaction.paymentMethod === 'Bank Transfer'"
+                ></i>
+
+                {{ transaction.paymentMethod }}
+
+              </span>
+
+            </td>
+
+
+            <!-- DATE -->
+
+            <td>
+
+              {{ transaction.transactionDate | date:'dd MMM yyyy' }}
+
+            </td>
+
+
+            <!-- STATUS -->
+
+            <td>
+
+              <span
+                class="status-badge"
+                [class.paid]="transaction.status === 'Paid'"
+                [class.pending]="transaction.status === 'Pending'"
+                [class.failed]="transaction.status === 'Failed'"
+                [class.refunded]="transaction.status === 'Refunded'"
+              >
+
+                <span class="status-dot"></span>
+
+                {{ transaction.status }}
+
+              </span>
+
+            </td>
+
+
+            <!-- ACTION -->
+
+            <td>
+
+              <div class="actions">
+
+                <button
+                  class="view-btn"
+                  title="View Transaction"
+                  (click)="viewTransaction(transaction)"
+                >
+                  <i class="bi bi-eye"></i>
+                </button>
+
+
+                <button
+                  class="invoice-btn"
+                  title="Invoice"
+                  (click)="downloadInvoice(transaction)"
+                >
+                  <i class="bi bi-file-earmark-pdf"></i>
+                </button>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+
+          <!-- EMPTY -->
+
+          <tr *ngIf="filteredTransactions.length === 0">
+
+            <td
+              colspan="8"
+              class="empty-state"
+            >
+
+              <i class="bi bi-receipt"></i>
+
+              <h3>No transactions found</h3>
+
+              <p>
+                Try changing your search or filter.
+              </p>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>

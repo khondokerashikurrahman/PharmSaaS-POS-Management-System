@@ -1,0 +1,473 @@
+<div class="customer-details-page" *ngIf="customer">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div>
+
+      <div class="breadcrumb">
+
+        <span>Stakeholders</span>
+
+        <i class="bi bi-chevron-right"></i>
+
+        <span>Customers</span>
+
+        <i class="bi bi-chevron-right"></i>
+
+        <span>{{ customer.name }}</span>
+
+      </div>
+
+      <h1>Customer Details</h1>
+
+      <p>
+        View customer information, purchase history and account balance.
+      </p>
+
+    </div>
+
+
+    <div class="header-actions">
+
+      <button
+        class="secondary-btn"
+        (click)="goBack()"
+      >
+        <i class="bi bi-arrow-left"></i>
+        Back
+      </button>
+
+      <button
+        class="secondary-btn"
+        (click)="printDetails()"
+      >
+        <i class="bi bi-printer"></i>
+        Print
+      </button>
+
+      <button
+        class="primary-btn"
+        (click)="openLedger()"
+      >
+        <i class="bi bi-journal-text"></i>
+        View Ledger
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- PROFILE CARD -->
+  <div class="profile-card">
+
+    <div class="profile-left">
+
+      <div class="large-avatar">
+        {{ getInitial() }}
+      </div>
+
+      <div class="profile-info">
+
+        <div class="name-row">
+
+          <h2>{{ customer.name }}</h2>
+
+          <span
+            class="status-badge"
+            [ngClass]="getStatusClass(customer.status)"
+          >
+            <span class="status-dot"></span>
+            {{ customer.status }}
+          </span>
+
+        </div>
+
+        <span class="customer-id">
+          {{ customer.id }}
+        </span>
+
+        <div class="contact-row">
+
+          <span>
+            <i class="bi bi-telephone"></i>
+            {{ customer.phone }}
+          </span>
+
+          <span>
+            <i class="bi bi-envelope"></i>
+            {{ customer.email }}
+          </span>
+
+          <span>
+            <i class="bi bi-geo-alt"></i>
+            {{ customer.address }}
+          </span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <div class="member-info">
+
+      <span>Customer Since</span>
+
+      <strong>{{ customer.memberSince }}</strong>
+
+    </div>
+
+  </div>
+
+
+  <!-- STATISTICS -->
+  <div class="stats-grid">
+
+    <div class="stat-card">
+
+      <div class="stat-icon blue">
+        <i class="bi bi-cart3"></i>
+      </div>
+
+      <div>
+        <span>Total Orders</span>
+        <strong>{{ customer.totalOrders }}</strong>
+      </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+      <div class="stat-icon green">
+        <i class="bi bi-cash-stack"></i>
+      </div>
+
+      <div>
+        <span>Total Purchases</span>
+        <strong>
+          ৳{{ customer.totalPurchases | number:'1.0-0' }}
+        </strong>
+      </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+      <div class="stat-icon purple">
+        <i class="bi bi-check2-circle"></i>
+      </div>
+
+      <div>
+        <span>Total Paid</span>
+        <strong>
+          ৳{{ customer.totalPaid | number:'1.0-0' }}
+        </strong>
+      </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+      <div class="stat-icon red">
+        <i class="bi bi-wallet2"></i>
+      </div>
+
+      <div>
+        <span>Outstanding Due</span>
+        <strong class="due-value">
+          ৳{{ customer.dueAmount | number:'1.0-0' }}
+        </strong>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- MAIN GRID -->
+  <div class="content-grid">
+
+    <!-- CUSTOMER INFORMATION -->
+    <div class="info-card">
+
+      <div class="card-header">
+
+        <div>
+          <h3>Customer Information</h3>
+          <p>Basic contact and account information</p>
+        </div>
+
+        <i class="bi bi-person-vcard"></i>
+
+      </div>
+
+
+      <div class="info-list">
+
+        <div class="info-item">
+
+          <span>
+            <i class="bi bi-person"></i>
+            Full Name
+          </span>
+
+          <strong>{{ customer.name }}</strong>
+
+        </div>
+
+
+        <div class="info-item">
+
+          <span>
+            <i class="bi bi-telephone"></i>
+            Phone
+          </span>
+
+          <strong>{{ customer.phone }}</strong>
+
+        </div>
+
+
+        <div class="info-item">
+
+          <span>
+            <i class="bi bi-envelope"></i>
+            Email
+          </span>
+
+          <strong>{{ customer.email }}</strong>
+
+        </div>
+
+
+        <div class="info-item">
+
+          <span>
+            <i class="bi bi-geo-alt"></i>
+            Address
+          </span>
+
+          <strong>{{ customer.address }}</strong>
+
+        </div>
+
+
+        <div class="info-item">
+
+          <span>
+            <i class="bi bi-person-badge"></i>
+            Customer ID
+          </span>
+
+          <strong>{{ customer.id }}</strong>
+
+        </div>
+
+
+        <div class="info-item">
+
+          <span>
+            <i class="bi bi-calendar3"></i>
+            Member Since
+          </span>
+
+          <strong>{{ customer.memberSince }}</strong>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- ACCOUNT SUMMARY -->
+    <div class="info-card">
+
+      <div class="card-header">
+
+        <div>
+          <h3>Account Summary</h3>
+          <p>Customer financial overview</p>
+        </div>
+
+        <i class="bi bi-wallet2"></i>
+
+      </div>
+
+
+      <div class="account-summary">
+
+        <div class="account-row">
+
+          <span>Total Purchase Value</span>
+
+          <strong>
+            ৳{{ customer.totalPurchases | number:'1.0-0' }}
+          </strong>
+
+        </div>
+
+
+        <div class="account-row">
+
+          <span>Total Paid</span>
+
+          <strong class="paid">
+            ৳{{ customer.totalPaid | number:'1.0-0' }}
+          </strong>
+
+        </div>
+
+
+        <div class="account-row due-row">
+
+          <span>Outstanding Due</span>
+
+          <strong class="due">
+            ৳{{ customer.dueAmount | number:'1.0-0' }}
+          </strong>
+
+        </div>
+
+
+        <div class="account-status">
+
+          <i class="bi bi-shield-check"></i>
+
+          <div>
+            <strong>Account Status</strong>
+            <span>
+              Customer account is currently {{ customer.status | lowercase }}.
+            </span>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- PURCHASE HISTORY -->
+  <div class="purchase-card">
+
+    <div class="card-header">
+
+      <div>
+        <h3>Purchase History</h3>
+        <p>Recent customer transactions</p>
+      </div>
+
+      <button
+        class="link-btn"
+        (click)="openLedger()"
+      >
+        View Full Ledger
+        <i class="bi bi-arrow-right"></i>
+      </button>
+
+    </div>
+
+
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>INVOICE</th>
+            <th>DATE</th>
+            <th>ITEMS</th>
+            <th>AMOUNT</th>
+            <th>PAID</th>
+            <th>DUE</th>
+            <th>STATUS</th>
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <tr *ngFor="let purchase of customer.purchases">
+
+            <td>
+              <strong class="invoice">
+                {{ purchase.invoice }}
+              </strong>
+            </td>
+
+            <td>
+              {{ purchase.date }}
+            </td>
+
+            <td>
+              {{ purchase.items }}
+            </td>
+
+            <td>
+              <strong>
+                ৳{{ purchase.amount | number:'1.0-0' }}
+              </strong>
+            </td>
+
+            <td>
+              <span class="paid-amount">
+                ৳{{ purchase.paid | number:'1.0-0' }}
+              </span>
+            </td>
+
+            <td>
+              <span
+                class="due-amount"
+                [class.no-due]="purchase.due === 0"
+              >
+                ৳{{ purchase.due | number:'1.0-0' }}
+              </span>
+            </td>
+
+            <td>
+
+              <span
+                class="purchase-status"
+                [ngClass]="getPurchaseStatusClass(purchase.status)"
+              >
+                {{ purchase.status }}
+              </span>
+
+            </td>
+
+          </tr>
+
+
+          <tr *ngIf="customer.purchases.length === 0">
+
+            <td colspan="7">
+
+              <div class="empty-state">
+                <i class="bi bi-receipt"></i>
+                <span>No purchase history available.</span>
+              </div>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>

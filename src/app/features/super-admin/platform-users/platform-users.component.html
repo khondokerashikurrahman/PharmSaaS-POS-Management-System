@@ -1,0 +1,366 @@
+
+<div class="users-page">
+
+  <div class="page-header">
+    <div>
+      <div class="breadcrumb">
+        <span>Super Admin</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Platform Users</span>
+      </div>
+
+      <h1>Platform Users</h1>
+      <p>Manage administrators, support agents and platform staff.</p>
+    </div>
+
+    <button
+      type="button"
+      class="add-user-btn"
+      (click)="openAddUserModal()">
+      <i class="bi bi-person-plus"></i>
+      Add User
+    </button>
+  </div>
+
+  <div class="page-feedback success-feedback" *ngIf="successMessage">
+    <i class="bi bi-check-circle"></i>
+    {{ successMessage }}
+    <button type="button" (click)="successMessage = ''" aria-label="Dismiss">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <div class="page-feedback error-feedback" *ngIf="errorMessage">
+    <i class="bi bi-exclamation-circle"></i>
+    {{ errorMessage }}
+    <button type="button" (click)="loadUsers()">Retry</button>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="summary-icon blue">
+        <i class="bi bi-people"></i>
+      </div>
+      <div>
+        <span>Total Users</span>
+        <h2>{{ totalUsers }}</h2>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon green">
+        <i class="bi bi-person-check"></i>
+      </div>
+      <div>
+        <span>Active Users</span>
+        <h2>{{ activeUsers }}</h2>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon orange">
+        <i class="bi bi-person-dash"></i>
+      </div>
+      <div>
+        <span>Inactive Users</span>
+        <h2>{{ inactiveUsers }}</h2>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon red">
+        <i class="bi bi-person-x"></i>
+      </div>
+      <div>
+        <span>Suspended</span>
+        <h2>{{ suspendedUsers }}</h2>
+      </div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <i class="bi bi-search"></i>
+      <input
+        type="text"
+        placeholder="Search users, email, role..."
+        [(ngModel)]="searchText"
+        (input)="searchUsers()" />
+    </div>
+
+    <div class="filter-buttons">
+      <button
+        type="button"
+        [class.active]="selectedFilter === 'All'"
+        (click)="filterUsers('All')">All</button>
+
+      <button
+        type="button"
+        [class.active]="selectedFilter === 'Active'"
+        (click)="filterUsers('Active')">Active</button>
+
+      <button
+        type="button"
+        [class.active]="selectedFilter === 'Inactive'"
+        (click)="filterUsers('Inactive')">Inactive</button>
+
+      <button
+        type="button"
+        [class.active]="selectedFilter === 'Suspended'"
+        (click)="filterUsers('Suspended')">Suspended</button>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-header">
+      <div>
+        <h3>Platform User List</h3>
+        <p>{{ filteredUsers.length }} users found</p>
+      </div>
+
+      <button
+        type="button"
+        class="refresh-users-btn"
+        [disabled]="loading"
+        (click)="loadUsers()">
+        <i class="bi bi-arrow-clockwise"></i>
+        {{ loading ? 'Loading...' : 'Refresh' }}
+      </button>
+    </div>
+
+    <div class="loading-state" *ngIf="loading">
+      <i class="bi bi-arrow-repeat"></i>
+      Loading platform users...
+    </div>
+
+    <div class="table-wrapper" *ngIf="!loading">
+      <table>
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Role</th>
+            <th>Department</th>
+            <th>Last Login</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let user of filteredUsers">
+            <td>
+              <div class="user-info">
+                <div class="avatar">
+                  {{ user.name.charAt(0).toUpperCase() }}
+                </div>
+                <div>
+                  <strong>{{ user.name }}</strong>
+                  <span>{{ user.email }}</span>
+                  <small>ID: {{ user.id }}</small>
+                </div>
+              </div>
+            </td>
+
+            <td>
+              <span
+                class="role-badge"
+                [class.super-admin]="user.role === 'Super Admin'">
+                {{ user.role }}
+              </span>
+            </td>
+
+            <td>
+              <span class="department">
+                <i class="bi bi-building"></i>
+                {{ user.department }}
+              </span>
+            </td>
+
+            <td>{{ user.lastLogin }}</td>
+
+            <td>
+              <span
+                class="status-badge"
+                [class.active]="user.status === 'Active'"
+                [class.inactive]="user.status === 'Inactive'"
+                [class.suspended]="user.status === 'Suspended'">
+                <span class="status-dot"></span>
+                {{ user.status }}
+              </span>
+            </td>
+
+            <td>
+              <div class="actions">
+                <button
+                  type="button"
+                  class="view-btn"
+                  title="View user"
+                  (click)="viewUser(user)">
+                  <i class="bi bi-eye"></i>
+                </button>
+
+                <button
+                  type="button"
+                  class="status-btn"
+                  title="Change status"
+                  (click)="toggleUserStatus(user)">
+                  <i class="bi bi-arrow-repeat"></i>
+                </button>
+
+                <button
+                  type="button"
+                  class="suspend-btn"
+                  title="Suspend"
+                  *ngIf="user.status !== 'Suspended'"
+                  (click)="suspendUser(user)">
+                  <i class="bi bi-person-x"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <tr *ngIf="filteredUsers.length === 0">
+            <td colspan="6" class="empty-state">
+              <i class="bi bi-people"></i>
+              <h3>No users found</h3>
+              <p>Try changing your search or filter.</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ADD PLATFORM USER MODAL -->
+<div
+  class="user-modal-overlay"
+  *ngIf="showAddUserModal"
+  (click)="closeAddUserModal()">
+
+  <section
+    class="user-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="add-user-title"
+    (click)="$event.stopPropagation()">
+
+    <div class="user-modal-header">
+      <div>
+        <span class="modal-eyebrow">SUPER ADMINISTRATION</span>
+        <h2 id="add-user-title">Create Platform User</h2>
+        <p>Create a new platform-level Super Admin account.</p>
+      </div>
+
+      <button
+        type="button"
+        class="modal-close-btn"
+        [disabled]="saving"
+        (click)="closeAddUserModal()"
+        aria-label="Close dialog">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <form (ngSubmit)="createUser()" #userForm="ngForm" novalidate>
+      <div class="user-modal-body">
+
+        <div class="modal-info">
+          <i class="bi bi-shield-lock"></i>
+          <span>
+            The backend assigns the Super Admin role automatically.
+            Passwords are stored as hashes.
+          </span>
+        </div>
+
+        <div class="form-field">
+          <label for="platform-full-name">Full Name</label>
+          <input
+            id="platform-full-name"
+            type="text"
+            name="fullName"
+            [(ngModel)]="newUser.fullName"
+            #fullNameField="ngModel"
+            placeholder="Enter full name"
+            maxlength="150"
+            required
+            autocomplete="name" />
+          <small
+            class="field-error"
+            *ngIf="fullNameField.invalid && fullNameField.touched">
+            Full name is required.
+          </small>
+        </div>
+
+        <div class="form-field">
+          <label for="platform-email">Email Address</label>
+          <input
+            id="platform-email"
+            type="email"
+            name="email"
+            [(ngModel)]="newUser.email"
+            #emailField="ngModel"
+            placeholder="admin@example.com"
+            maxlength="255"
+            required
+            email
+            autocomplete="email" />
+          <small
+            class="field-error"
+            *ngIf="emailField.invalid && emailField.touched">
+            Enter a valid email address.
+          </small>
+        </div>
+
+        <div class="form-field">
+          <label for="platform-password">Password</label>
+          <input
+            id="platform-password"
+            type="password"
+            name="password"
+            [(ngModel)]="newUser.password"
+            #passwordField="ngModel"
+            placeholder="At least 8 characters"
+            minlength="8"
+            maxlength="72"
+            required
+            autocomplete="new-password" />
+          <small class="field-hint">
+            Use 8–72 characters. Share the password securely with the user.
+          </small>
+          <small
+            class="field-error"
+            *ngIf="passwordField.invalid && passwordField.touched">
+            Password must contain 8 to 72 characters.
+          </small>
+        </div>
+
+        <div class="modal-error" *ngIf="formError" role="alert">
+          <i class="bi bi-exclamation-circle"></i>
+          {{ formError }}
+        </div>
+      </div>
+
+      <div class="user-modal-footer">
+        <button
+          type="button"
+          class="modal-cancel-btn"
+          [disabled]="saving"
+          (click)="closeAddUserModal()">
+          Cancel
+        </button>
+
+        <button
+          type="submit"
+          class="modal-submit-btn"
+          [disabled]="saving || userForm.invalid">
+          <i
+            class="bi"
+            [class.bi-person-plus]="!saving"
+            [class.bi-arrow-repeat]="saving"></i>
+          {{ saving ? 'Creating...' : 'Create User' }}
+        </button>
+      </div>
+    </form>
+  </section>
+</div>

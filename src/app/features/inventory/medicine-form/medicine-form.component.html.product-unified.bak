@@ -1,0 +1,703 @@
+
+<div class="medicine-form-page">
+
+  <!-- =========================================
+       PAGE HEADER
+  ========================================== -->
+
+  <div class="page-header">
+
+    <div class="header-left">
+
+      <div class="breadcrumb">
+
+        <span>Pharmacy</span>
+
+        <i class="bi bi-chevron-right"></i>
+
+        <span>Inventory</span>
+
+        <i class="bi bi-chevron-right"></i>
+
+        <span>Medicines</span>
+
+        <i class="bi bi-chevron-right"></i>
+
+        <span class="current">
+          {{ isEditMode ? 'Edit Medicine' : 'Add Medicine' }}
+        </span>
+
+      </div>
+
+      <h1>
+        {{ isEditMode ? 'Edit Medicine' : 'Add New Medicine' }}
+      </h1>
+
+      <p>
+        {{
+          isEditMode
+            ? 'Update medicine information. Stock quantities are managed separately.'
+            : 'Add a new medicine to your pharmacy inventory.'
+        }}
+      </p>
+
+    </div>
+
+
+    <div class="header-actions">
+
+      <button
+        type="button"
+        class="btn btn-light"
+        (click)="cancel()"
+      >
+        <i class="bi bi-arrow-left"></i>
+        Back to Medicines
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- =========================================
+       MEDICINE FORM
+  ========================================== -->
+
+  <form
+    class="medicine-form"
+    #medicineForm="ngForm"
+    (ngSubmit)="saveMedicine()"
+    novalidate
+  >
+
+
+    <!-- =======================================
+         BASIC INFORMATION
+    ======================================== -->
+
+    <div class="form-card">
+
+      <div class="card-header">
+
+        <div class="header-icon">
+
+          <i class="bi bi-capsule"></i>
+
+        </div>
+
+        <div>
+
+          <h2>Basic Information</h2>
+
+          <p>
+            Enter the basic information of the medicine.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="card-body">
+
+        <div class="form-grid">
+
+
+          <!-- Medicine Name -->
+
+          <div class="form-group">
+
+            <label for="medicineName">
+              Medicine Name
+              <span>*</span>
+            </label>
+
+            <div class="input-wrapper">
+
+              <i class="bi bi-capsule"></i>
+
+              <input
+                id="medicineName"
+                type="text"
+                name="name"
+                [(ngModel)]="medicine.name"
+                placeholder="e.g. Napa 500mg"
+                autocomplete="off"
+                required
+              />
+
+            </div>
+
+            <small>
+              Enter the brand or product name.
+            </small>
+
+          </div>
+
+
+          <!-- Generic Name -->
+
+          <div class="form-group">
+
+            <label for="generic">
+              Generic Name
+              <span>*</span>
+            </label>
+
+            <div class="input-wrapper">
+
+              <i class="bi bi-prescription2"></i>
+
+              <input
+                id="generic"
+                type="text"
+                name="generic"
+                [(ngModel)]="medicine.generic"
+                placeholder="e.g. Paracetamol"
+                autocomplete="off"
+                required
+              />
+
+            </div>
+
+            <small>
+              Enter the active generic ingredient.
+            </small>
+
+          </div>
+
+
+          <!-- Company -->
+
+          <div class="form-group">
+
+            <label for="company">
+              Manufacturer / Company
+              <span>*</span>
+            </label>
+
+            <div class="input-wrapper">
+
+              <i class="bi bi-building"></i>
+
+              <select
+                id="company"
+                name="company"
+                [(ngModel)]="medicine.company"
+                required
+              >
+
+                <option value="">
+                  Select company
+                </option>
+
+                <option
+                  *ngFor="let company of companies"
+                  [value]="company"
+                >
+                  {{ company }}
+                </option>
+
+              </select>
+
+            </div>
+
+            <small>
+              Select the medicine manufacturer.
+            </small>
+
+          </div>
+
+
+          <!-- Category -->
+
+          <div class="form-group">
+
+            <label for="category">
+              Category
+              <span>*</span>
+            </label>
+
+            <div class="input-wrapper">
+
+              <i class="bi bi-grid"></i>
+
+              <select
+                id="category"
+                name="category"
+                [(ngModel)]="medicine.category"
+                required
+              >
+
+                <option value="">
+                  Select category
+                </option>
+
+                <option
+                  *ngFor="let category of categories"
+                  [value]="category"
+                >
+                  {{ category }}
+                </option>
+
+              </select>
+
+            </div>
+
+            <small>
+              Choose the appropriate medicine category.
+            </small>
+
+          </div>
+
+
+          <!-- Strength -->
+
+          <div class="form-group">
+
+            <label for="strength">
+              Strength
+            </label>
+
+            <div class="input-wrapper">
+
+              <i class="bi bi-activity"></i>
+
+              <input
+                id="strength"
+                type="text"
+                name="strength"
+                [(ngModel)]="medicine.strength"
+                placeholder="e.g. 500mg"
+                autocomplete="off"
+              />
+
+            </div>
+
+            <small>
+              Example: 500mg, 20mg, 120ml.
+            </small>
+
+          </div>
+
+
+          <!-- Dosage Form -->
+
+          <div class="form-group">
+
+            <label for="dosageForm">
+              Dosage Form
+              <span>*</span>
+            </label>
+
+            <div class="input-wrapper">
+
+              <i class="bi bi-box"></i>
+
+              <select
+                id="dosageForm"
+                name="dosageForm"
+                [(ngModel)]="medicine.dosageForm"
+                required
+              >
+
+                <option value="">
+                  Select dosage form
+                </option>
+
+                <option
+                  *ngFor="let form of dosageForms"
+                  [value]="form"
+                >
+                  {{ form }}
+                </option>
+
+              </select>
+
+            </div>
+
+            <small>
+              Example: Tablet, Capsule, Syrup.
+            </small>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- =======================================
+         INVENTORY & PRICING
+    ======================================== -->
+
+    <div class="form-card">
+
+      <div class="card-header">
+
+        <div class="header-icon inventory-icon">
+
+          <i class="bi bi-box-seam"></i>
+
+        </div>
+
+        <div>
+
+          <h2>Inventory &amp; Pricing</h2>
+
+          <p>
+            Set pricing and reorder information. Stock is managed through batch receiving and stock adjustment.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="card-body">
+
+        <div class="form-grid">
+
+
+          <!-- Unit Price -->
+
+          <div class="form-group">
+
+            <label for="unitPrice">
+              Unit Price
+              <span>*</span>
+            </label>
+
+            <div class="input-wrapper price-input">
+
+              <span class="currency">
+                ৳
+              </span>
+
+              <input
+                id="unitPrice"
+                type="number"
+                name="unitPrice"
+                [(ngModel)]="medicine.unitPrice"
+                min="0.01"
+                step="0.01"
+                placeholder="0.00"
+                required
+              />
+
+            </div>
+
+            <small>
+              Selling price per unit.
+            </small>
+
+          </div>
+
+
+          <!-- Current Stock: read-only -->
+
+          <div class="form-group">
+
+            <label for="currentStock">
+              Current Stock (Read-only)
+            </label>
+
+            <div class="input-wrapper">
+
+              <i class="bi bi-boxes"></i>
+
+              <input
+                id="currentStock"
+                type="number"
+                [value]="medicine.stock || 0"
+                readonly
+                aria-describedby="stockHelp"
+              />
+
+            </div>
+
+            <small id="stockHelp">
+              Stock cannot be changed in this form. Use Batch Receiving / GRN
+              to receive stock or Stock Adjustment to correct a stock count.
+            </small>
+
+            <div class="d-flex flex-wrap gap-2 mt-2" *ngIf="isEditMode">
+              <button
+                type="button"
+                class="btn btn-outline"
+                (click)="goToStockManagement('grn')"
+              >
+                <i class="bi bi-box-arrow-in-down"></i>
+                Batch Receiving / GRN
+              </button>
+
+              <button
+                type="button"
+                class="btn btn-outline"
+                (click)="goToStockManagement('adjustment')"
+              >
+                <i class="bi bi-sliders"></i>
+                Stock Adjustment
+              </button>
+            </div>
+
+          </div>
+
+
+          <!-- Reorder Level -->
+
+          <div class="form-group">
+
+            <label for="reorderLevel">
+              Reorder Level
+            </label>
+
+            <div class="input-wrapper">
+
+              <i class="bi bi-arrow-repeat"></i>
+
+              <input
+                id="reorderLevel"
+                type="number"
+                name="reorderLevel"
+                [(ngModel)]="medicine.reorderLevel"
+                min="0"
+                step="1"
+                placeholder="10"
+              />
+
+            </div>
+
+            <small>
+              Alert when stock reaches this level.
+            </small>
+
+          </div>
+
+        </div>
+
+
+        <!-- STOCK INFORMATION -->
+
+        <div class="stock-info">
+
+
+          <!-- Opening Stock -->
+
+          <div class="info-item">
+
+            <div class="info-icon">
+
+              <i class="bi bi-box"></i>
+
+            </div>
+
+            <div>
+
+              <span>
+                Current Stock
+              </span>
+
+              <strong>
+                {{ medicine.stock || 0 }} units
+              </strong>
+
+            </div>
+
+          </div>
+
+
+          <div class="info-divider"></div>
+
+
+          <!-- Reorder Level -->
+
+          <div class="info-item">
+
+            <div class="info-icon warning">
+
+              <i class="bi bi-exclamation-triangle"></i>
+
+            </div>
+
+            <div>
+
+              <span>
+                Reorder Level
+              </span>
+
+              <strong>
+                {{ medicine.reorderLevel || 0 }} units
+              </strong>
+
+            </div>
+
+          </div>
+
+
+          <div class="info-divider"></div>
+
+
+          <!-- Unit Price -->
+
+          <div class="info-item">
+
+            <div class="info-icon price">
+
+              <i class="bi bi-currency-exchange"></i>
+
+            </div>
+
+            <div>
+
+              <span>
+                Unit Price
+              </span>
+
+              <strong>
+                ৳{{ medicine.unitPrice || 0 | number:'1.2-2' }}
+              </strong>
+
+            </div>
+
+          </div>
+
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- =======================================
+         ADDITIONAL INFORMATION
+    ======================================== -->
+
+    <div class="form-card">
+
+      <div class="card-header">
+
+        <div class="header-icon description-icon">
+
+          <i class="bi bi-file-text"></i>
+
+        </div>
+
+        <div>
+
+          <h2>Additional Information</h2>
+
+          <p>
+            Add any additional notes or information about this medicine.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="card-body">
+
+        <div class="form-group full-width">
+
+          <label for="description">
+            Description
+          </label>
+
+          <textarea
+            id="description"
+            name="description"
+            [(ngModel)]="medicine.description"
+            rows="5"
+            placeholder="Enter medicine description, usage notes, storage instructions or other information..."
+          ></textarea>
+
+          <small>
+            Optional. You can add useful notes for pharmacy staff.
+          </small>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- =======================================
+         FORM ACTIONS
+    ======================================== -->
+
+    <div class="form-actions">
+
+      <div class="required-note">
+
+        <span>*</span>
+
+        Required fields
+
+      </div>
+
+
+      <div class="action-buttons">
+
+
+        <!-- Reset -->
+
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="resetForm()"
+        >
+
+          <i class="bi bi-arrow-counterclockwise"></i>
+
+          Reset
+
+        </button>
+
+
+        <!-- Cancel -->
+
+        <button
+          type="button"
+          class="btn btn-outline"
+          (click)="cancel()"
+        >
+          Cancel
+        </button>
+
+
+        <!-- Save / Update -->
+
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="medicineForm.invalid"
+        >
+
+          <i
+            class="bi"
+            [class.bi-check-circle]="!isEditMode"
+            [class.bi-pencil-square]="isEditMode"
+          ></i>
+
+          {{
+            isEditMode
+              ? 'Update Medicine'
+              : 'Save Medicine'
+          }}
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </form>
+
+</div>
+

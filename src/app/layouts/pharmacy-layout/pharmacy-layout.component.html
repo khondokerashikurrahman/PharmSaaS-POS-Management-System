@@ -1,0 +1,32 @@
+<div
+  class="app-container"
+  [class.sidebar-collapsed]="sidebarCollapsed"
+>
+
+  <!-- SIDEBAR -->
+  <app-sidebar
+    (sidebarToggle)="onSidebarToggle($event)">
+  </app-sidebar>
+
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <app-topbar></app-topbar>
+
+
+    <!-- PAGE CONTENT -->
+    <main class="content-body">
+
+      <router-outlet></router-outlet>
+
+    </main>
+
+
+    <!-- FOOTER -->
+    <app-footer></app-footer>
+
+  </div>
+
+</div>

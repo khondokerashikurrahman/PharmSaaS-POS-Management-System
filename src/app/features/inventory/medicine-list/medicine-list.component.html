@@ -1,0 +1,327 @@
+<div class="medicine-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div>
+      <div class="breadcrumb">
+        <span>Pharmacy</span>
+        <span>/</span>
+        <span>Inventory</span>
+        <span>/</span>
+        <span>Medicines</span>
+      </div>
+
+      <h1>Medicine Management</h1>
+
+      <p>
+        Manage medicines, stock levels and product information.
+      </p>
+    </div>
+
+    <button
+      class="add-medicine-btn"
+      (click)="addMedicine()"
+    >
+      <span>+</span>
+      Add Medicine
+    </button>
+
+  </div>
+
+
+  <!-- SUMMARY CARDS -->
+  <div class="summary-grid">
+
+    <div class="summary-card">
+
+      <div class="summary-icon medicine-icon">
+        💊
+      </div>
+
+      <div>
+        <span>Total Medicines</span>
+        <h2>{{ totalMedicines }}</h2>
+        <small>Registered products</small>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon stock-icon">
+        📦
+      </div>
+
+      <div>
+        <span>Total Stock</span>
+        <h2>{{ totalStock }}</h2>
+        <small>Units available</small>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon low-icon">
+        ⚠️
+      </div>
+
+      <div>
+        <span>Low Stock</span>
+        <h2>{{ lowStockCount }}</h2>
+        <small>Need restocking</small>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon out-icon">
+        🚫
+      </div>
+
+      <div>
+        <span>Out of Stock</span>
+        <h2>{{ outOfStockCount }}</h2>
+        <small>Currently unavailable</small>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- MAIN CARD -->
+  <div class="medicine-card">
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+
+      <div class="toolbar-title">
+
+        <h3>Medicine List</h3>
+
+        <p>
+          {{ filteredMedicines.length }} medicines displayed
+        </p>
+
+      </div>
+
+
+      <div class="search-box">
+
+        <span class="search-icon">
+          🔍
+        </span>
+
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          placeholder="Search medicine, generic or company..."
+        />
+
+      </div>
+
+    </div>
+
+
+    <!-- CATEGORY FILTER -->
+    <div class="category-filter">
+
+      <button
+        *ngFor="let category of categories"
+        class="category-btn"
+        [class.active]="selectedCategory === category"
+        (click)="selectCategory(category)"
+      >
+        {{ category }}
+      </button>
+
+    </div>
+
+
+    <!-- TABLE -->
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>Medicine</th>
+            <th>Generic</th>
+            <th>Company</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="let medicine of filteredMedicines"
+          >
+
+            <!-- MEDICINE -->
+            <td>
+
+              <div class="medicine-name">
+
+                <div class="medicine-avatar">
+                  💊
+                </div>
+
+                <div>
+
+                  <strong>
+                    {{ medicine.name }}
+                  </strong>
+
+                  <span>
+                    {{ medicine.strength }}
+                  </span>
+
+                </div>
+
+              </div>
+
+            </td>
+
+
+            <!-- GENERIC -->
+            <td>
+              <span class="generic">
+                {{ medicine.generic }}
+              </span>
+            </td>
+
+
+            <!-- COMPANY -->
+            <td>
+              {{ medicine.company }}
+            </td>
+
+
+            <!-- CATEGORY -->
+            <td>
+
+              <span class="category-badge">
+                {{ medicine.category }}
+              </span>
+
+            </td>
+
+
+            <!-- PRICE -->
+            <td>
+
+              <strong class="price">
+                ৳ {{ medicine.unitPrice.toFixed(2) }}
+              </strong>
+
+            </td>
+
+
+            <!-- STOCK -->
+            <td>
+
+              <div class="stock-info">
+
+                <strong>
+                  {{ medicine.stock }}
+                </strong>
+
+                <span>
+                  Reorder: {{ medicine.reorderLevel }}
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <!-- STATUS -->
+            <td>
+
+              <span
+                class="status-badge"
+                [ngClass]="getStatusClass(medicine.status)"
+              >
+                {{ medicine.status }}
+              </span>
+
+            </td>
+
+
+            <!-- ACTION -->
+            <td>
+
+              <div class="actions">
+
+                <button
+                  class="view-btn"
+                  (click)="viewMedicine(medicine)"
+                  title="View Medicine"
+                >
+                  👁
+                </button>
+
+                <button
+                  class="edit-btn"
+                  (click)="editMedicine(medicine)"
+                  title="Edit Medicine"
+                >
+                  ✎
+                </button>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+
+          <!-- EMPTY STATE -->
+          <tr
+            *ngIf="filteredMedicines.length === 0"
+          >
+
+            <td
+              colspan="8"
+              class="empty-state"
+            >
+
+              <div class="empty-icon">
+                🔎
+              </div>
+
+              <h3>
+                No medicines found
+              </h3>
+
+              <p>
+                Try another medicine name, generic or category.
+              </p>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>

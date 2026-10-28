@@ -1,0 +1,366 @@
+<div class="admin-layout" [class.sidebar-collapsed]="!sidebarOpen">
+
+  <!-- =========================
+       SIDEBAR
+  ========================== -->
+
+  <aside class="admin-sidebar">
+
+    <!-- LOGO -->
+
+    <div class="logo-area">
+
+      <div class="logo-icon">
+        💊
+      </div>
+
+      <div class="logo-text" *ngIf="sidebarOpen">
+        <h2>PharmSaaS</h2>
+        <span>Super Admin</span>
+      </div>
+
+    </div>
+
+
+    <!-- MENU -->
+
+    <nav class="sidebar-menu">
+
+      <a routerLink="/admin/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+        class="menu-item">
+        <span class="icon">📊</span>
+        <span *ngIf="sidebarOpen">Dashboard</span>
+      </a>
+
+
+      <a routerLink="/admin/tenants" routerLinkActive="active" class="menu-item">
+        <span class="icon">🏢</span>
+        <span *ngIf="sidebarOpen">Tenants</span>
+      </a>
+
+
+      <a routerLink="/admin/plans" routerLinkActive="active" class="menu-item">
+        <span class="icon">💳</span>
+        <span *ngIf="sidebarOpen">Subscription Plans</span>
+      </a>
+
+
+      <a routerLink="/admin/subscriptions" routerLinkActive="active" class="menu-item">
+        <span class="icon">📦</span>
+        <span *ngIf="sidebarOpen">Subscriptions</span>
+      </a>
+
+
+    
+
+      <!-- BILLING TRANSACTIONS -->
+
+      <a routerLink="/admin/billing-transactions" routerLinkActive="active" class="menu-item">
+        <span class="icon">💰</span>
+
+        <span *ngIf="sidebarOpen">
+          Billing Transactions
+        </span>
+      </a>
+
+
+      <!-- BILLING LOGS -->
+
+      <a routerLink="/admin/billing-logs" routerLinkActive="active" class="menu-item">
+        <span class="icon">📜</span>
+
+        <span *ngIf="sidebarOpen">
+          Billing Logs
+        </span>
+      </a>
+
+
+      <a routerLink="/admin/users" routerLinkActive="active" class="menu-item">
+        <span class="icon">👥</span>
+        <span *ngIf="sidebarOpen">Platform Users</span>
+      </a>
+
+
+      <a routerLink="/admin/audit-logs" routerLinkActive="active" class="menu-item">
+        <span class="icon">📋</span>
+        <span *ngIf="sidebarOpen">Audit Logs</span>
+      </a>
+
+
+      <a routerLink="/admin/support" routerLinkActive="active" class="menu-item">
+        <span class="icon">🎧</span>
+        <span *ngIf="sidebarOpen">Support</span>
+      </a>
+
+
+      <div class="menu-divider"></div>
+
+
+      <a routerLink="/admin/settings" routerLinkActive="active" class="menu-item">
+        <span class="icon">⚙️</span>
+        <span *ngIf="sidebarOpen">Platform Settings</span>
+      </a>
+
+    </nav>
+
+
+    <!-- SIDEBAR FOOTER -->
+
+    <div class="sidebar-footer">
+
+      <div class="admin-user">
+
+        <div class="avatar">
+          SA
+        </div>
+
+        <div class="user-info" *ngIf="sidebarOpen">
+          <strong>Super Admin</strong>
+          <small>Platform Owner</small>
+        </div>
+
+      </div>
+
+
+      <!-- LOGOUT -->
+
+      <button class="logout-btn" type="button" (click)="logout(); $event.stopPropagation()">
+        <span>🚪</span>
+
+        <span *ngIf="sidebarOpen">
+          Logout
+        </span>
+      </button>
+
+    </div>
+
+  </aside>
+
+
+  <!-- =========================
+       MAIN AREA
+  ========================== -->
+
+  <div class="admin-main">
+
+
+    <!-- TOPBAR -->
+
+    <header class="admin-topbar">
+
+      <!-- LEFT -->
+
+      <div class="topbar-left">
+
+        <button class="menu-toggle" type="button" (click)="toggleSidebar(); $event.stopPropagation()">
+          ☰
+        </button>
+
+
+        <div class="topbar-title">
+
+          <h3>
+            Super Admin Panel
+          </h3>
+
+          <span>
+            PharmSaaS Platform Management
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <!-- RIGHT -->
+
+      <div class="topbar-right">
+
+
+        <!-- NOTIFICATION -->
+
+        <div class="notification-wrapper">
+
+          <button class="notification-btn" type="button"
+            (click)="toggleNotificationDropdown(); $event.stopPropagation()">
+
+            🔔
+
+            <span class="notification-dot"></span>
+
+          </button>
+
+
+          <!-- NOTIFICATION DROPDOWN -->
+
+          <div class="notification-dropdown" *ngIf="notificationDropdownOpen" (click)="$event.stopPropagation()">
+
+            <div class="dropdown-header">
+
+              <div>
+                <strong>Notifications</strong>
+                <small>Recent platform activity</small>
+              </div>
+
+              <span class="notification-count">
+                3
+              </span>
+
+            </div>
+
+
+            <div class="notification-item">
+
+              <div class="notification-icon warning">
+                ⚠
+              </div>
+
+              <div>
+                <strong>Tenant Approval</strong>
+                <span>8 tenants are waiting for approval.</span>
+                <small>10 minutes ago</small>
+              </div>
+
+            </div>
+
+
+            <div class="notification-item">
+
+              <div class="notification-icon success">
+                ✓
+              </div>
+
+              <div>
+                <strong>Payment Received</strong>
+                <span>Care Pharmacy paid ৳ 5,000.</span>
+                <small>1 hour ago</small>
+              </div>
+
+            </div>
+
+
+            <div class="notification-item">
+
+              <div class="notification-icon info">
+                ℹ
+              </div>
+
+              <div>
+                <strong>Subscription Alert</strong>
+                <span>3 subscriptions expire soon.</span>
+                <small>2 hours ago</small>
+              </div>
+
+            </div>
+
+
+            <div class="dropdown-footer">
+              View all notifications
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- PROFILE -->
+
+        <div class="profile-wrapper">
+
+
+          <button class="profile" type="button" (click)="toggleProfileDropdown(); $event.stopPropagation()">
+
+            <div class="profile-avatar">
+              SA
+            </div>
+
+
+            <div class="profile-info">
+
+              <strong>
+                Super Admin
+              </strong>
+
+              <small>
+                Administrator
+              </small>
+
+            </div>
+
+
+            <span class="profile-arrow">
+              ▾
+            </span>
+
+          </button>
+
+
+          <!-- PROFILE DROPDOWN -->
+
+          <div class="profile-dropdown" *ngIf="profileDropdownOpen" (click)="$event.stopPropagation()">
+
+            <div class="profile-dropdown-header">
+
+              <div class="large-avatar">
+                SA
+              </div>
+
+              <div>
+
+                <strong>
+                  Super Admin
+                </strong>
+
+                <small>
+                  admin&#64;pharmsaas.com
+                </small>
+
+              </div>
+
+            </div>
+
+
+            <div class="dropdown-divider"></div>
+
+
+            <a routerLink="/admin/profile" class="dropdown-item">
+              <span>👤</span>
+              <span>My Profile</span>
+            </a>
+
+
+            <a routerLink="/admin/settings" class="dropdown-item">
+              <span>⚙️</span>
+              <span>Platform Settings</span>
+            </a>
+
+
+            <div class="dropdown-divider"></div>
+
+
+            <button class="dropdown-item logout-dropdown" type="button" (click)="logout()">
+              <span>🚪</span>
+              <span>Logout</span>
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </header>
+
+
+    <!-- CONTENT -->
+
+    <main class="admin-content">
+
+      <router-outlet></router-outlet>
+
+    </main>
+
+
+  </div>
+
+</div>

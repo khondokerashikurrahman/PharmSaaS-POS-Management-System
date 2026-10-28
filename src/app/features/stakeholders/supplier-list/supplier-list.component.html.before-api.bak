@@ -1,0 +1,372 @@
+<div class="supplier-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div>
+      <div class="breadcrumb">
+        <span>Stakeholders</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Suppliers</span>
+      </div>
+
+      <h1>Supplier Management</h1>
+
+      <p>
+        Manage suppliers, purchases and outstanding balances
+      </p>
+    </div>
+
+    <button class="primary-btn" (click)="addSupplier()">
+      <i class="bi bi-plus-lg"></i>
+      Add Supplier
+    </button>
+
+  </div>
+
+
+  <!-- SUMMARY CARDS -->
+  <div class="summary-grid">
+
+    <!-- TOTAL -->
+    <div class="summary-card">
+
+      <div class="summary-icon blue">
+        <i class="bi bi-buildings"></i>
+      </div>
+
+      <div>
+        <span>Total Suppliers</span>
+        <strong>{{ totalSuppliers }}</strong>
+      </div>
+
+    </div>
+
+
+    <!-- ACTIVE -->
+    <div class="summary-card">
+
+      <div class="summary-icon green">
+        <i class="bi bi-check-circle"></i>
+      </div>
+
+      <div>
+        <span>Active Suppliers</span>
+        <strong>{{ activeSuppliers }}</strong>
+      </div>
+
+    </div>
+
+
+    <!-- INACTIVE -->
+    <div class="summary-card">
+
+      <div class="summary-icon gray">
+        <i class="bi bi-pause-circle"></i>
+      </div>
+
+      <div>
+        <span>Inactive Suppliers</span>
+        <strong>{{ inactiveSuppliers }}</strong>
+      </div>
+
+    </div>
+
+
+    <!-- TOTAL DUE -->
+    <div class="summary-card">
+
+      <div class="summary-icon red">
+        <i class="bi bi-wallet2"></i>
+      </div>
+
+      <div>
+        <span>Total Payable Due</span>
+
+        <strong class="due">
+          ৳{{ totalDue | number:'1.2-2' }}
+        </strong>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- TABLE CARD -->
+  <div class="table-card">
+
+    <!-- TOOLBAR -->
+    <div class="table-toolbar">
+
+      <div>
+        <h3>All Suppliers</h3>
+        <p>
+          {{ filteredSuppliers.length }} supplier(s) found
+        </p>
+      </div>
+
+      <div class="filters">
+
+        <!-- SEARCH -->
+        <div class="search-box">
+
+          <i class="bi bi-search"></i>
+
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            placeholder="Search supplier...">
+
+        </div>
+
+
+        <!-- STATUS -->
+        <select [(ngModel)]="statusFilter">
+
+          <option value="All">
+            All Status
+          </option>
+
+          <option value="Active">
+            Active
+          </option>
+
+          <option value="Inactive">
+            Inactive
+          </option>
+
+        </select>
+
+      </div>
+
+    </div>
+
+
+    <!-- TABLE -->
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>SUPPLIER</th>
+
+            <th>CONTACT PERSON</th>
+
+            <th>PHONE</th>
+
+            <th>PURCHASES</th>
+
+            <th>PAID</th>
+
+            <th>DUE</th>
+
+            <th>STATUS</th>
+
+            <th>LAST PURCHASE</th>
+
+            <th>ACTIONS</th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="let supplier of filteredSuppliers">
+
+            <!-- SUPPLIER -->
+            <td>
+
+              <div class="supplier-cell">
+
+                <div class="avatar">
+                  {{ getInitial(supplier.name) }}
+                </div>
+
+                <div>
+
+                  <strong>
+                    {{ supplier.name }}
+                  </strong>
+
+                  <span>
+                    {{ supplier.id }}
+                  </span>
+
+                </div>
+
+              </div>
+
+            </td>
+
+
+            <!-- CONTACT -->
+            <td>
+              {{ supplier.contactPerson }}
+            </td>
+
+
+            <!-- PHONE -->
+            <td>
+
+              <div class="phone-cell">
+
+                <i class="bi bi-telephone"></i>
+
+                {{ supplier.phone }}
+
+              </div>
+
+            </td>
+
+
+            <!-- PURCHASES -->
+            <td>
+
+              <strong class="amount">
+                ৳{{ supplier.totalPurchases | number:'1.2-2' }}
+              </strong>
+
+            </td>
+
+
+            <!-- PAID -->
+            <td>
+
+              <strong class="paid">
+                ৳{{ supplier.totalPaid | number:'1.2-2' }}
+              </strong>
+
+            </td>
+
+
+            <!-- DUE -->
+            <td>
+
+              <strong
+                [class.no-due]="supplier.dueAmount === 0"
+                [class.has-due]="supplier.dueAmount > 0">
+
+                ৳{{ supplier.dueAmount | number:'1.2-2' }}
+
+              </strong>
+
+            </td>
+
+
+            <!-- STATUS -->
+            <td>
+
+              <span
+                class="status-badge"
+                [ngClass]="getStatusClass(supplier.status)">
+
+                <span class="status-dot"></span>
+
+                {{ supplier.status }}
+
+              </span>
+
+            </td>
+
+
+            <!-- LAST PURCHASE -->
+            <td>
+
+              <span class="date">
+                {{ supplier.lastPurchase | date:'dd MMM yyyy' }}
+              </span>
+
+            </td>
+
+
+            <!-- ACTIONS -->
+            <td>
+
+              <div class="actions">
+
+                <button
+                  class="icon-btn view"
+                  title="View Supplier"
+                  (click)="viewSupplier(supplier.id)">
+
+                  <i class="bi bi-eye"></i>
+
+                </button>
+
+
+                <button
+                  class="icon-btn ledger"
+                  title="Supplier Ledger"
+                  (click)="openLedger(supplier.id)">
+
+                  <i class="bi bi-journal-text"></i>
+
+                </button>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+
+          <!-- EMPTY STATE -->
+          <tr *ngIf="filteredSuppliers.length === 0">
+
+            <td colspan="9">
+
+              <div class="empty-state">
+
+                <div class="empty-icon">
+                  <i class="bi bi-buildings"></i>
+                </div>
+
+                <h3>No suppliers found</h3>
+
+                <p>
+                  Try changing your search or status filter.
+                </p>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    <!-- FOOTER -->
+    <div class="table-footer">
+
+      <span>
+        Showing {{ filteredSuppliers.length }}
+        of {{ totalSuppliers }} suppliers
+      </span>
+
+      <div class="footer-total">
+
+        <span>Total Purchases</span>
+
+        <strong>
+          ৳{{ totalPurchases | number:'1.2-2' }}
+        </strong>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

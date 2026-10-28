@@ -1,0 +1,244 @@
+<div class="supplier-details-page">
+  <header class="page-header">
+    <div>
+      <div class="breadcrumb">
+        <span>Stakeholders</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Suppliers</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Supplier Details</span>
+      </div>
+      <h1>Supplier Details</h1>
+      <p>Supplier profile and purchase order history.</p>
+    </div>
+
+    <div class="header-actions">
+      <button type="button" class="btn btn-light" (click)="goBack()">
+        <i class="bi bi-arrow-left"></i> Back
+      </button>
+      <button type="button" class="btn btn-outline"
+        (click)="printDetails()" [disabled]="!supplier">
+        <i class="bi bi-printer"></i> Print
+      </button>
+      <button type="button" class="btn btn-primary"
+        (click)="openLedger()" [disabled]="!supplier">
+        <i class="bi bi-journal-text"></i> View Ledger
+      </button>
+    </div>
+  </header>
+
+  <div *ngIf="loadingSupplier" class="content-card" role="status">
+    Loading supplier details...
+  </div>
+
+  <div *ngIf="error" class="content-card error-notice" role="alert">
+    <h3>Supplier details unavailable</h3>
+    <p>{{ error }}</p>
+    <button type="button" class="btn btn-light" (click)="goBack()">
+      Back to Suppliers
+    </button>
+  </div>
+
+  <ng-container *ngIf="supplier && !loadingSupplier">
+    <section class="profile-card">
+      <div class="supplier-avatar">{{ getStatusClass(supplier.status) ? (supplier.name || 'S').charAt(0).toUpperCase() : 'S' }}</div>
+
+      <div class="supplier-main-info">
+        <div class="name-row">
+          <h2>{{ supplier.name }}</h2>
+          <span class="status-badge" [ngClass]="getStatusClass(supplier.status)">
+            {{ supplier.status }}
+          </span>
+        </div>
+
+        <p class="supplier-id">
+          Supplier Code: {{ supplier.supplierCode }} · ID: {{ supplier.id }}
+        </p>
+
+        <p class="member-since">
+          <i class="bi bi-calendar3"></i>
+          Created {{ supplier.createdAt ? (supplier.createdAt | date:'dd MMM yyyy') : 'date unavailable' }}
+        </p>
+      </div>
+
+      <button type="button" class="edit-btn" (click)="editSupplier()">
+        <i class="bi bi-pencil"></i> Edit Supplier
+      </button>
+    </section>
+
+    <section class="summary-grid">
+      <div class="summary-card">
+        <div class="summary-icon purchase"><i class="bi bi-cart-check"></i></div>
+        <div>
+          <span>Non-cancelled PO Value</span>
+          <strong>৳{{ nonCancelledOrderValue | number:'1.2-2' }}</strong>
+          <small>Purchase Order value, not payment total</small>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-icon paid"><i class="bi bi-wallet2"></i></div>
+        <div>
+          <span>Opening Balance</span>
+          <strong>৳{{ supplier.openingBalance | number:'1.2-2' }}</strong>
+          <small>Supplier account's recorded opening balance</small>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-icon due"><i class="bi bi-credit-card"></i></div>
+        <div>
+          <span>Credit Limit</span>
+          <strong>৳{{ supplier.creditLimit | number:'1.2-2' }}</strong>
+          <small>Configured supplier credit limit</small>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-icon orders"><i class="bi bi-box-seam"></i></div>
+        <div>
+          <span>Purchase Orders</span>
+          <strong>{{ totalOrders }}</strong>
+          <small>{{ latestOrderDate ? ('Latest: ' + (latestOrderDate | date:'dd MMM yyyy')) : 'No matching orders found' }}</small>
+        </div>
+      </div>
+    </section>
+
+    <section class="information-grid">
+      <div class="content-card">
+        <div class="card-header">
+          <div>
+            <h3>Supplier Information</h3>
+            <p>Contact details returned by the backend.</p>
+          </div>
+          <i class="bi bi-building"></i>
+        </div>
+
+        <div class="info-list">
+          <div class="info-item">
+            <span class="info-label"><i class="bi bi-building"></i> Company</span>
+            <strong>{{ supplier.companyName || '—' }}</strong>
+          </div>
+          <div class="info-item">
+            <span class="info-label"><i class="bi bi-person"></i> Contact Person</span>
+            <strong>{{ supplier.contactPerson || '—' }}</strong>
+          </div>
+          <div class="info-item">
+            <span class="info-label"><i class="bi bi-telephone"></i> Phone</span>
+            <strong>{{ supplier.phone || '—' }}</strong>
+          </div>
+          <div class="info-item">
+            <span class="info-label"><i class="bi bi-envelope"></i> Email</span>
+            <strong>{{ supplier.email || '—' }}</strong>
+          </div>
+          <div class="info-item">
+            <span class="info-label"><i class="bi bi-geo-alt"></i> Address</span>
+            <strong>{{ supplier.address || '—' }}</strong>
+          </div>
+          <div class="info-item">
+            <span class="info-label"><i class="bi bi-toggle-on"></i> Account Status</span>
+            <span class="status-badge" [ngClass]="getStatusClass(supplier.status)">
+              {{ supplier.status }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="content-card account-card">
+        <div class="card-header">
+          <div>
+            <h3>Account Configuration</h3>
+            <p>Recorded balances and limits.</p>
+          </div>
+          <i class="bi bi-card-checklist"></i>
+        </div>
+
+        <div class="account-summary">
+          <div class="account-row">
+            <span>Supplier Code</span>
+            <strong>{{ supplier.supplierCode }}</strong>
+          </div>
+          <div class="account-row">
+            <span>Opening Balance</span>
+            <strong>৳{{ supplier.openingBalance | number:'1.2-2' }}</strong>
+          </div>
+          <div class="account-row">
+            <span>Credit Limit</span>
+            <strong>৳{{ supplier.creditLimit | number:'1.2-2' }}</strong>
+          </div>
+          <div class="account-row">
+            <span>Created</span>
+            <strong>{{ supplier.createdAt ? (supplier.createdAt | date:'dd MMM yyyy') : '—' }}</strong>
+          </div>
+        </div>
+
+        <p class="field-note">
+          Paid and payable-due totals are not displayed because the supplier
+          API does not currently provide payment reconciliation data.
+        </p>
+        <button type="button" class="ledger-btn" (click)="openLedger()">
+          <i class="bi bi-journal-text"></i>
+          Open Supplier Ledger
+          <i class="bi bi-arrow-right"></i>
+        </button>
+      </div>
+    </section>
+
+    <section class="content-card purchase-card">
+      <div class="card-header">
+        <div>
+          <h3>Purchase Order History</h3>
+          <p>Orders matched by supplier name from the tenant's Purchase Order API.</p>
+        </div>
+        <span class="record-count">{{ totalOrders }} Records</span>
+      </div>
+
+      <div *ngIf="loadingOrders" class="empty-state" role="status">
+        Loading purchase orders...
+      </div>
+
+      <div *ngIf="ordersError" class="error-notice" role="alert">
+        {{ ordersError }}
+      </div>
+
+      <div class="table-wrapper" *ngIf="!loadingOrders && !ordersError">
+        <table>
+          <thead>
+            <tr>
+              <th>ORDER NUMBER</th>
+              <th>ORDER DATE</th>
+              <th>EXPECTED DELIVERY</th>
+              <th>ITEMS</th>
+              <th>ORDER VALUE</th>
+              <th>STATUS</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let order of orders">
+              <td><span class="invoice-number">{{ order.orderNumber }}</span></td>
+              <td>{{ order.orderDate | date:'dd MMM yyyy' }}</td>
+              <td>{{ order.expectedDeliveryDate ? (order.expectedDeliveryDate | date:'dd MMM yyyy') : '—' }}</td>
+              <td>{{ order.items?.length || 0 }}</td>
+              <td><strong>৳{{ order.totalAmount | number:'1.2-2' }}</strong></td>
+              <td>
+                <span [ngClass]="getOrderStatusClass(order.status)">
+                  {{ order.status }}
+                </span>
+              </td>
+            </tr>
+
+            <tr *ngIf="orders.length === 0">
+              <td colspan="6">
+                <div class="empty-state">
+                  <h3>No purchase orders found</h3>
+                  <p>There are no Purchase Orders matching this supplier's current name.</p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </ng-container>
+</div>

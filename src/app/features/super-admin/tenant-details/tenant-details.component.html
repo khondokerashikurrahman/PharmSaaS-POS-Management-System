@@ -1,0 +1,458 @@
+<div class="tenant-details-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div class="header-left">
+      <button class="back-btn" (click)="goBack()">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+
+      <div>
+        <div class="breadcrumb">
+          <span>Super Admin</span>
+          <i class="bi bi-chevron-right"></i>
+          <span>Tenant Management</span>
+          <i class="bi bi-chevron-right"></i>
+          <strong>Tenant Details</strong>
+        </div>
+
+        <h2>Tenant Details</h2>
+        <p>View and manage pharmacy tenant information</p>
+      </div>
+    </div>
+
+    <div class="header-actions">
+
+      <button class="btn secondary-btn" (click)="editTenant()">
+        <i class="bi bi-pencil"></i>
+        Edit Tenant
+      </button>
+
+      <button class="btn" [class.suspend-btn]="tenant.status === 'Active'"
+        [class.activate-btn]="tenant.status === 'Suspended' || tenant.status === 'Pending'" (click)="changeStatus()">
+
+        <i class="bi" [class.bi-pause-circle]="tenant.status === 'Active'"
+          [class.bi-check-circle]="tenant.status !== 'Active'">
+        </i>
+
+        {{ tenant.status === 'Active' ? 'Suspend Tenant' : 'Activate Tenant' }}
+
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- TENANT PROFILE -->
+  <div class="profile-card">
+
+    <div class="profile-icon">
+      <i class="bi bi-hospital"></i>
+    </div>
+
+    <div class="profile-info">
+
+      <div class="title-row">
+        <h3>{{ tenant.name }}</h3>
+
+        <span class="status-badge" [class.active]="tenant.status === 'Active'"
+          [class.pending]="tenant.status === 'Pending'" [class.suspended]="tenant.status === 'Suspended'">
+
+          <span class="status-dot"></span>
+          {{ tenant.status }}
+
+        </span>
+      </div>
+
+      <p class="tenant-id">
+        Tenant ID: <strong>{{ tenant.id }}</strong>
+      </p>
+
+      <div class="contact-row">
+
+        <span>
+          <i class="bi bi-envelope"></i>
+          {{ tenant.email }}
+        </span>
+
+        <span>
+          <i class="bi bi-telephone"></i>
+          {{ tenant.phone }}
+        </span>
+
+        <span>
+          <i class="bi bi-geo-alt"></i>
+          {{ tenant.address }}
+        </span>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- STAT CARDS -->
+  <div class="stats-grid">
+
+    <div class="stat-card">
+
+      <div class="stat-icon plan-icon">
+        <i class="bi bi-award"></i>
+      </div>
+
+      <div>
+        <span class="stat-label">Current Plan</span>
+        <h3>{{ tenant.plan }}</h3>
+      </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+      <div class="stat-icon branch-icon">
+        <i class="bi bi-diagram-3"></i>
+      </div>
+
+      <div>
+        <span class="stat-label">Total Branches</span>
+        <h3>{{ tenant.branches }}</h3>
+      </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+      <div class="stat-icon employee-icon">
+        <i class="bi bi-people"></i>
+      </div>
+
+      <div>
+        <span class="stat-label">Employees</span>
+        <h3>{{ tenant.employees }}</h3>
+      </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+      <div class="stat-icon billing-icon">
+        <i class="bi bi-credit-card"></i>
+      </div>
+
+      <div>
+        <span class="stat-label">Monthly Billing</span>
+        <h3>৳{{ tenant.monthlyBilling | number }}</h3>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- MAIN CONTENT -->
+  <div class="content-grid">
+
+    <!-- LEFT -->
+    <div class="main-column">
+
+      <!-- BUSINESS INFORMATION -->
+      <div class="content-card">
+
+        <div class="card-header">
+          <div>
+            <h3>Business Information</h3>
+            <p>Basic information about this pharmacy</p>
+          </div>
+
+          <i class="bi bi-building"></i>
+        </div>
+
+        <div class="info-grid">
+
+          <div class="info-item">
+            <span>Business Name</span>
+            <strong>{{ tenant.name }}</strong>
+          </div>
+
+          <div class="info-item">
+            <span>Tenant ID</span>
+            <strong>{{ tenant.id }}</strong>
+          </div>
+
+          <div class="info-item">
+            <span>Owner Name</span>
+            <strong>{{ tenant.owner }}</strong>
+          </div>
+
+          <div class="info-item">
+            <span>Email Address</span>
+            <strong>{{ tenant.email }}</strong>
+          </div>
+
+          <div class="info-item">
+            <span>Phone Number</span>
+            <strong>{{ tenant.phone }}</strong>
+          </div>
+
+          <div class="info-item">
+            <span>Address</span>
+            <strong>{{ tenant.address }}</strong>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- SUBSCRIPTION -->
+      <div class="content-card">
+
+        <div class="card-header">
+
+          <div>
+            <h3>Subscription Information</h3>
+            <p>Current SaaS subscription details</p>
+          </div>
+
+          <i class="bi bi-calendar-check"></i>
+
+        </div>
+
+        <div class="subscription-box">
+
+          <div class="subscription-plan">
+
+            <div class="plan-logo">
+              <i class="bi bi-star-fill"></i>
+            </div>
+
+            <div>
+              <span>Current Subscription</span>
+              <h3>{{ tenant.plan }} Plan</h3>
+            </div>
+
+          </div>
+
+          <div class="subscription-details">
+
+            <div>
+              <span>Start Date</span>
+              <strong>{{ tenant.subscriptionStart }}</strong>
+            </div>
+
+            <div>
+              <span>Expiry Date</span>
+              <strong>{{ tenant.subscriptionEnd }}</strong>
+            </div>
+
+            <div>
+              <span>Monthly Price</span>
+              <strong>৳{{ tenant.monthlyBilling | number }}</strong>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- RECENT ACTIVITY -->
+      <div class="content-card">
+
+        <div class="card-header">
+
+          <div>
+            <h3>Recent Activity</h3>
+            <p>Latest activities from this tenant</p>
+          </div>
+
+          <i class="bi bi-clock-history"></i>
+
+        </div>
+
+        <div class="activity-list">
+
+          <div class="activity-item">
+
+            <div class="activity-icon">
+              <i class="bi bi-person-plus"></i>
+            </div>
+
+            <div>
+              <strong>New employee added</strong>
+              <p>Pharmacy administrator added a new employee.</p>
+              <small>2 hours ago</small>
+            </div>
+
+          </div>
+
+
+          <div class="activity-item">
+
+            <div class="activity-icon">
+              <i class="bi bi-box-seam"></i>
+            </div>
+
+            <div>
+              <strong>Inventory updated</strong>
+              <p>Medicine stock information was updated.</p>
+              <small>Yesterday</small>
+            </div>
+
+          </div>
+
+
+          <div class="activity-item">
+
+            <div class="activity-icon">
+              <i class="bi bi-credit-card"></i>
+            </div>
+
+            <div>
+              <strong>Subscription payment received</strong>
+              <p>Monthly subscription payment was successfully processed.</p>
+              <small>3 days ago</small>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- RIGHT -->
+    <div class="side-column">
+
+      <!-- ACCOUNT STATUS -->
+      <div class="content-card">
+
+        <div class="card-header">
+          <div>
+            <h3>Account Status</h3>
+            <p>Tenant account overview</p>
+          </div>
+        </div>
+
+        <div class="account-status">
+
+          <div class="large-status" [class.active]="tenant.status === 'Active'"
+            [class.suspended]="tenant.status === 'Suspended'" [class.pending]="tenant.status === 'Pending'">
+
+            <i class="bi" [class.bi-check-circle]="tenant.status === 'Active'"
+              [class.bi-pause-circle]="tenant.status === 'Suspended'"
+              [class.bi-hourglass-split]="tenant.status === 'Pending'">
+            </i>
+
+            <div>
+              <strong>{{ tenant.status }}</strong>
+              <span>
+                {{
+                tenant.status === 'Active'
+                ? 'Tenant is currently operational'
+                : tenant.status === 'Suspended'
+                ? 'Tenant access is currently suspended'
+                : 'Tenant is waiting for approval'
+                }}
+              </span>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- REGISTRATION -->
+      <div class="content-card">
+
+        <div class="card-header">
+
+          <div>
+            <h3>Registration</h3>
+            <p>Tenant registration details</p>
+          </div>
+
+          <i class="bi bi-file-earmark-text"></i>
+
+        </div>
+
+        <div class="registration-info">
+
+          <div>
+            <span>Registration Date</span>
+            <strong>{{ tenant.registrationDate }}</strong>
+          </div>
+
+          <div>
+            <span>Account Type</span>
+            <strong>SaaS Tenant</strong>
+          </div>
+
+          <div>
+            <span>Tenant Status</span>
+            <strong>{{ tenant.status }}</strong>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- QUICK ACTIONS -->
+      <div class="content-card">
+
+        <div class="card-header">
+
+          <div>
+            <h3>Quick Actions</h3>
+            <p>Manage this tenant</p>
+          </div>
+
+        </div>
+
+        <div class="quick-actions">
+
+          <button>
+            <i class="bi bi-receipt"></i>
+            Billing History
+            <i class="bi bi-chevron-right"></i>
+          </button>
+
+          <button>
+            <i class="bi bi-diagram-3"></i>
+            Manage Branches
+            <i class="bi bi-chevron-right"></i>
+          </button>
+
+          <button>
+            <i class="bi bi-people"></i>
+            View Employees
+            <i class="bi bi-chevron-right"></i>
+          </button>
+
+          <button>
+            <i class="bi bi-clock-history"></i>
+            Activity Logs
+            <i class="bi bi-chevron-right"></i>
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

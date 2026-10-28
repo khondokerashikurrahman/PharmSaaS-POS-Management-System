@@ -1,0 +1,207 @@
+<div class="medicine-form-page">
+  <div class="page-header">
+    <div class="header-left">
+      <div class="breadcrumb">
+        <span>Inventory</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>{{ isProductMode ? 'Products' : 'Medicines' }}</span>
+        <i class="bi bi-chevron-right"></i>
+        <span class="current">{{ pageTitle }}</span>
+      </div>
+
+      <h1>{{ pageTitle }}</h1>
+      <p>{{ pageDescription }}</p>
+    </div>
+
+    <div class="header-actions">
+      <button type="button" class="btn btn-light" (click)="cancel()">
+        <i class="bi bi-arrow-left"></i>
+        {{ isProductMode ? 'Back to Products' : 'Back to Medicines' }}
+      </button>
+    </div>
+  </div>
+
+  <form class="medicine-form" #productForm="ngForm"
+        (ngSubmit)="saveMedicine()" novalidate>
+    <div class="form-card">
+      <div class="card-header">
+        <div class="header-icon"><i class="bi bi-box-seam"></i></div>
+        <div>
+          <h2>Product Information</h2>
+          <p>Medicine and non-medicine products share the same inventory.</p>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="productType">Product Type <span>*</span></label>
+            <div class="input-wrapper">
+              <i class="bi bi-box-seam"></i>
+              <select id="productType" name="productType"
+                      [(ngModel)]="medicine.productType"
+                      (ngModelChange)="onProductTypeChange($event)" required>
+                <option *ngFor="let type of productTypes" [value]="type">
+                  {{ getProductTypeLabel(type) }}
+                </option>
+              </select>
+            </div>
+            <small>Select Medicine or another product type.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="productName">Product Name <span>*</span></label>
+            <div class="input-wrapper">
+              <i class="bi bi-box"></i>
+              <input id="productName" type="text" name="name"
+                     [(ngModel)]="medicine.name"
+                     placeholder="Enter product name"
+                     autocomplete="off" required />
+            </div>
+          </div>
+
+          <div class="form-group" *ngIf="isMedicineLike">
+            <label for="generic">Generic Name <span>*</span></label>
+            <div class="input-wrapper">
+              <i class="bi bi-prescription2"></i>
+              <input id="generic" type="text" name="generic"
+                     [(ngModel)]="medicine.generic" (ngModelChange)="onGenericNameChange($event)"
+                     placeholder="e.g. Paracetamol"
+                     autocomplete="off" required list="genericNameOptions" />
+<datalist id="genericNameOptions"><option *ngFor="let genericName of genericNames" [value]="genericName"></option></datalist>
+            </div>
+            <small>Used for medicine/OTC active ingredients.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="company">Company / Brand</label>
+            <div class="input-wrapper">
+              <i class="bi bi-building"></i>
+              <input id="company" type="text" name="company"
+                     [(ngModel)]="medicine.company" (ngModelChange)="onCompanyNameChange($event)"
+                     placeholder="Enter company or brand name"
+                     autocomplete="off" list="companyNameOptions" />
+              <datalist id="companyNameOptions">
+                <option *ngFor="let companyName of companyNames" [value]="companyName"></option>
+              </datalist>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="category">Category <span>*</span></label>
+            <div class="input-wrapper">
+              <i class="bi bi-grid"></i>
+              <select id="category" name="category"
+                      [(ngModel)]="medicine.category" (ngModelChange)="onCategoryNameChange($event)" required>
+                <option value="">Select category</option>
+                <option *ngFor="let category of categories" [value]="category">
+                  {{ category }}
+                </option>
+              </select>
+            </div>
+            <small>Categories change when Product Type changes.</small>
+          </div>
+
+          <div class="form-group" *ngIf="isMedicineLike">
+            <label for="strength">Strength</label>
+            <div class="input-wrapper">
+              <i class="bi bi-droplet"></i>
+              <input id="strength" type="text" name="strength"
+                     [(ngModel)]="medicine.strength"
+                     placeholder="e.g. 500 mg" />
+            </div>
+          </div>
+
+          <div class="form-group" *ngIf="isMedicineLike">
+            <label for="dosageForm">Dosage Form <span>*</span></label>
+            <div class="input-wrapper">
+              <i class="bi bi-capsule"></i>
+              <select id="dosageForm" name="dosageForm"
+                      [(ngModel)]="medicine.dosageForm" (ngModelChange)="onDosageFormChange($event)" required>
+                <option value="">Select dosage form</option>
+                <option *ngFor="let form of dosageForms" [value]="form">
+                  {{ form }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="sku">SKU / Product Code</label>
+            <div class="input-wrapper">
+              <i class="bi bi-upc"></i>
+              <input id="sku" type="text" name="sku"
+                     [(ngModel)]="medicine.sku"
+                     placeholder="Auto-generated if empty" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="barcode">Barcode</label>
+            <div class="input-wrapper">
+              <i class="bi bi-upc-scan"></i>
+              <input id="barcode" type="text" name="barcode"
+                     [(ngModel)]="medicine.barcode"
+                     placeholder="Scan or enter barcode" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="purchasePrice">Purchase Price (৳)</label>
+            <div class="input-wrapper">
+              <i class="bi bi-currency-exchange"></i>
+              <input id="purchasePrice" type="number" name="purchasePrice"
+                     [(ngModel)]="medicine.purchasePrice"
+                     min="0" step="0.01" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="unitPrice">Sale Price (৳) <span>*</span></label>
+            <div class="input-wrapper">
+              <i class="bi bi-cash"></i>
+              <input id="unitPrice" type="number" name="unitPrice"
+                     [(ngModel)]="medicine.unitPrice"
+                     min="0.01" step="0.01" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="reorderLevel">Low Stock Alert Quantity</label>
+            <div class="input-wrapper">
+              <i class="bi bi-exclamation-triangle"></i>
+              <input id="reorderLevel" type="number" name="reorderLevel"
+                     [(ngModel)]="medicine.reorderLevel"
+                     min="0" step="1" />
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="description">Description / Notes</label>
+            <div class="input-wrapper">
+              <i class="bi bi-card-text"></i>
+              <textarea id="description" name="description" rows="3"
+                        [(ngModel)]="medicine.description"
+                        placeholder="Optional product information"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <p class="stock-note">
+          <i class="bi bi-info-circle"></i>
+          Stock quantity is controlled by GRN and Stock Management, not by this form.
+        </p>
+
+        <div class="product-form-actions">
+          <button type="button" class="product-cancel-btn" (click)="cancel()">
+            Cancel
+          </button>
+          <button type="submit" class="product-submit-btn" [disabled]="saving">
+            <i class="bi bi-check2-circle"></i>
+            {{ saving ? 'Saving...' : (isEditMode ? 'Update Product' : 'Save Product') }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>

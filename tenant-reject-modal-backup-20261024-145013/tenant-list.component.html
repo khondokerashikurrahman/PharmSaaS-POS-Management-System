@@ -1,0 +1,472 @@
+<div class="tenant-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div class="header-content">
+
+      <div class="breadcrumb">
+        <span>Super Admin</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Tenant Management</span>
+      </div>
+
+      <h1>Tenant Management</h1>
+
+      <p>
+        Manage all pharmacy tenants, subscriptions and platform access.
+      </p>
+
+    </div>
+
+    <button class="add-tenant-btn" (click)="openAddModal()">
+      <i class="bi bi-plus-lg"></i>
+      Add New Tenant
+    </button>
+
+  </div>
+
+
+  <!-- SUMMARY -->
+  <div class="summary-grid">
+
+    <div class="summary-card">
+      <div class="summary-icon total">
+        <i class="bi bi-buildings"></i>
+      </div>
+
+      <div>
+        <span>Total Tenants</span>
+        <strong>{{ totalTenants }}</strong>
+      </div>
+    </div>
+
+
+    <div class="summary-card">
+      <div class="summary-icon active">
+        <i class="bi bi-check-circle"></i>
+      </div>
+
+      <div>
+        <span>Active</span>
+        <strong>{{ activeTenants }}</strong>
+      </div>
+    </div>
+
+
+    <div class="summary-card">
+      <div class="summary-icon pending">
+        <i class="bi bi-clock-history"></i>
+      </div>
+
+      <div>
+        <span>Pending</span>
+        <strong>{{ pendingTenants }}</strong>
+      </div>
+    </div>
+
+
+    <div class="summary-card">
+      <div class="summary-icon suspended">
+        <i class="bi bi-pause-circle"></i>
+      </div>
+
+      <div>
+        <span>Suspended</span>
+        <strong>{{ suspendedTenants }}</strong>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- FILTER BAR -->
+  <div class="filter-card">
+
+    <div class="search-wrapper">
+
+      <i class="bi bi-search"></i>
+
+      <input type="text" [(ngModel)]="searchTerm" placeholder="Search pharmacy, owner or tenant ID..." />
+
+    </div>
+
+
+    <select class="filter-select" [(ngModel)]="selectedStatus">
+      <option value="">All Status</option>
+      <option value="Active">Active</option>
+      <option value="Pending">Pending</option>
+      <option value="Suspended">Suspended</option>
+      <option value="Rejected">Rejected</option>
+    </select>
+
+
+    <select class="filter-select" [(ngModel)]="selectedPlan">
+      <option value="">All Plans</option>
+      <option value="Basic">Basic</option>
+      <option value="Standard">Standard</option>
+      <option value="Premium">Premium</option>
+    </select>
+
+
+    <button class="clear-btn" (click)="clearFilters()">
+      <i class="bi bi-arrow-counterclockwise"></i>
+      Reset
+    </button>
+
+  </div>
+
+
+  <!-- TENANT SECTION -->
+  <div class="tenant-section">
+
+    <div class="section-heading">
+
+      <div>
+        <h2>Pharmacy Tenants</h2>
+
+        <p>
+          {{ filteredTenants.length }}
+          tenant{{ filteredTenants.length !== 1 ? 's' : '' }}
+          registered on the platform
+        </p>
+      </div>
+
+      <button class="refresh-btn" (click)="refreshTenants()">
+        <i class="bi bi-arrow-clockwise"></i>
+        Refresh
+      </button>
+
+    </div>
+
+
+    <!-- TENANT CARDS -->
+    <div class="tenant-grid" *ngIf="filteredTenants.length > 0">
+
+      <div class="tenant-card" *ngFor="
+          let tenant of filteredTenants;
+          trackBy: trackByTenantId
+        ">
+
+        <!-- CARD HEADER -->
+        <div class="tenant-card-header">
+
+          <div class="tenant-brand">
+
+            <div class="tenant-logo">
+              <i class="bi bi-hospital"></i>
+            </div>
+
+            <div class="tenant-title">
+
+              <h3>
+                {{ tenant.name }}
+              </h3>
+
+              <span class="tenant-id">
+                {{ tenant.id }}
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <span class="status-badge" [ngClass]="{
+              'status-active': tenant.status === 'Active',
+              'status-pending': tenant.status === 'Pending',
+              'status-suspended': tenant.status === 'Suspended',
+              'status-rejected': tenant.status === 'Rejected'
+            }">
+
+            <span class="status-dot"></span>
+
+            {{ tenant.status }}
+
+          </span>
+
+        </div>
+
+
+        <!-- OWNER -->
+        <div class="tenant-owner">
+
+          <div class="owner-avatar">
+            {{ tenant.owner.charAt(0).toUpperCase() }}
+          </div>
+
+          <div>
+            <span>Owner</span>
+            <strong>{{ tenant.owner }}</strong>
+          </div>
+
+        </div>
+
+
+        <!-- CONTACT -->
+        <div class="contact-info">
+
+          <div>
+            <i class="bi bi-envelope"></i>
+            <span>{{ tenant.email }}</span>
+          </div>
+
+          <div>
+            <i class="bi bi-telephone"></i>
+            <span>{{ tenant.phone }}</span>
+          </div>
+
+          <div>
+            <i class="bi bi-geo-alt"></i>
+            <span>{{ tenant.address }}</span>
+          </div>
+
+        </div>
+
+
+        <!-- PLAN -->
+        <div class="plan-section">
+
+          <div class="plan-info">
+
+            <span>Subscription Plan</span>
+
+            <strong [ngClass]="{
+                'plan-basic': tenant.plan === 'Basic',
+                'plan-standard': tenant.plan === 'Standard',
+                'plan-premium': tenant.plan === 'Premium'
+              }">
+              {{ tenant.plan }}
+            </strong>
+
+          </div>
+
+          <div class="billing">
+
+            <span>Monthly</span>
+
+            <strong>
+              ৳{{ tenant.monthlyBilling | number }}
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <!-- STATS -->
+        <div class="tenant-stats">
+
+          <div class="stat-item">
+
+            <i class="bi bi-diagram-3"></i>
+
+            <div>
+              <strong>{{ tenant.branches }}</strong>
+              <span>Branches</span>
+            </div>
+
+          </div>
+
+
+          <div class="stat-item">
+
+            <i class="bi bi-people"></i>
+
+            <div>
+              <strong>{{ tenant.employees }}</strong>
+              <span>Employees</span>
+            </div>
+
+          </div>
+
+
+          <div class="stat-item">
+
+            <i class="bi bi-calendar3"></i>
+
+            <div>
+              <strong>{{ tenant.registrationDate }}</strong>
+              <span>Registered</span>
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- CARD ACTIONS -->
+        <div class="card-actions">
+
+          <button class="view-btn" (click)="viewTenant(tenant)">
+            <i class="bi bi-eye"></i>
+            View Details
+          </button>
+
+
+          <button class="enter-btn" [disabled]="tenant.status !== 'Active'" (click)="enterPharmacy(tenant)">
+            <i class="bi bi-box-arrow-in-right"></i>
+            Enter Pharmacy
+          </button>
+
+        </div>
+
+
+        <!-- MANAGEMENT ACTIONS -->
+        <div class="management-actions">
+
+          <button *ngIf="tenant.status === 'Pending'" class="small-action approve" (click)="approveTenant(tenant)">
+            <i class="bi bi-check-lg"></i>
+            Approve
+          </button>
+
+
+          <button *ngIf="tenant.status === 'Active'" class="small-action suspend" (click)="suspendTenant(tenant)">
+            <i class="bi bi-pause"></i>
+            Suspend
+          </button>
+
+
+          <button *ngIf="tenant.status === 'Suspended'" class="small-action activate" (click)="activateTenant(tenant)">
+            <i class="bi bi-play"></i>
+            Activate
+          </button>
+
+
+          <button *ngIf="tenant.status === 'Pending'" class="small-action reject" (click)="rejectTenant(tenant)">
+            <i class="bi bi-x-lg"></i>
+            Reject
+          </button>
+
+
+          <button class="small-action delete" (click)="deleteTenant(tenant)">
+            <i class="bi bi-trash3"></i>
+            Delete
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- EMPTY STATE -->
+    <div class="empty-state" *ngIf="filteredTenants.length === 0">
+
+      <div class="empty-icon">
+        <i class="bi bi-building-x"></i>
+      </div>
+
+      <h3>No tenants found</h3>
+
+      <p>
+        Try changing your search or filter.
+      </p>
+
+      <button class="clear-btn" (click)="clearFilters()">
+        Reset Filters
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- ========================= -->
+<!-- ADD TENANT MODAL -->
+<!-- ========================= -->
+
+<div class="modal-backdrop" *ngIf="showAddModal" (click)="closeAddModal()">
+
+  <div class="tenant-modal" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+
+      <div>
+        <h2>Add New Tenant</h2>
+        <p>Create a new pharmacy tenant.</p>
+      </div>
+
+      <button class="close-btn" (click)="closeAddModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+
+    </div>
+
+
+    <div class="modal-body">
+
+      <div class="form-group">
+
+        <label>Pharmacy Name *</label>
+
+        <input type="text" [(ngModel)]="newTenant.name" placeholder="Enter pharmacy name" />
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label>Owner Name *</label>
+
+        <input type="text" [(ngModel)]="newTenant.owner" placeholder="Enter owner name" />
+
+      </div>
+
+
+      <div class="form-row">
+
+        <div class="form-group">
+
+          <label>Email *</label>
+
+          <input type="email" [(ngModel)]="newTenant.email" placeholder="pharmacy@example.com" />
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label>Phone *</label>
+
+          <input type="text" [(ngModel)]="newTenant.phone" placeholder="017XXXXXXXX" />
+
+        </div>
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label>Subscription Plan</label>
+
+        <select [(ngModel)]="newTenant.plan">
+          <option value="Basic">Basic — ৳1,999/month</option>
+          <option value="Standard">Standard — ৳2,999/month</option>
+          <option value="Premium">Premium — ৳4,999/month</option>
+        </select>
+
+      </div>
+
+    </div>
+
+
+    <div class="modal-footer">
+
+      <button class="cancel-btn" (click)="closeAddModal()">
+        Cancel
+      </button>
+
+      <button class="save-btn" (click)="addTenant()">
+        <i class="bi bi-check-lg"></i>
+        Create Tenant
+      </button>
+
+    </div>
+
+  </div>
+
+</div>

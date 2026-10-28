@@ -1,0 +1,119 @@
+import { Component, EventEmitter, Output } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+
+import { Product } from '../../../core/models/product.model';
+
+@Component({
+  selector: 'app-product-search',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule
+  ],
+  templateUrl: './product-search.component.html',
+  styleUrl: './product-search.component.scss'
+})
+export class ProductSearchComponent {
+
+  @Output()
+  productSelected = new EventEmitter<Product>();
+
+  searchTerm = '';
+
+  products: Product[] = [
+    {
+      id: 'PRD-001',
+      medicineId: 'MED-001',
+      name: 'Napa 500mg Tablet',
+      sku: 'NAP-500',
+      barcode: '890123456001',
+      category: 'Pain Relief',
+      unit: 'Tablet',
+      purchasePrice: 1.20,
+      sellingPrice: 2.00,
+      taxRate: 5,
+      discountRate: 0,
+      status: 'Active'
+    },
+    {
+      id: 'PRD-002',
+      medicineId: 'MED-002',
+      name: 'Seclo 20mg Capsule',
+      sku: 'SEC-020',
+      barcode: '890123456002',
+      category: 'Gastric',
+      unit: 'Capsule',
+      purchasePrice: 2.50,
+      sellingPrice: 4.00,
+      taxRate: 5,
+      discountRate: 0,
+      status: 'Active'
+    },
+    {
+      id: 'PRD-003',
+      medicineId: 'MED-003',
+      name: 'Napa Extra Tablet',
+      sku: 'NEX-500',
+      barcode: '890123456003',
+      category: 'Pain Relief',
+      unit: 'Tablet',
+      purchasePrice: 2.00,
+      sellingPrice: 3.50,
+      taxRate: 5,
+      discountRate: 5,
+      status: 'Active'
+    },
+    {
+      id: 'PRD-004',
+      medicineId: 'MED-004',
+      name: 'Avolac Syrup',
+      sku: 'AVO-SYR',
+      barcode: '890123456004',
+      category: 'Digestive',
+      unit: 'Bottle',
+      purchasePrice: 55,
+      sellingPrice: 75,
+      taxRate: 5,
+      discountRate: 0,
+      status: 'Active'
+    },
+    {
+      id: 'PRD-005',
+      medicineId: 'MED-005',
+      name: 'DPH 10mg Tablet',
+      sku: 'DPH-010',
+      barcode: '890123456005',
+      category: 'Allergy',
+      unit: 'Tablet',
+      purchasePrice: 1.50,
+      sellingPrice: 2.50,
+      taxRate: 5,
+      discountRate: 0,
+      status: 'Active'
+    }
+  ];
+
+  get filteredProducts(): Product[] {
+    const term = this.searchTerm.trim().toLowerCase();
+
+    if (!term) {
+      return this.products;
+    }
+
+    return this.products.filter(product =>
+      product.name.toLowerCase().includes(term) ||
+      product.sku.toLowerCase().includes(term) ||
+      product.barcode?.toLowerCase().includes(term) ||
+      product.category.toLowerCase().includes(term)
+    );
+  }
+
+  selectProduct(product: Product): void {
+    this.productSelected.emit(product);
+  }
+
+  clearSearch(): void {
+    this.searchTerm = '';
+  }
+}

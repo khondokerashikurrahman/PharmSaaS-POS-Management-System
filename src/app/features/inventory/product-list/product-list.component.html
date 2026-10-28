@@ -1,0 +1,169 @@
+<div class="product-page">
+  <div class="page-header">
+    <div>
+      <div class="breadcrumb">
+        <span>Inventory</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Products</span>
+      </div>
+      <h1>Product List</h1>
+      <p>Manage medicines and all other pharmacy products in one inventory.</p>
+    </div>
+
+    <button type="button" class="add-btn" (click)="addProduct()">
+      <i class="bi bi-plus-lg"></i>
+      Add Product
+    </button>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon blue"><i class="bi bi-box-seam"></i></div>
+      <div><span>Total Products</span><strong>{{ totalProducts }}</strong></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="bi bi-boxes"></i></div>
+      <div><span>Total Stock</span><strong>{{ totalStock | number }}</strong></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon orange"><i class="bi bi-exclamation-triangle"></i></div>
+      <div><span>Low Stock</span><strong>{{ lowStockProducts }}</strong></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon red"><i class="bi bi-x-circle"></i></div>
+      <div><span>Out of Stock</span><strong>{{ outOfStockProducts }}</strong></div>
+    </div>
+  </div>
+
+  <div class="content-card">
+    <div class="filter-bar">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          placeholder="Search product, generic, category or company..."
+          aria-label="Search products" />
+      </div>
+
+      <div class="filters">
+        <div class="filter-group">
+          <label for="productTypeFilter">Product Type</label>
+          <select id="productTypeFilter" [(ngModel)]="selectedProductType">
+            <option value="All">All Product Types</option>
+            <option *ngFor="let type of productTypeOptions" [value]="type">
+              {{ getProductTypeLabel(type) }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="categoryFilter">Category</label>
+          <select id="categoryFilter" [(ngModel)]="selectedCategory">
+            <option *ngFor="let category of categories" [value]="category">
+              {{ category }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="statusFilter">Stock Status</label>
+          <select id="statusFilter" [(ngModel)]="selectedStatus">
+            <option value="All">All Status</option>
+            <option value="In Stock">In Stock</option>
+            <option value="Low Stock">Low Stock</option>
+            <option value="Out of Stock">Out of Stock</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <p *ngIf="loading" class="loading-state">
+      <i class="bi bi-arrow-repeat"></i> Loading products from inventory...
+    </p>
+
+    <div *ngIf="errorMessage" class="error-message">
+      {{ errorMessage }}
+      <button type="button" (click)="loadProducts()">Retry</button>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Product Type</th>
+            <th>Generic Name</th>
+            <th>Category</th>
+            <th>Dosage Form</th>
+            <th>Company / Brand</th>
+            <th>Stock</th>
+            <th>Purchase Price</th>
+            <th>Sale Price</th>
+            <th>Stock Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let product of filteredProducts; trackBy: trackByProductId">
+            <td>
+              <strong>{{ product.name }}</strong>
+              <small class="product-sku">ID: {{ product.id }}</small>
+            </td>
+            <td>
+              <span class="product-type-badge">
+                {{ getProductTypeLabel(product.productType) }}
+              </span>
+            </td>
+            <td>{{ product.genericName || '—' }}</td>
+            <td>{{ product.category }}</td>
+            <td>{{ product.dosageForm || '—' }}</td>
+            <td>{{ product.company || '—' }}</td>
+            <td>{{ product.stock | number }}</td>
+            <td>৳{{ product.purchasePrice | number:'1.2-2' }}</td>
+            <td>৳{{ product.salePrice | number:'1.2-2' }}</td>
+            <td>
+              <span class="status-badge" [ngClass]="getStatusClass(product.status)">
+                {{ product.status }}
+              </span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button
+                  type="button"
+                  title="View product"
+                  aria-label="View product"
+                  (click)="viewProduct(product)">
+                  <i class="bi bi-eye"></i>
+                </button>
+                <button
+                  type="button"
+                  title="Edit product"
+                  aria-label="Edit product"
+                  (click)="editProduct(product)">
+                  <i class="bi bi-pencil"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <tr *ngIf="!loading && !errorMessage && filteredProducts.length === 0">
+            <td colspan="11">
+              <div class="empty-state">
+                <div class="empty-icon"><i class="bi bi-box-seam"></i></div>
+                <h3>No products found</h3>
+                <p>Change the filters or add a new product to your inventory.</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-footer">
+      Showing <strong>{{ filteredProducts.length }}</strong>
+      of <strong>{{ products.length }}</strong> products
+    </div>
+  </div>
+</div>

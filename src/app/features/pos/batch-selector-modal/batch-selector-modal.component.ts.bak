@@ -1,0 +1,134 @@
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+import { Batch } from '../../../core/models/batch.model';
+import { Product } from '../../../core/models/product.model';
+
+@Component({
+  selector: 'app-batch-selector-modal',
+  standalone: true,
+  imports: [
+    CommonModule
+  ],
+  templateUrl: './batch-selector-modal.component.html',
+  styleUrl: './batch-selector-modal.component.scss'
+})
+export class BatchSelectorModalComponent {
+
+  @Input() product: Product | null = null;
+
+  @Input() visible = false;
+
+  @Output()
+  batchSelected = new EventEmitter<Batch>();
+
+  @Output()
+  closed = new EventEmitter<void>();
+
+  batches: Batch[] = [
+    {
+      id: 'BAT-001',
+      tenantId: 'TEN-001',
+      branchId: 'BR-001',
+      medicineId: 'MED-001',
+      batchNumber: 'NAPA-A101',
+      manufacturingDate: '2025-01-15',
+      expiryDate: '2027-01-15',
+      purchasePrice: 1.20,
+      sellingPrice: 2.00,
+      quantity: 100,
+      availableQuantity: 80,
+      reorderLevel: 20,
+      status: 'Available'
+    },
+    {
+      id: 'BAT-002',
+      tenantId: 'TEN-001',
+      branchId: 'BR-001',
+      medicineId: 'MED-001',
+      batchNumber: 'NAPA-B205',
+      manufacturingDate: '2025-05-10',
+      expiryDate: '2026-12-10',
+      purchasePrice: 1.25,
+      sellingPrice: 2.00,
+      quantity: 60,
+      availableQuantity: 45,
+      reorderLevel: 15,
+      status: 'Near Expiry'
+    },
+    {
+      id: 'BAT-003',
+      tenantId: 'TEN-001',
+      branchId: 'BR-001',
+      medicineId: 'MED-001',
+      batchNumber: 'NAPA-C310',
+      manufacturingDate: '2025-08-20',
+      expiryDate: '2028-02-20',
+      purchasePrice: 1.30,
+      sellingPrice: 2.00,
+      quantity: 120,
+      availableQuantity: 120,
+      reorderLevel: 20,
+      status: 'Available'
+    }
+  ];
+
+  get sortedBatches(): Batch[] {
+    return [...this.batches]
+      .filter(batch => batch.availableQuantity > 0)
+      .sort(
+        (a, b) =>
+          new Date(a.expiryDate).getTime() -
+          new Date(b.expiryDate).getTime()
+      );
+  }
+
+  selectBatch(batch: Batch): void {
+    this.batchSelected.emit(batch);
+  }
+
+  close(): void {
+    this.closed.emit();
+  }
+
+  getExpiryStatus(batch: Batch): string {
+
+    const today = new Date();
+    const expiry = new Date(batch.expiryDate);
+
+    const difference =
+      expiry.getTime() - today.getTime();
+
+    const days =
+      Math.ceil(
+        difference / (1000 * 60 * 60 * 24)
+      );
+
+    if (days <= 0) {
+      return 'Expired';
+    }
+
+    if (days <= 180) {
+      return 'Near Expiry';
+    }
+
+    return 'Available';
+  }
+
+  getExpiryClass(batch: Batch): string {
+
+    const status = this.getExpiryStatus(batch);
+
+    switch (status) {
+
+      case 'Expired':
+        return 'expired';
+
+      case 'Near Expiry':
+        return 'near-expiry';
+
+      default:
+        return 'available';
+    }
+  }
+}

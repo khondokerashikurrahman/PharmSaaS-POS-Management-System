@@ -1,0 +1,146 @@
+<nav class="navbar">
+
+  <!-- =================================================
+       LEFT SIDE
+  ================================================== -->
+
+  <div class="navbar-left">
+
+    <!-- BRAND -->
+
+    <a
+      class="brand"
+      [routerLink]="
+        isSuperAdmin()
+          ? '/admin/dashboard'
+          : '/app/dashboard'
+      ">
+
+      <div class="brand-icon">
+        <i class="bi bi-capsule-pill"></i>
+      </div>
+
+      <div class="brand-info">
+
+        <strong>
+          PharmSaaS
+        </strong>
+
+        <span>
+          Pharmacy Management
+        </span>
+
+      </div>
+
+    </a>
+
+
+    <!-- TENANT INFORMATION -->
+
+    <div
+      class="tenant-info"
+      *ngIf="
+        isTenantUser() &&
+        currentTenant
+      ">
+
+      <div class="tenant-divider"></div>
+
+      <div class="tenant-icon">
+        <i class="bi bi-building"></i>
+      </div>
+
+      <div class="tenant-details">
+
+        <strong>
+          {{ currentTenant.name }}
+        </strong>
+
+        <span>
+          {{ currentTenant.plan }} Plan
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- SUPER ADMIN CONTEXT -->
+
+    <div
+      class="tenant-info admin-context"
+      *ngIf="isSuperAdmin()">
+
+      <div class="tenant-divider"></div>
+
+      <div class="tenant-icon">
+        <i class="bi bi-shield-lock"></i>
+      </div>
+
+      <div class="tenant-details">
+
+        <strong>
+          Platform Administration
+        </strong>
+
+        <span>
+          Super Admin
+        </span>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =================================================
+       RIGHT SIDE
+  ================================================== -->
+
+  <div class="navbar-right">
+
+
+    <!-- NOTIFICATIONS -->
+
+    <button
+      type="button"
+      class="nav-icon-btn"
+      title="Notifications">
+
+      <i class="bi bi-bell"></i>
+
+      <span class="notification-dot"></span>
+
+    </button>
+
+
+    <!-- USER -->
+
+    <div class="user-menu">
+
+      <div class="user-avatar">
+
+        {{ getUserInitial() }}
+
+      </div>
+
+      <div class="user-info">
+
+        <strong>
+          {{ currentUser?.name || 'User' }}
+        </strong>
+
+        <span>
+          {{ getRoleLabel() }}
+        </span>
+
+      </div>
+
+      <i class="bi bi-chevron-down user-arrow"></i>
+
+    </div>
+
+  </div>
+
+</nav>

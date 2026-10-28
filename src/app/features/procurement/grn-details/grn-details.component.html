@@ -1,0 +1,155 @@
+<div class="grn-details-page">
+  <header class="page-header">
+    <div>
+      <div class="breadcrumb">
+        <span>Procurement</span>
+        <span class="separator">/</span>
+        <button type="button" (click)="backToList()">GRN List</button>
+        <span class="separator">/</span>
+        <span>Details</span>
+      </div>
+      <h1>GRN Details</h1>
+      <p>Goods received note and inventory batch information.</p>
+    </div>
+
+    <button type="button" class="btn btn-outline" (click)="backToList()">
+      <i class="bi bi-arrow-left"></i>
+      Back to GRN List
+    </button>
+  </header>
+
+  <div *ngIf="loading" class="message info" role="status">
+    <i class="bi bi-arrow-repeat"></i>
+    Loading GRN details…
+  </div>
+
+  <div *ngIf="!loading && errorMessage" class="message error" role="alert">
+    <i class="bi bi-exclamation-circle"></i>
+    <span>{{ errorMessage }}</span>
+    <button type="button" class="btn btn-outline" (click)="backToList()">
+      Back to List
+    </button>
+  </div>
+
+  <ng-container *ngIf="!loading && grn as record">
+    <section class="overview-card">
+      <div class="overview-top">
+        <div>
+          <span class="eyebrow">Goods Received Note</span>
+          <h2>{{ record.grnNumber || ('GRN-' + record.id) }}</h2>
+          <p>Record ID: {{ record.id }}</p>
+        </div>
+        <span class="status-badge" [ngClass]="statusClass(record.status)">
+          {{ record.status || 'Unknown' }}
+        </span>
+      </div>
+
+      <div class="info-grid">
+        <div class="info-item">
+          <span>Supplier</span>
+          <strong>{{ record.supplierName || '—' }}</strong>
+        </div>
+        <div class="info-item">
+          <span>Purchase Order</span>
+          <strong>{{ record.purchaseOrderNumber || '—' }}</strong>
+        </div>
+        <div class="info-item">
+          <span>Supplier Invoice</span>
+          <strong>{{ record.supplierInvoiceNumber || '—' }}</strong>
+        </div>
+        <div class="info-item">
+          <span>Received Date</span>
+          <strong>{{ record.receivedDate ? (record.receivedDate | date:'mediumDate') : '—' }}</strong>
+        </div>
+      </div>
+
+      <div class="notes" *ngIf="record.notes">
+        <span>Notes</span>
+        <p>{{ record.notes }}</p>
+      </div>
+    </section>
+
+    <section class="summary-grid">
+      <article class="summary-card">
+        <span class="summary-icon"><i class="bi bi-capsule"></i></span>
+        <div>
+          <span>Medicine Lines</span>
+          <strong>{{ itemCount }}</strong>
+        </div>
+      </article>
+      <article class="summary-card">
+        <span class="summary-icon"><i class="bi bi-box-seam"></i></span>
+        <div>
+          <span>Total Quantity</span>
+          <strong>{{ totalQuantity | number }}</strong>
+        </div>
+      </article>
+      <article class="summary-card total-card">
+        <span class="summary-icon"><i class="bi bi-currency-exchange"></i></span>
+        <div>
+          <span>Total Purchase Value</span>
+          <strong>৳{{ totalAmount | number:'1.2-2' }}</strong>
+        </div>
+      </article>
+    </section>
+
+    <section class="items-card">
+      <div class="section-heading">
+        <div>
+          <h2>Received Items</h2>
+          <p>Batch, quantity, pricing and expiry information.</p>
+        </div>
+        <span class="line-count">{{ itemCount }} lines</span>
+      </div>
+
+      <div class="table-wrapper" *ngIf="record.items?.length; else noItems">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Medicine</th>
+              <th>Batch No.</th>
+              <th>Manufacture Date</th>
+              <th>Expiry Date</th>
+              <th>Quantity</th>
+              <th>Purchase Price</th>
+              <th>Selling Price</th>
+              <th>Line Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of record.items; let i = index">
+              <td>{{ i + 1 }}</td>
+              <td class="medicine-name">{{ item.medicineName || '—' }}</td>
+              <td>{{ item.batchNumber || '—' }}</td>
+              <td>{{ item.manufactureDate ? (item.manufactureDate | date:'mediumDate') : '—' }}</td>
+              <td>{{ item.expiryDate ? (item.expiryDate | date:'mediumDate') : '—' }}</td>
+              <td>{{ item.quantity | number }}</td>
+              <td>৳{{ item.purchasePrice | number:'1.2-2' }}</td>
+              <td>৳{{ item.sellingPrice | number:'1.2-2' }}</td>
+              <td class="line-total">
+                ৳{{ (item.lineTotal) | number:'1.2-2' }}
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="5">Total</td>
+              <td>{{ totalQuantity | number }}</td>
+              <td colspan="2"></td>
+              <td class="line-total">৳{{ totalAmount | number:'1.2-2' }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <ng-template #noItems>
+        <div class="empty-state">
+          <i class="bi bi-inbox"></i>
+          <strong>No item details found</strong>
+          <p>This GRN record does not contain any item lines.</p>
+        </div>
+      </ng-template>
+    </section>
+  </ng-container>
+</div>

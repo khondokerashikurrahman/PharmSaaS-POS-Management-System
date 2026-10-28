@@ -1,0 +1,442 @@
+
+<div class="grn-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div>
+      <div class="breadcrumb">
+        <span>Procurement</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>GRN Entry</span>
+      </div>
+
+      <h1>Goods Received Note</h1>
+      <p>Record and verify goods received against a purchase order.</p>
+    </div>
+
+    <button class="btn btn-outline" (click)="cancel()">
+      <i class="bi bi-arrow-left"></i>
+      Back to GRN
+    </button>
+
+  </div>
+
+
+  <!-- MAIN GRID -->
+  <div class="content-grid">
+
+    <!-- LEFT CONTENT -->
+    <div class="main-content">
+
+      <!-- RECEIVING INFORMATION -->
+      <div class="card">
+
+        <div class="card-header">
+          <div>
+            <h2>Receiving Information</h2>
+            <p>Enter the basic information for this goods receipt.</p>
+          </div>
+
+          <span class="status-badge">
+            <i class="bi bi-box-seam"></i>
+            Goods Receipt
+          </span>
+        </div>
+
+        <div class="form-grid">
+
+          <!-- PURCHASE ORDER -->
+          <div class="form-group">
+            <label>
+              Purchase Order <span>*</span>
+            </label>
+
+            <select
+              [(ngModel)]="purchaseOrder"
+              (change)="onPurchaseOrderChange()"
+              class="form-control"
+            >
+              <option value="">Select purchase order</option>
+
+              <option
+                *ngFor="let order of purchaseOrders"
+                [value]="order"
+              >
+                {{ order }}
+              </option>
+            </select>
+          </div>
+
+
+          <!-- SUPPLIER -->
+          <div class="form-group">
+            <label>
+              Supplier <span>*</span>
+            </label>
+
+            <select
+              [(ngModel)]="supplier"
+              class="form-control"
+            >
+              <option value="">Select supplier</option>
+
+              <option
+                *ngFor="let item of suppliers"
+                [value]="item"
+              >
+                {{ item }}
+              </option>
+            </select>
+          </div>
+
+
+          <!-- RECEIVED DATE -->
+          <div class="form-group">
+            <label>
+              Received Date <span>*</span>
+            </label>
+
+            <input
+              type="date"
+              [(ngModel)]="receivedDate"
+              class="form-control"
+            />
+          </div>
+
+
+          <!-- INVOICE -->
+          <div class="form-group">
+            <label>
+              Supplier Invoice No. <span>*</span>
+            </label>
+
+            <input
+              type="text"
+              [(ngModel)]="invoiceNumber"
+              class="form-control"
+              placeholder="e.g. INV-2026-458"
+            />
+          </div>
+
+
+          <!-- RECEIVED BY -->
+          <div class="form-group">
+            <label>Received By</label>
+
+            <input
+              type="text"
+              [(ngModel)]="receivedBy"
+              class="form-control"
+              readonly
+            />
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- RECEIVED ITEMS -->
+      <div class="card">
+
+        <div class="card-header">
+
+          <div>
+            <h2>Received Items</h2>
+            <p>Enter batch, quantity and expiry details for received medicines.</p>
+          </div>
+
+          <button
+            type="button"
+            class="btn btn-primary btn-sm"
+            (click)="addItem()"
+          >
+            <i class="bi bi-plus-lg"></i>
+            Add Item
+          </button>
+
+        </div>
+
+
+        <!-- TABLE -->
+        <div class="table-wrapper">
+
+          <table>
+
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Medicine</th>
+                <th>Ordered</th>
+                <th>Received</th>
+                <th>Batch No.</th>
+                <th>Expiry Date</th>
+                <th>Unit Cost</th>
+                <th>Total</th>
+                <th></th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+              <tr
+                *ngFor="let item of items; let i = index"
+              >
+
+                <td class="serial">
+                  {{ i + 1 }}
+                </td>
+
+
+                <!-- MEDICINE -->
+                <td class="medicine-cell">
+
+                  <select
+                    [(ngModel)]="item.medicine"
+                    class="table-control"
+                  >
+                    <option value="">Select medicine</option>
+
+                    <option
+                      *ngFor="let medicine of medicines"
+                      [value]="medicine"
+                    >
+                      {{ medicine }}
+                    </option>
+                  </select>
+
+                </td>
+
+
+                <!-- ORDERED -->
+                <td>
+                  <input
+                    type="number"
+                    [(ngModel)]="item.orderedQty"
+                    class="table-control quantity-input"
+                    min="0"
+                  />
+                </td>
+
+
+                <!-- RECEIVED -->
+                <td>
+                  <input
+                    type="number"
+                    [(ngModel)]="item.receivedQty"
+                    (input)="calculateTotal(item)"
+                    class="table-control quantity-input"
+                    min="0"
+                  />
+                </td>
+
+
+                <!-- BATCH -->
+                <td>
+                  <input
+                    type="text"
+                    [(ngModel)]="item.batch"
+                    class="table-control"
+                    placeholder="Batch"
+                  />
+                </td>
+
+
+                <!-- EXPIRY -->
+                <td>
+                  <input
+                    type="date"
+                    [(ngModel)]="item.expiryDate"
+                    class="table-control"
+                  />
+                </td>
+
+
+                <!-- UNIT COST -->
+                <td>
+                  <input
+                    type="number"
+                    [(ngModel)]="item.unitCost"
+                    (input)="calculateTotal(item)"
+                    class="table-control price-input"
+                    min="0"
+                    placeholder="0"
+                  />
+                </td>
+
+
+                <!-- TOTAL -->
+                <td class="item-total">
+                  ৳{{ item.total | number:'1.2-2' }}
+                </td>
+
+
+                <!-- REMOVE -->
+                <td>
+
+                  <button
+                    type="button"
+                    class="remove-btn"
+                    (click)="removeItem(i)"
+                    title="Remove item"
+                    [disabled]="items.length === 1"
+                  >
+                    <i class="bi bi-trash3"></i>
+                  </button>
+
+                </td>
+
+              </tr>
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+
+        <!-- EMPTY NOTE -->
+        <div class="table-note">
+          <i class="bi bi-info-circle"></i>
+          Verify the received quantity, batch number and expiry date before completing the receipt.
+        </div>
+
+      </div>
+
+
+      <!-- NOTES -->
+      <div class="card">
+
+        <div class="card-header simple-header">
+          <div>
+            <h2>Additional Notes</h2>
+            <p>Add any receiving notes or remarks.</p>
+          </div>
+        </div>
+
+        <div class="notes-wrapper">
+
+          <textarea
+            [(ngModel)]="notes"
+            rows="4"
+            placeholder="Enter notes, damaged items, short quantity or other remarks..."
+          ></textarea>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- RIGHT SIDEBAR -->
+    <aside class="summary-column">
+
+      <!-- SUMMARY CARD -->
+      <div class="summary-card">
+
+        <div class="summary-header">
+          <div>
+            <h2>Receipt Summary</h2>
+            <p>Goods received summary</p>
+          </div>
+
+          <div class="summary-icon">
+            <i class="bi bi-receipt"></i>
+          </div>
+        </div>
+
+
+        <div class="summary-info">
+
+          <div class="summary-row">
+            <span>Items</span>
+            <strong>{{ totalItems }}</strong>
+          </div>
+
+          <div class="summary-row">
+            <span>Received Quantity</span>
+            <strong>{{ totalReceivedQty }}</strong>
+          </div>
+
+          <div class="summary-row">
+            <span>Subtotal</span>
+            <strong>৳{{ subtotal | number:'1.2-2' }}</strong>
+          </div>
+
+          <div class="summary-row">
+            <span>Tax (5%)</span>
+            <strong>৳{{ tax | number:'1.2-2' }}</strong>
+          </div>
+
+        </div>
+
+
+        <div class="grand-total">
+
+          <span>Grand Total</span>
+
+          <strong>
+            ৳{{ grandTotal | number:'1.2-2' }}
+          </strong>
+
+        </div>
+
+
+        <div class="action-buttons">
+
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="saveDraft()"
+          >
+            <i class="bi bi-file-earmark"></i>
+            Save Draft
+          </button>
+
+          <button
+            type="button"
+            class="btn btn-success"
+            (click)="receiveGoods()"
+          >
+            <i class="bi bi-check2-circle"></i>
+            Receive Goods
+          </button>
+
+          <button
+            type="button"
+            class="btn btn-cancel"
+            (click)="cancel()"
+          >
+            Cancel
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <!-- HELP CARD -->
+      <div class="help-card">
+
+        <div class="help-icon">
+          <i class="bi bi-lightbulb"></i>
+        </div>
+
+        <div>
+          <h3>Receiving Tip</h3>
+
+          <p>
+            Always verify the batch number and expiry date before adding
+            received medicines to inventory.
+          </p>
+        </div>
+
+      </div>
+
+    </aside>
+
+  </div>
+
+</div>

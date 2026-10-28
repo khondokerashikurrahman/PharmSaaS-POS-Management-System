@@ -1,0 +1,632 @@
+<div class="profit-report-page">
+
+  <!-- Header -->
+  <div class="page-header">
+
+    <div class="header-left">
+
+      <div class="breadcrumb">
+        <span>Reports</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Profit Report</span>
+      </div>
+
+      <h1>Profit Report</h1>
+
+      <p>
+        Analyze sales revenue, product cost and gross profit
+      </p>
+
+    </div>
+
+    <div class="header-actions">
+
+      <button
+        class="btn btn-light"
+        type="button"
+        (click)="refreshReport()">
+
+        <i class="bi bi-arrow-clockwise"></i>
+        Refresh
+
+      </button>
+
+      <button
+        class="btn btn-primary"
+        type="button"
+        (click)="exportCSV()">
+
+        <i class="bi bi-download"></i>
+        Export CSV
+
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- Filters -->
+  <div class="filter-card">
+
+    <div class="filter-group">
+
+      <label>Period</label>
+
+      <select
+        [(ngModel)]="selectedPeriod"
+        (change)="onPeriodChange()">
+
+        <option value="today">
+          Today
+        </option>
+
+        <option value="week">
+          This Week
+        </option>
+
+        <option value="month">
+          This Month
+        </option>
+
+        <option value="all">
+          All Time
+        </option>
+
+        <option value="custom">
+          Custom Range
+        </option>
+
+      </select>
+
+    </div>
+
+
+    <div
+      class="filter-group"
+      *ngIf="selectedPeriod === 'custom'">
+
+      <label>From</label>
+
+      <input
+        type="date"
+        [(ngModel)]="customFrom"
+        (change)="onPeriodChange()">
+
+    </div>
+
+
+    <div
+      class="filter-group"
+      *ngIf="selectedPeriod === 'custom'">
+
+      <label>To</label>
+
+      <input
+        type="date"
+        [(ngModel)]="customTo"
+        (change)="onPeriodChange()">
+
+    </div>
+
+
+    <div class="filter-group search-group">
+
+      <label>Search</label>
+
+      <div class="search-box">
+
+        <i class="bi bi-search"></i>
+
+        <input
+          type="text"
+          placeholder="Search reference or customer..."
+          [(ngModel)]="searchTerm"
+          (input)="applySearch()">
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- Main Statistics -->
+  <div class="stats-grid">
+
+    <div class="stat-card revenue-card">
+
+      <div class="stat-icon">
+        <i class="bi bi-cash-stack"></i>
+      </div>
+
+      <div class="stat-content">
+
+        <span class="stat-label">
+          Total Revenue
+        </span>
+
+        <h2>
+          ৳{{ formatCurrency(totalRevenue) }}
+        </h2>
+
+        <small>
+          From {{ totalSales }} sales
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <div class="stat-card cost-card">
+
+      <div class="stat-icon">
+        <i class="bi bi-box-seam"></i>
+      </div>
+
+      <div class="stat-content">
+
+        <span class="stat-label">
+          Cost of Goods Sold
+        </span>
+
+        <h2>
+          ৳{{ formatCurrency(salesCost) }}
+        </h2>
+
+        <small>
+          Product purchase cost
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <div class="stat-card profit-card">
+
+      <div class="stat-icon">
+        <i class="bi bi-graph-up-arrow"></i>
+      </div>
+
+      <div class="stat-content">
+
+        <span class="stat-label">
+          Gross Profit
+        </span>
+
+        <h2>
+          ৳{{ formatCurrency(grossProfit) }}
+        </h2>
+
+        <small>
+          Revenue minus product cost
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <div class="stat-card margin-card">
+
+      <div class="stat-icon">
+        <i class="bi bi-percent"></i>
+      </div>
+
+      <div class="stat-content">
+
+        <span class="stat-label">
+          Profit Margin
+        </span>
+
+        <h2>
+          {{ profitMargin | number:'1.2-2' }}%
+        </h2>
+
+        <small>
+          Gross profit margin
+        </small>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- Secondary Summary -->
+  <div class="summary-grid">
+
+    <div class="summary-card">
+
+      <div class="summary-icon">
+        <i class="bi bi-cart-check"></i>
+      </div>
+
+      <div>
+        <span>
+          Sales Revenue
+        </span>
+
+        <strong>
+          ৳{{ formatCurrency(salesRevenue) }}
+        </strong>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon">
+        <i class="bi bi-calculator"></i>
+      </div>
+
+      <div>
+        <span>
+          Sales Profit
+        </span>
+
+        <strong
+          [class.positive-text]="salesProfit >= 0"
+          [class.negative-text]="salesProfit < 0">
+
+          ৳{{ formatCurrency(salesProfit) }}
+
+        </strong>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon">
+        <i class="bi bi-truck"></i>
+      </div>
+
+      <div>
+        <span>
+          Purchase Cost
+        </span>
+
+        <strong>
+          ৳{{ formatCurrency(purchaseCost) }}
+        </strong>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon">
+        <i class="bi bi-receipt"></i>
+      </div>
+
+      <div>
+        <span>
+          Purchase Transactions
+        </span>
+
+        <strong>
+          {{ totalPurchases }}
+        </strong>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- Profit Overview -->
+  <div class="overview-card">
+
+    <div class="section-header">
+
+      <div>
+        <h2>Profit Overview</h2>
+
+        <p>
+          Revenue and cost breakdown for the selected period
+        </p>
+      </div>
+
+      <div class="margin-badge"
+           [ngClass]="getMarginClass(profitMargin)">
+
+        {{ profitMargin | number:'1.2-2' }}% Margin
+
+      </div>
+
+    </div>
+
+
+    <div class="overview-content">
+
+      <div class="overview-row">
+
+        <div class="overview-label">
+          <span class="dot revenue"></span>
+          Revenue
+        </div>
+
+        <strong>
+          ৳{{ formatCurrency(salesRevenue) }}
+        </strong>
+
+      </div>
+
+
+      <div class="progress-track">
+
+        <div
+          class="progress-fill revenue"
+          [style.width.%]="
+            salesRevenue > 0 ? 100 : 0
+          ">
+        </div>
+
+      </div>
+
+
+      <div class="overview-row">
+
+        <div class="overview-label">
+          <span class="dot cost"></span>
+          Product Cost
+        </div>
+
+        <strong>
+          ৳{{ formatCurrency(salesCost) }}
+        </strong>
+
+      </div>
+
+
+      <div class="progress-track">
+
+        <div
+          class="progress-fill cost"
+          [style.width.%]="
+            salesRevenue > 0
+              ? (salesCost / salesRevenue) * 100
+              : 0
+          ">
+        </div>
+
+      </div>
+
+
+      <div class="overview-row profit-row">
+
+        <div class="overview-label">
+          <span class="dot profit"></span>
+          Gross Profit
+        </div>
+
+        <strong
+          [class.positive-text]="grossProfit >= 0"
+          [class.negative-text]="grossProfit < 0">
+
+          ৳{{ formatCurrency(grossProfit) }}
+
+        </strong>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- Transaction Table -->
+  <div class="table-card">
+
+    <div class="section-header">
+
+      <div>
+        <h2>Profit Transactions</h2>
+
+        <p>
+          {{ filteredTransactions.length }}
+          transaction(s) found
+        </p>
+      </div>
+
+    </div>
+
+
+    <div
+      class="table-wrapper"
+      *ngIf="filteredTransactions.length > 0">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>Date</th>
+
+            <th>Reference</th>
+
+            <th>Type</th>
+
+            <th>Party</th>
+
+            <th>Revenue</th>
+
+            <th>Cost</th>
+
+            <th>Profit</th>
+
+            <th>Margin</th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="let transaction of filteredTransactions">
+
+            <td>
+              {{ formatDate(transaction.date) }}
+            </td>
+
+            <td>
+              <strong>
+                {{ transaction.reference }}
+              </strong>
+            </td>
+
+            <td>
+
+              <span
+                class="type-badge"
+                [class.sale]="transaction.type === 'Sale'"
+                [class.purchase]="transaction.type === 'Purchase'">
+
+                <i
+                  class="bi"
+                  [ngClass]="
+                    transaction.type === 'Sale'
+                      ? 'bi-cart-check'
+                      : 'bi-box-arrow-in-down'
+                  ">
+                </i>
+
+                {{ transaction.type }}
+
+              </span>
+
+            </td>
+
+            <td>
+              {{ transaction.party }}
+            </td>
+
+            <td>
+              <span
+                *ngIf="transaction.revenue > 0">
+
+                ৳{{ formatCurrency(transaction.revenue) }}
+
+              </span>
+
+              <span
+                *ngIf="transaction.revenue === 0"
+                class="muted">
+
+                —
+
+              </span>
+            </td>
+
+            <td>
+              ৳{{ formatCurrency(transaction.cost) }}
+            </td>
+
+            <td>
+
+              <strong
+                [ngClass]="
+                  getProfitClass(transaction.profit)
+                ">
+
+                <span
+                  *ngIf="transaction.profit >= 0">
+                  +
+                </span>
+
+                ৳{{ formatCurrency(transaction.profit) }}
+
+              </strong>
+
+            </td>
+
+            <td>
+
+              <span
+                *ngIf="transaction.type === 'Sale'"
+                class="margin-pill"
+                [ngClass]="
+                  getMarginClass(transaction.margin)
+                ">
+
+                {{ transaction.margin | number:'1.2-2' }}%
+
+              </span>
+
+              <span
+                *ngIf="transaction.type === 'Purchase'"
+                class="muted">
+
+                —
+
+              </span>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    <!-- Empty State -->
+    <div
+      class="empty-state"
+      *ngIf="filteredTransactions.length === 0">
+
+      <div class="empty-icon">
+        <i class="bi bi-graph-up"></i>
+      </div>
+
+      <h3>
+        No profit data found
+      </h3>
+
+      <p>
+        Sales and purchase transactions for the selected
+        period will appear here.
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <!-- Information -->
+  <div class="info-card">
+
+    <div class="info-icon">
+      <i class="bi bi-info-circle"></i>
+    </div>
+
+    <div>
+
+      <h3>
+        Profit Calculation
+      </h3>
+
+      <p>
+        Gross profit is calculated from sales revenue minus
+        the product cost of sold items. Purchase transactions
+        are shown separately as inventory purchasing activity
+        and are not deducted again from gross profit.
+      </p>
+
+    </div>
+
+  </div>
+
+</div>

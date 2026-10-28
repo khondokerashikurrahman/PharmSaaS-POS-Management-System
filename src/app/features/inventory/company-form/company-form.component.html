@@ -1,0 +1,236 @@
+<div class="company-form-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div class="header-left">
+
+      <button class="back-btn" (click)="goBack()">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+
+      <div>
+        <div class="breadcrumb">
+          <span>Inventory</span>
+          <i class="bi bi-chevron-right"></i>
+          <span>Companies</span>
+          <i class="bi bi-chevron-right"></i>
+          <span>{{ isEditMode ? 'Edit Company' : 'Add Company' }}</span>
+        </div>
+
+        <h1>
+          {{ isEditMode ? 'Edit Company' : 'Add Company' }}
+        </h1>
+
+        <p>
+          {{
+            isEditMode
+              ? 'Update pharmaceutical company information.'
+              : 'Add a new pharmaceutical company to your inventory.'
+          }}
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- FORM CARD -->
+  <div class="form-card">
+
+    <div class="form-header">
+      <div class="form-header-icon">
+        <i class="bi bi-building"></i>
+      </div>
+
+      <div>
+        <h2>Company Information</h2>
+        <p>Enter the basic information of the pharmaceutical company.</p>
+      </div>
+    </div>
+
+    <div *ngIf="errorMessage" class="alert alert-danger mx-4 mt-3" role="alert">
+      {{ errorMessage }}
+    </div>
+
+    <div class="form-body">
+
+      <!-- COMPANY ID -->
+      <div class="form-group">
+        <label for="companyId">
+          Company ID
+        </label>
+
+        <div class="input-icon">
+          <i class="bi bi-hash"></i>
+
+          <input
+            id="companyId"
+            type="text"
+            [(ngModel)]="company.id"
+            readonly
+          />
+        </div>
+
+        <small>System generated company ID</small>
+      </div>
+
+      <!-- COMPANY NAME -->
+      <div class="form-group">
+
+        <label for="companyName">
+          Company Name <span>*</span>
+        </label>
+
+        <div class="input-icon">
+          <i class="bi bi-building"></i>
+
+          <input
+            id="companyName"
+            type="text"
+            [(ngModel)]="company.name"
+            placeholder="Enter company name"
+          />
+        </div>
+
+      </div>
+
+      <!-- CONTACT PERSON -->
+      <div class="form-group">
+
+        <label for="contactPerson">
+          Contact Person <span>*</span>
+        </label>
+
+        <div class="input-icon">
+          <i class="bi bi-person"></i>
+
+          <input
+            id="contactPerson"
+            type="text"
+            [(ngModel)]="company.contactPerson"
+            placeholder="Enter contact person name"
+          />
+        </div>
+
+      </div>
+
+      <!-- PHONE -->
+      <div class="form-group">
+
+        <label for="phone">
+          Phone Number <span>*</span>
+        </label>
+
+        <div class="input-icon">
+          <i class="bi bi-telephone"></i>
+
+          <input
+            id="phone"
+            type="text"
+            [(ngModel)]="company.phone"
+            placeholder="+880 1XXXXXXXXX"
+          />
+        </div>
+
+      </div>
+
+      <!-- EMAIL -->
+      <div class="form-group">
+
+        <label for="email">
+          Email Address <span>*</span>
+        </label>
+
+        <div class="input-icon">
+          <i class="bi bi-envelope"></i>
+
+          <input
+            id="email"
+            type="email"
+            [(ngModel)]="company.email"
+            placeholder="company@example.com"
+          />
+        </div>
+
+      </div>
+
+      <!-- STATUS -->
+      <div class="form-group">
+
+        <label for="status">
+          Status
+        </label>
+
+        <div class="input-icon">
+
+          <i class="bi bi-toggle-on"></i>
+
+          <select
+            id="status"
+            [(ngModel)]="company.status">
+
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+
+          </select>
+
+        </div>
+
+      </div>
+
+      <!-- ADDRESS -->
+      <div class="form-group full-width">
+
+        <label for="address">
+          Company Address <span>*</span>
+        </label>
+
+        <div class="textarea-icon">
+
+          <i class="bi bi-geo-alt"></i>
+
+          <textarea
+            id="address"
+            [(ngModel)]="company.address"
+            placeholder="Enter company address"
+            rows="4">
+          </textarea>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- FORM FOOTER -->
+    <div class="form-footer">
+
+      <button
+        type="button"
+        class="cancel-btn"
+        (click)="cancel()">
+        Cancel
+      </button>
+
+      <button
+        type="button"
+        class="save-btn"
+        (click)="saveCompany()"
+        [disabled]="saving || loading">
+
+        <i
+          class="bi"
+          [class.bi-check-lg]="!isEditMode"
+          [class.bi-pencil]="isEditMode">
+        </i>
+
+        {{ isEditMode ? 'Update Company' : 'Save Company' }}
+
+      </button>
+
+    </div>
+
+  </div>
+
+</div>

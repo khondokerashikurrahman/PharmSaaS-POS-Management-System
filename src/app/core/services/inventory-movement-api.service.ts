@@ -1,0 +1,38 @@
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
+
+export interface InventoryMovementResponse {
+  id: number;
+  productId: number;
+  productName: string;
+  batchId: number | null;
+  batchNumber: string | null;
+  movementType: string;
+  quantityChange: number;
+  quantityAfter: number | null;
+  referenceType: string | null;
+  referenceId: number | null;
+  referenceNumber: string | null;
+  reason: string | null;
+  actorUserId: number | null;
+  createdAt: string;
+  storeId?: number | null;
+  storeName?: string | null;
+
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class InventoryMovementApiService {
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = `${environment.apiUrl}/tenants`;
+
+  list(tenantId: number): Observable<InventoryMovementResponse[]> {
+    return this.http.get<InventoryMovementResponse[]>(
+      `${this.apiUrl}/${tenantId}/inventory/movements`
+    );
+  }
+}

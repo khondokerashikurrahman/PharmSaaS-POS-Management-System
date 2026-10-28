@@ -1,0 +1,523 @@
+<div class="batch-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div>
+      <div class="breadcrumb">
+        <span>Inventory</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Batch Management</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>{{ isEditMode ? 'Edit Batch' : 'Add Batch' }}</span>
+      </div>
+
+      <h1>{{ isEditMode ? 'Edit Batch' : 'Add New Batch' }}</h1>
+
+      <p>
+        {{ isEditMode
+          ? 'Update medicine batch and inventory information.'
+          : 'Create a new medicine batch for inventory management.' }}
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="btn-secondary"
+      (click)="cancel()"
+    >
+      <i class="bi bi-arrow-left"></i>
+      Back to Inventory
+    </button>
+
+  </div>
+
+
+  <!-- FORM -->
+  <form
+    class="batch-form"
+    (ngSubmit)="saveBatch()"
+    #batchForm="ngForm"
+  >
+
+    <!-- BASIC INFORMATION -->
+    <div class="form-card">
+
+      <div class="card-header">
+
+        <div class="header-icon blue">
+          <i class="bi bi-box-seam"></i>
+        </div>
+
+        <div>
+          <h2>Batch Information</h2>
+          <p>Enter the basic medicine batch details.</p>
+        </div>
+
+      </div>
+
+
+      <div class="form-grid">
+
+        <!-- MEDICINE -->
+        <div class="form-group">
+
+          <label for="medicine">
+            Medicine
+            <span>*</span>
+          </label>
+
+          <div class="input-wrapper">
+            <i class="bi bi-capsule"></i>
+
+            <select
+              id="medicine"
+              name="medicine"
+              [(ngModel)]="batch.medicine"
+              required
+            >
+              <option value="" disabled>
+                Select medicine
+              </option>
+
+              <option
+                *ngFor="let medicine of medicines"
+                [value]="medicine"
+              >
+                {{ medicine }}
+              </option>
+            </select>
+          </div>
+
+          <small
+            class="error"
+            *ngIf="submitted && !batch.medicine"
+          >
+            Please select a medicine.
+          </small>
+
+        </div>
+
+
+        <!-- BATCH NUMBER -->
+        <div class="form-group">
+
+          <label for="batchNumber">
+            Batch Number
+            <span>*</span>
+          </label>
+
+          <div class="input-wrapper">
+            <i class="bi bi-upc-scan"></i>
+
+            <input
+              id="batchNumber"
+              name="batchNumber"
+              type="text"
+              [(ngModel)]="batch.batchNumber"
+              placeholder="e.g. BTH-NAPA-2401"
+              required
+            />
+          </div>
+
+          <small
+            class="error"
+            *ngIf="submitted && !batch.batchNumber"
+          >
+            Batch number is required.
+          </small>
+
+        </div>
+
+
+        <!-- SUPPLIER -->
+        <div class="form-group">
+
+          <label for="supplier">
+            Supplier
+            <span>*</span>
+          </label>
+
+          <div class="input-wrapper">
+            <i class="bi bi-truck"></i>
+
+            <select
+              id="supplier"
+              name="supplier"
+              [(ngModel)]="batch.supplier"
+              required
+            >
+              <option value="" disabled>
+                Select supplier
+              </option>
+
+              <option
+                *ngFor="let supplier of suppliers"
+                [value]="supplier"
+              >
+                {{ supplier }}
+              </option>
+            </select>
+          </div>
+
+          <small
+            class="error"
+            *ngIf="submitted && !batch.supplier"
+          >
+            Please select a supplier.
+          </small>
+
+        </div>
+
+
+        <!-- LOCATION -->
+        <div class="form-group">
+
+          <label for="location">
+            Storage Location
+          </label>
+
+          <div class="input-wrapper">
+            <i class="bi bi-building"></i>
+
+            <select
+              id="location"
+              name="location"
+              [(ngModel)]="batch.location"
+            >
+              <option
+                *ngFor="let location of locations"
+                [value]="location"
+              >
+                {{ location }}
+              </option>
+            </select>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- DATE INFORMATION -->
+    <div class="form-card">
+
+      <div class="card-header">
+
+        <div class="header-icon purple">
+          <i class="bi bi-calendar3"></i>
+        </div>
+
+        <div>
+          <h2>Manufacturing & Expiry</h2>
+          <p>Set the production and expiry dates for this batch.</p>
+        </div>
+
+      </div>
+
+
+      <div class="form-grid">
+
+        <!-- MANUFACTURING DATE -->
+        <div class="form-group">
+
+          <label for="manufacturingDate">
+            Manufacturing Date
+            <span>*</span>
+          </label>
+
+          <div class="input-wrapper">
+            <i class="bi bi-calendar-event"></i>
+
+            <input
+              id="manufacturingDate"
+              name="manufacturingDate"
+              type="date"
+              [(ngModel)]="batch.manufacturingDate"
+              (change)="updateStatus()"
+              required
+            />
+          </div>
+
+          <small
+            class="error"
+            *ngIf="submitted && !batch.manufacturingDate"
+          >
+            Manufacturing date is required.
+          </small>
+
+        </div>
+
+
+        <!-- EXPIRY DATE -->
+        <div class="form-group">
+
+          <label for="expiryDate">
+            Expiry Date
+            <span>*</span>
+          </label>
+
+          <div class="input-wrapper">
+            <i class="bi bi-calendar-x"></i>
+
+            <input
+              id="expiryDate"
+              name="expiryDate"
+              type="date"
+              [(ngModel)]="batch.expiryDate"
+              (change)="updateStatus()"
+              required
+            />
+          </div>
+
+          <small
+            class="error"
+            *ngIf="submitted && !batch.expiryDate"
+          >
+            Expiry date is required.
+          </small>
+
+        </div>
+
+      </div>
+
+
+      <!-- EXPIRY STATUS -->
+      <div class="expiry-status">
+
+        <div class="status-left">
+
+          <div class="status-icon">
+            <i class="bi bi-shield-check"></i>
+          </div>
+
+          <div>
+            <span>Batch Status</span>
+            <strong>Current expiry status</strong>
+          </div>
+
+        </div>
+
+        <span
+          class="status-badge"
+          [ngClass]="getStatusClass()"
+        >
+          <span class="status-dot"></span>
+          {{ batch.status }}
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- PRICING & STOCK -->
+    <div class="form-card">
+
+      <div class="card-header">
+
+        <div class="header-icon green">
+          <i class="bi bi-currency-dollar"></i>
+        </div>
+
+        <div>
+          <h2>Pricing & Stock</h2>
+          <p>Enter purchase, selling price and available quantity.</p>
+        </div>
+
+      </div>
+
+
+      <div class="form-grid three-columns">
+
+        <!-- PURCHASE PRICE -->
+        <div class="form-group">
+
+          <label for="purchasePrice">
+            Purchase Price
+            <span>*</span>
+          </label>
+
+          <div class="input-wrapper money-input">
+            <span class="currency">৳</span>
+
+            <input
+              id="purchasePrice"
+              name="purchasePrice"
+              type="number"
+              min="0"
+              step="0.01"
+              [(ngModel)]="batch.purchasePrice"
+              placeholder="0.00"
+              required
+            />
+          </div>
+
+        </div>
+
+
+        <!-- SELLING PRICE -->
+        <div class="form-group">
+
+          <label for="sellingPrice">
+            Selling Price
+            <span>*</span>
+          </label>
+
+          <div class="input-wrapper money-input">
+            <span class="currency">৳</span>
+
+            <input
+              id="sellingPrice"
+              name="sellingPrice"
+              type="number"
+              min="0"
+              step="0.01"
+              [(ngModel)]="batch.sellingPrice"
+              placeholder="0.00"
+              required
+            />
+          </div>
+
+        </div>
+
+
+        <!-- QUANTITY -->
+        <div class="form-group">
+
+          <label for="quantity">
+            Initial Quantity
+            <span>*</span>
+          </label>
+
+          <div class="input-wrapper">
+            <i class="bi bi-boxes"></i>
+
+            <input
+              id="quantity"
+              name="quantity"
+              type="number"
+              min="0"
+              step="1"
+              [(ngModel)]="batch.quantity"
+              placeholder="0"
+              required
+            />
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- CALCULATIONS -->
+      <div class="calculation-grid">
+
+        <div class="calculation-card">
+
+          <span>Profit Margin</span>
+
+          <strong>
+            {{ calculateMargin() | number:'1.1-1' }}%
+          </strong>
+
+          <small>
+            Based on purchase & selling price
+          </small>
+
+        </div>
+
+
+        <div class="calculation-card">
+
+          <span>Stock Value</span>
+
+          <strong>
+            ৳{{ calculateStockValue() | number:'1.2-2' }}
+          </strong>
+
+          <small>
+            Purchase value of current stock
+          </small>
+
+        </div>
+
+
+        <div class="calculation-card">
+
+          <span>Potential Sales Value</span>
+
+          <strong>
+            ৳{{ calculateSellingValue() | number:'1.2-2' }}
+          </strong>
+
+          <small>
+            Expected value at selling price
+          </small>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- INFO NOTICE -->
+    <div class="info-box">
+
+      <div class="info-icon">
+        <i class="bi bi-info-circle"></i>
+      </div>
+
+      <div>
+        <strong>Batch Management Tip</strong>
+
+        <p>
+          Always enter the correct batch number and expiry date.
+          Expired and near-expiry batches can be monitored from
+          the Inventory expiry management section.
+        </p>
+      </div>
+
+    </div>
+
+
+    <!-- FORM ACTIONS -->
+    <div class="form-actions">
+
+      <button
+        type="button"
+        class="btn-secondary"
+        (click)="cancel()"
+      >
+        Cancel
+      </button>
+
+      <button
+        type="button"
+        class="btn-outline"
+        (click)="resetForm()"
+      >
+        <i class="bi bi-arrow-counterclockwise"></i>
+        Reset
+      </button>
+
+      <button
+        type="submit"
+        class="btn-primary"
+      >
+        <i
+          class="bi"
+          [ngClass]="isEditMode ? 'bi-check-lg' : 'bi-plus-lg'"
+        ></i>
+
+        {{ isEditMode ? 'Update Batch' : 'Create Batch' }}
+      </button>
+
+    </div>
+
+  </form>
+
+</div>

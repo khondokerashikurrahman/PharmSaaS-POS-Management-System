@@ -1,0 +1,188 @@
+
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+
+interface GrnItem {
+  medicine: string;
+  orderedQty: number;
+  receivedQty: number;
+  batch: string;
+  expiryDate: string;
+  unitCost: number;
+  total: number;
+}
+
+@Component({
+  selector: 'app-grn-entry',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule
+  ],
+  templateUrl: './grn-entry.component.html',
+  styleUrl: './grn-entry.component.scss'
+})
+export class GrnEntryComponent {
+
+  purchaseOrder = '';
+  supplier = '';
+  receivedDate = '2026-09-13';
+  invoiceNumber = '';
+  receivedBy = 'Pharmacy Admin';
+  notes = '';
+
+  purchaseOrders = [
+    'PO-2026-001',
+    'PO-2026-002',
+    'PO-2026-003',
+    'PO-2026-004'
+  ];
+
+  suppliers = [
+    'Square Pharmaceuticals',
+    'Beximco Pharmaceuticals',
+    'Incepta Pharmaceuticals',
+    'Renata Limited',
+    'ACI Limited'
+  ];
+
+  medicines = [
+    'Napa 500mg',
+    'Seclo 20mg',
+    'Fexo 120mg',
+    'DPH 10mg',
+    'Napa Extra',
+    'Sergel 20mg'
+  ];
+
+  items: GrnItem[] = [
+    {
+      medicine: '',
+      orderedQty: 0,
+      receivedQty: 0,
+      batch: '',
+      expiryDate: '',
+      unitCost: 0,
+      total: 0
+    }
+  ];
+
+  constructor(
+    private router: Router
+  ) {}
+
+  onPurchaseOrderChange(): void {
+    if (this.purchaseOrder === 'PO-2026-001') {
+      this.supplier = 'Square Pharmaceuticals';
+      this.items[0].orderedQty = 100;
+    } else if (this.purchaseOrder === 'PO-2026-002') {
+      this.supplier = 'Beximco Pharmaceuticals';
+      this.items[0].orderedQty = 80;
+    } else if (this.purchaseOrder === 'PO-2026-003') {
+      this.supplier = 'Incepta Pharmaceuticals';
+      this.items[0].orderedQty = 120;
+    } else {
+      this.supplier = '';
+      this.items[0].orderedQty = 0;
+    }
+  }
+
+  addItem(): void {
+    this.items.push({
+      medicine: '',
+      orderedQty: 0,
+      receivedQty: 0,
+      batch: '',
+      expiryDate: '',
+      unitCost: 0,
+      total: 0
+    });
+  }
+
+  removeItem(index: number): void {
+    if (this.items.length === 1) {
+      return;
+    }
+
+    this.items.splice(index, 1);
+  }
+
+  calculateTotal(item: GrnItem): void {
+    item.total =
+      Number(item.receivedQty || 0) *
+      Number(item.unitCost || 0);
+  }
+
+  get totalItems(): number {
+    return this.items.length;
+  }
+
+  get totalReceivedQty(): number {
+    return this.items.reduce(
+      (total, item) =>
+        total + Number(item.receivedQty || 0),
+      0
+    );
+  }
+
+  get subtotal(): number {
+    return this.items.reduce(
+      (total, item) =>
+        total + Number(item.total || 0),
+      0
+    );
+  }
+
+  get tax(): number {
+    return this.subtotal * 0.05;
+  }
+
+  get grandTotal(): number {
+    return this.subtotal + this.tax;
+  }
+
+  saveDraft(): void {
+    if (!this.purchaseOrder) {
+      alert('Please select a purchase order.');
+      return;
+    }
+
+    alert('GRN saved as draft.');
+    this.router.navigate(['/app/procurement/grn']);
+  }
+
+  receiveGoods(): void {
+    if (!this.purchaseOrder) {
+      alert('Please select a purchase order.');
+      return;
+    }
+
+    if (!this.invoiceNumber.trim()) {
+      alert('Please enter supplier invoice number.');
+      return;
+    }
+
+    const invalidItem = this.items.some(
+      item =>
+        !item.medicine ||
+        item.receivedQty <= 0 ||
+        !item.batch ||
+        !item.expiryDate ||
+        item.unitCost <= 0
+    );
+
+    if (invalidItem) {
+      alert('Please complete all received item information.');
+      return;
+    }
+
+    alert('Goods received successfully.');
+    this.router.navigate(['/app/procurement/grn']);
+  }
+
+  cancel(): void {
+    this.router.navigate(['/app/procurement/grn']);
+  }
+}

@@ -1,0 +1,456 @@
+
+<div class="purchase-form-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div>
+      <div class="breadcrumb">
+        <span>Procurement</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Purchase Orders</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>New Purchase Order</span>
+      </div>
+
+      <h1>Create Purchase Order</h1>
+
+      <p>
+        Create a new purchase order for your pharmacy.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="back-btn"
+      (click)="cancel()"
+    >
+      <i class="bi bi-arrow-left"></i>
+      Back to Orders
+    </button>
+
+  </div>
+
+
+  <div *ngIf="message" class="form-card" role="alert">
+    {{ message }}
+  </div>
+
+  <!-- FORM CONTENT -->
+  <div class="form-layout">
+
+    <!-- LEFT CONTENT -->
+    <div class="main-form">
+
+      <!-- ORDER INFORMATION -->
+      <div class="form-card">
+
+        <div class="card-header">
+          <div class="header-icon blue">
+            <i class="bi bi-file-earmark-text"></i>
+          </div>
+
+          <div>
+            <h2>Order Information</h2>
+            <p>Enter the basic purchase order details.</p>
+          </div>
+        </div>
+
+
+        <div class="form-body">
+
+          <div class="form-grid">
+
+            <!-- SUPPLIER -->
+            <div class="form-group full">
+              <label>
+                Supplier
+                <span>*</span>
+              </label>
+
+              <div class="input-wrapper">
+                <i class="bi bi-building"></i>
+
+                <select [(ngModel)]="supplier">
+                  <option value="">
+                    Select supplier
+                  </option>
+
+                  <option
+                    *ngFor="let item of suppliers"
+                    [value]="item"
+                  >
+                    {{ item }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
+
+            <!-- ORDER DATE -->
+            <div class="form-group">
+              <label>
+                Order Date
+                <span>*</span>
+              </label>
+
+              <div class="input-wrapper">
+                <i class="bi bi-calendar3"></i>
+
+                <input
+                  type="date"
+                  [(ngModel)]="orderDate"
+                />
+              </div>
+            </div>
+
+
+            <!-- EXPECTED DATE -->
+            <div class="form-group">
+              <label>
+                Expected Delivery Date
+                <span>*</span>
+              </label>
+
+              <div class="input-wrapper">
+                <i class="bi bi-calendar-check"></i>
+
+                <input
+                  type="date"
+                  [(ngModel)]="expectedDate"
+                />
+              </div>
+            </div>
+
+
+            <!-- PAYMENT TERMS -->
+            <div class="form-group">
+              <label>
+                Payment Terms
+              </label>
+
+              <div class="input-wrapper">
+                <i class="bi bi-credit-card"></i>
+
+                <select [(ngModel)]="paymentTerms">
+                  <option value="Cash">Cash</option>
+                  <option value="Credit 15 Days">
+                    Credit - 15 Days
+                  </option>
+                  <option value="Credit 30 Days">
+                    Credit - 30 Days
+                  </option>
+                  <option value="Credit 60 Days">
+                    Credit - 60 Days
+                  </option>
+                </select>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- MEDICINE ITEMS -->
+      <div class="form-card">
+
+        <div class="card-header items-header">
+
+          <div class="header-left">
+
+            <div class="header-icon green">
+              <i class="bi bi-capsule"></i>
+            </div>
+
+            <div>
+              <h2>Order Items</h2>
+              <p>Add medicines and required quantities.</p>
+            </div>
+
+          </div>
+
+          <button
+            type="button"
+            class="add-item-btn"
+            (click)="addItem()"
+          >
+            <i class="bi bi-plus-lg"></i>
+            Add Item
+          </button>
+
+        </div>
+
+
+        <div class="items-table-wrapper">
+
+          <table class="items-table">
+
+            <thead>
+              <tr>
+                <th style="width: 28%;">MEDICINE</th>
+                <th style="width: 18%;">BATCH</th>
+                <th style="width: 15%;">QUANTITY</th>
+                <th style="width: 17%;">UNIT PRICE</th>
+                <th style="width: 15%;">TOTAL</th>
+                <th style="width: 7%;"></th>
+              </tr>
+            </thead>
+
+
+            <tbody>
+
+              <tr
+                *ngFor="let item of items; let i = index"
+              >
+
+                <!-- MEDICINE -->
+                <td>
+
+                  <select
+                    class="table-input"
+                    [(ngModel)]="item.medicine"
+                  >
+                    <option value="">
+                      Select medicine
+                    </option>
+
+                    <option
+                      *ngFor="let medicine of medicines"
+                      [value]="medicine"
+                    >
+                      {{ medicine }}
+                    </option>
+                  </select>
+
+                </td>
+
+
+                <!-- BATCH -->
+                <td>
+
+                  <input
+                    type="text"
+                    class="table-input"
+                    [(ngModel)]="item.batch"
+                    placeholder="Batch no."
+                  />
+
+                </td>
+
+
+                <!-- QUANTITY -->
+                <td>
+
+                  <input
+                    type="number"
+                    class="table-input number-input"
+                    [(ngModel)]="item.quantity"
+                    min="1"
+                    (input)="calculateItemTotal(item)"
+                  />
+
+                </td>
+
+
+                <!-- UNIT PRICE -->
+                <td>
+
+                  <div class="price-input">
+                    <span>৳</span>
+
+                    <input
+                      type="number"
+                      class="table-input"
+                      [(ngModel)]="item.unitPrice"
+                      min="0"
+                      (input)="calculateItemTotal(item)"
+                    />
+                  </div>
+
+                </td>
+
+
+                <!-- TOTAL -->
+                <td>
+
+                  <strong class="item-total">
+                    ৳{{ item.total | number:'1.0-0' }}
+                  </strong>
+
+                </td>
+
+
+                <!-- REMOVE -->
+                <td>
+
+                  <button
+                    type="button"
+                    class="remove-btn"
+                    title="Remove item"
+                    (click)="removeItem(i)"
+                    [disabled]="items.length === 1"
+                  >
+                    <i class="bi bi-trash3"></i>
+                  </button>
+
+                </td>
+
+              </tr>
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+
+      <!-- NOTES -->
+      <div class="form-card">
+
+        <div class="card-header">
+
+          <div class="header-icon gray">
+            <i class="bi bi-chat-left-text"></i>
+          </div>
+
+          <div>
+            <h2>Additional Notes</h2>
+            <p>Optional notes for this purchase order.</p>
+          </div>
+
+        </div>
+
+
+        <div class="form-body">
+
+          <textarea
+            [(ngModel)]="notes"
+            placeholder="Enter any additional instructions or notes..."
+          ></textarea>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- RIGHT SUMMARY -->
+    <div class="order-summary">
+
+      <div class="summary-card">
+
+        <div class="summary-header">
+          <h2>Order Summary</h2>
+
+          <span class="draft-label">
+            Draft
+          </span>
+        </div>
+
+
+        <div class="summary-divider"></div>
+
+
+        <div class="summary-row">
+          <span>Items</span>
+          <strong>{{ items.length }}</strong>
+        </div>
+
+
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <strong>
+            ৳{{ subtotal | number:'1.0-0' }}
+          </strong>
+        </div>
+
+
+        <div class="summary-row">
+          <span>Tax (5%)</span>
+          <strong>
+            ৳{{ tax | number:'1.0-0' }}
+          </strong>
+        </div>
+
+
+        <div class="summary-divider"></div>
+
+
+        <div class="grand-total">
+          <span>Grand Total</span>
+
+          <strong>
+            ৳{{ grandTotal | number:'1.0-0' }}
+          </strong>
+        </div>
+
+
+        <div class="summary-info">
+          <i class="bi bi-info-circle"></i>
+          Tax is calculated at 5% for demonstration.
+        </div>
+
+
+        <!-- ACTIONS -->
+        <div class="summary-actions">
+
+          <button
+            type="button"
+            class="save-draft-btn"
+            (click)="saveDraft()"
+          >
+            <i class="bi bi-save"></i>
+            Save as Draft
+          </button>
+
+          <button
+            type="button"
+            class="submit-btn"
+            (click)="submitOrder()"
+          >
+            <i class="bi bi-send"></i>
+            Submit Purchase Order
+          </button>
+
+          <button
+            type="button"
+            class="cancel-btn"
+            (click)="cancel()"
+          >
+            Cancel
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <!-- HELP CARD -->
+      <div class="help-card">
+
+        <div class="help-icon">
+          <i class="bi bi-lightbulb"></i>
+        </div>
+
+        <div>
+          <h3>Purchase Order Tip</h3>
+
+          <p>
+            Verify medicine quantity, batch information
+            and supplier details before submitting.
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

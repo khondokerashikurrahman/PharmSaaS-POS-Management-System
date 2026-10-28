@@ -1,0 +1,652 @@
+
+<aside class="sidebar" [class.collapsed]="isCollapsed">
+
+  <!-- BRAND -->
+  <div class="brand">
+    <div class="brand-icon">
+      <i class="bi bi-capsule-pill"></i>
+    </div>
+
+    <div class="brand-text">
+      <h2>PharmSaaS</h2>
+      <span>Pharmacy Management</span>
+    </div>
+
+    <button
+      type="button"
+      class="collapse-btn"
+      (click)="toggleSidebar()"
+      [title]="isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'"
+      [attr.aria-label]="isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'">
+
+      <i
+        class="bi"
+        [class.bi-chevron-bar-left]="!isCollapsed"
+        [class.bi-chevron-bar-right]="isCollapsed">
+      </i>
+    </button>
+  </div>
+
+  <!-- USER PROFILE -->
+  <div class="user-profile" *ngIf="currentUser && !isCollapsed">
+    <div class="user-avatar">
+      {{ getUserInitial() }}
+    </div>
+
+    <div class="user-info">
+      <strong>
+        {{ currentUser.name || 'User' }}
+      </strong>
+
+      <span>{{ getRoleLabel() }}</span>
+    </div>
+  </div>
+
+  <!-- NAVIGATION -->
+  <nav class="sidebar-nav">
+
+    <!-- MAIN -->
+    <div class="menu-section">
+      <div class="menu-section-title">MAIN</div>
+
+      <a
+        *ngIf="canAccessPath('/app/dashboard')"
+        routerLink="/app/dashboard"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="menu-item"
+        title="Dashboard">
+
+        <i class="bi bi-grid-1x2"></i>
+        <span>Dashboard</span>
+      </a>
+    </div>
+
+    <!-- POINT OF SALE -->
+    <div
+      class="menu-section"
+      *ngIf="canAccessPath('/app/pos')">
+
+      <div class="menu-section-title">POINT OF SALE</div>
+
+      <a
+        *ngIf="canAccessPath('/app/pos')"
+        routerLink="/app/pos"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="menu-item"
+        title="POS Terminal">
+
+        <i class="bi bi-cart3"></i>
+        <span>POS Terminal</span>
+      </a>
+
+      <a
+        *ngIf="canAccessPath('/app/pos/sales-history')"
+        routerLink="/app/pos/sales-history"
+        routerLinkActive="active"
+        class="menu-item"
+        title="Sales History">
+
+        <i class="bi bi-clock-history"></i>
+        <span>Sales History</span>
+      </a>
+    </div>
+
+    <!-- INVENTORY -->
+    <div
+      class="menu-section"
+      *ngIf="
+        canAccessPath('/app/inventory/medicines') ||
+        canAccessPath('/app/inventory/batches') ||
+        canAccessPath('/app/inventory/returned-stock')
+      ">
+
+      <div class="menu-section-title">INVENTORY</div>
+
+      <a
+        *ngIf="canAccessPath('/app/inventory/medicines')"
+        routerLink="/app/inventory/medicines"
+        routerLinkActive="active"
+        class="menu-item"
+        title="Medicines">
+
+        <i class="bi bi-capsule"></i>
+        <span>Medicines</span>
+      </a>
+
+      <a
+        *ngIf="canAccessPath('/app/inventory/products')"
+        routerLink="/app/inventory/products"
+        routerLinkActive="active"
+        class="menu-item"
+        title="Products">
+
+        <i class="bi bi-box-seam"></i>
+        <span>Products</span>
+      </a>
+
+      <a
+        *ngIf="
+          (isTenantAdmin() || isManager()) &&
+          canAccessPath('/app/inventory/companies')
+        "
+        routerLink="/app/inventory/companies"
+        routerLinkActive="active"
+        class="menu-item"
+        title="Companies">
+
+        <i class="bi bi-building"></i>
+        <span>Companies</span>
+      </a>
+
+      <a
+        *ngIf="
+          (isTenantAdmin() || isManager()) &&
+          canAccessPath('/app/inventory/salesmen')
+        "
+        routerLink="/app/inventory/salesmen"
+        routerLinkActive="active"
+        class="menu-item"
+        title="Salesmen">
+
+        <i class="bi bi-person-badge"></i>
+        <span>Salesmen</span>
+      </a>
+
+      <a
+        *ngIf="canAccessPath('/app/inventory/batches')"
+        routerLink="/app/inventory/batches"
+        routerLinkActive="active"
+        class="menu-item"
+        title="Batches">
+
+        <i class="bi bi-boxes"></i>
+        <span>Batches</span>
+      </a>
+
+      <a
+        *ngIf="
+          (isTenantAdmin() || isManager()) &&
+          canAccessPath('/app/inventory/stock-overview')
+        "
+        routerLink="/app/inventory/stock-overview"
+        routerLinkActive="active"
+        class="menu-item"
+        title="Stock Overview">
+
+        <i class="bi bi-bar-chart"></i>
+        <span>Stock Overview</span>
+      </a>
+
+      <a
+        *ngIf="
+          (isTenantAdmin() || isManager() || isStoreKeeper()) &&
+          canAccessPath('/app/inventory/stock-adjustment')
+        "
+        routerLink="/app/inventory/stock-adjustment"
+        routerLinkActive="active"
+        class="menu-item"
+        title="Stock Adjustment">
+
+        <i class="bi bi-sliders"></i>
+        <span>Stock Adjustment</span>
+      </a>
+
+      <a
+        *ngIf="canAccessPath('/app/inventory/stock-movement')"
+        routerLink="/app/inventory/stock-movement"
+        routerLinkActive="active"
+        class="menu-item"
+        title="Stock Movement">
+
+        <i class="bi bi-arrow-left-right"></i>
+        <span>Stock Movement</span>
+      </a>
+
+      <a
+        *ngIf="canAccessPath('/app/inventory/returned-stock')"
+        routerLink="/app/inventory/returned-stock"
+        routerLinkActive="active"
+        class="menu-item"
+        title="Returned Stock / Quarantine">
+
+        <i class="bi bi-shield-check"></i>
+        <span>Returned Stock</span>
+      </a>
+
+      <a
+        *ngIf="canAccessPath('/app/inventory/low-stock')"
+        routerLink="/app/inventory/low-stock"
+        routerLinkActive="active"
+        class="menu-item"
+        title="Low Stock">
+
+        <i class="bi bi-exclamation-triangle"></i>
+        <span>Low Stock</span>
+      </a>
+
+      <a
+        *ngIf="canAccessPath('/app/inventory/expiry-alert')"
+        routerLink="/app/inventory/expiry-alert"
+        routerLinkActive="active"
+        class="menu-item"
+        title="Expiry Alert">
+
+        <i class="bi bi-calendar-x"></i>
+        <span>Expiry Alert</span>
+      </a>
+    </div>
+
+    <!-- PROCUREMENT -->
+    <div
+      class="menu-section"
+      *ngIf="
+        canAccessPath('/app/procurement/grn') ||
+        canAccessPath('/app/procurement/purchase-orders')
+      ">
+
+      <div class="menu-section-title">PROCUREMENT</div>
+
+      <a
+        *ngIf="
+          (isTenantAdmin() || isManager()) &&
+          canAccessPath('/app/procurement/purchase-orders')
+        "
+        routerLink="/app/procurement/purchase-orders"
+        routerLinkActive="active"
+        class="menu-item"
+        title="Purchase Orders">
+
+        <i class="bi bi-file-earmark-text"></i>
+        <span>Purchase Orders</span>
+      </a>
+
+      <a
+        *ngIf="canAccessPath('/app/procurement/grn')"
+        routerLink="/app/procurement/grn"
+        routerLinkActive="active"
+        class="menu-item"
+        title="Goods Received Note">
+
+        <i class="bi bi-clipboard-check"></i>
+        <span>GRN</span>
+      </a>
+
+      <a
+        *ngIf="
+          (isTenantAdmin() || isManager()) &&
+          canAccessPath('/app/procurement/supplier-ledger')
+        "
+        routerLink="/app/procurement/supplier-ledger"
+        routerLinkActive="active"
+        class="menu-item"
+        title="Supplier Ledger">
+
+        <i class="bi bi-journal-text"></i>
+        <span>Supplier Ledger</span>
+      </a>
+
+      <a
+        *ngIf="
+          (isTenantAdmin() || isManager()) &&
+          canAccessPath('/app/procurement/purchase-return')
+        "
+        routerLink="/app/procurement/purchase-return"
+        routerLinkActive="active"
+        class="menu-item"
+        title="Purchase Return">
+
+        <i class="bi bi-arrow-return-left"></i>
+        <span>Purchase Return</span>
+      </a>
+    </div>
+
+    <!-- OPERATIONS -->
+    <div
+      class="menu-section"
+      *ngIf="canAccessPath('/app/branch-transfer')">
+
+      <div class="menu-section-title">OPERATIONS</div>
+
+      <a
+        routerLink="/app/branch-transfer"
+        routerLinkActive="active"
+        class="menu-item"
+        title="Branch Transfer">
+
+        <i class="bi bi-arrow-left-right"></i>
+        <span>Branch Transfer</span>
+      </a>
+    </div>
+
+    <!-- STAKEHOLDERS -->
+    <div
+      class="menu-section"
+      *ngIf="
+        canAccessPath('/app/stakeholders/customers') ||
+        canAccessPath('/app/stakeholders/suppliers')
+      ">
+
+      <div class="menu-section-title">STAKEHOLDERS</div>
+
+      <a
+        *ngIf="canAccessPath('/app/stakeholders/customers')"
+        routerLink="/app/stakeholders/customers"
+        routerLinkActive="active"
+        class="menu-item"
+        title="Customers">
+
+        <i class="bi bi-people"></i>
+        <span>Customers</span>
+      </a>
+
+      <a
+        *ngIf="
+          (isTenantAdmin() || isManager()) &&
+          canAccessPath('/app/stakeholders/suppliers')
+        "
+        routerLink="/app/stakeholders/suppliers"
+        routerLinkActive="active"
+        class="menu-item"
+        title="Suppliers">
+
+        <i class="bi bi-truck"></i>
+        <span>Suppliers</span>
+      </a>
+    </div>
+
+    <!-- REPORTS -->
+    <div
+      class="menu-section"
+      *ngIf="canAccessPath('/app/reports')">
+
+      <div class="menu-section-title">REPORTS</div>
+
+      <button
+        type="button"
+        class="menu-item reports-menu"
+        [class.active]="isReportsOpen"
+        (click)="toggleReports()"
+        title="Reports"
+        [attr.aria-expanded]="isReportsOpen">
+
+        <i class="bi bi-bar-chart-line"></i>
+        <span>Reports</span>
+
+        <i
+          class="bi reports-arrow"
+          [class.bi-chevron-down]="!isReportsOpen"
+          [class.bi-chevron-up]="isReportsOpen">
+        </i>
+      </button>
+
+      <div
+        class="reports-submenu"
+        *ngIf="isReportsOpen && !isCollapsed">
+
+        <a
+          *ngIf="canAccessPath('/app/reports')"
+          routerLink="/app/reports"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="report-subitem">
+
+          <i class="bi bi-grid-1x2"></i>
+          <span>Reports Dashboard</span>
+        </a>
+
+        <a
+          *ngIf="canAccessPath('/app/reports/sales')"
+          routerLink="/app/reports/sales"
+          routerLinkActive="active"
+          class="report-subitem">
+
+          <i class="bi bi-cart-check"></i>
+          <span>Sales Report</span>
+        </a>
+
+        <a
+          *ngIf="canAccessPath('/app/reports/returns')"
+          routerLink="/app/reports/returns"
+          routerLinkActive="active"
+          class="report-subitem">
+
+          <i class="bi bi-arrow-return-left"></i>
+          <span>Sales Returns</span>
+        </a>
+
+        <a
+          *ngIf="canAccessPath('/app/reports/purchase')"
+          routerLink="/app/reports/purchase"
+          routerLinkActive="active"
+          class="report-subitem">
+
+          <i class="bi bi-bag-check"></i>
+          <span>Purchase Report</span>
+        </a>
+
+        <a
+          *ngIf="canAccessPath('/app/reports/stock')"
+          routerLink="/app/reports/stock"
+          routerLinkActive="active"
+          class="report-subitem">
+
+          <i class="bi bi-box-seam"></i>
+          <span>Stock Report</span>
+        </a>
+
+        <a
+          *ngIf="canAccessPath('/app/reports/expiry')"
+          routerLink="/app/reports/expiry"
+          routerLinkActive="active"
+          class="report-subitem">
+
+          <i class="bi bi-calendar-x"></i>
+          <span>Expiry Report</span>
+        </a>
+
+        <a
+          *ngIf="canAccessPath('/app/reports/profit')"
+          routerLink="/app/reports/profit"
+          routerLinkActive="active"
+          class="report-subitem">
+
+          <i class="bi bi-graph-up-arrow"></i>
+          <span>Profit Report</span>
+        </a>
+
+        <a
+          *ngIf="canAccessPath('/app/reports/cashier')"
+          routerLink="/app/reports/cashier"
+          routerLinkActive="active"
+          class="report-subitem">
+
+          <i class="bi bi-person-check"></i>
+          <span>Cashier Performance</span>
+        </a>
+
+        <a
+          *ngIf="canAccessPath('/app/reports/branch')"
+          routerLink="/app/reports/branch"
+          routerLinkActive="active"
+          class="report-subitem">
+
+          <i class="bi bi-diagram-3"></i>
+          <span>Branch Performance</span>
+        </a>
+      </div>
+    </div>
+
+        <!-- SETTINGS: COLLAPSIBLE MENU -->
+    <div
+      class="menu-section"
+      *ngIf="canAccessPath('/app/settings')">
+
+      <button
+        type="button"
+        class="menu-item reports-menu"
+        [class.active]="isSettingsOpen"
+        (click)="isSettingsOpen = !isSettingsOpen"
+        title="Settings"
+        [attr.aria-expanded]="isSettingsOpen">
+
+        <i class="bi bi-gear"></i>
+        <span>Settings</span>
+
+        <i
+          class="bi reports-arrow"
+          [class.bi-chevron-down]="!isSettingsOpen"
+          [class.bi-chevron-up]="isSettingsOpen">
+        </i>
+      </button>
+
+      <div
+        class="reports-submenu"
+        *ngIf="isSettingsOpen && !isCollapsed">
+
+        <a
+          *ngIf="canAccessPath('/app/settings')"
+          routerLink="/app/settings"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="report-subitem">
+          <i class="bi bi-grid-1x2"></i>
+          <span>Settings Overview</span>
+        </a>
+
+        <a
+          *ngIf="canAccessPath('/app/settings/organization')"
+          routerLink="/app/settings/organization"
+          routerLinkActive="active"
+          class="report-subitem">
+          <i class="bi bi-building-gear"></i>
+          <span>Organization</span>
+        </a>
+
+        <a
+          *ngIf="canAccessPath('/app/settings/branches')"
+          routerLink="/app/settings/branches"
+          routerLinkActive="active"
+          class="report-subitem">
+          <i class="bi bi-diagram-3"></i>
+          <span>Branches / Stores</span>
+        </a>
+
+        <a
+          *ngIf="canAccessPath('/app/settings/pos')"
+          routerLink="/app/settings/pos"
+          routerLinkActive="active"
+          class="report-subitem">
+          <i class="bi bi-pc-display"></i>
+          <span>POS Settings</span>
+        </a>
+
+        <a
+          *ngIf="canAccessPath('/app/settings/tax')"
+          routerLink="/app/settings/tax"
+          routerLinkActive="active"
+          class="report-subitem">
+          <i class="bi bi-percent"></i>
+          <span>Tax Settings</span>
+        </a>
+
+        <a
+          *ngIf="canAccessPath('/app/settings/invoice')"
+          routerLink="/app/settings/invoice"
+          routerLinkActive="active"
+          class="report-subitem">
+          <i class="bi bi-receipt"></i>
+          <span>Invoice Settings</span>
+        </a>
+
+        <a
+          *ngIf="canAccessPath('/app/settings/notifications')"
+          routerLink="/app/settings/notifications"
+          routerLinkActive="active"
+          class="report-subitem">
+          <i class="bi bi-bell"></i>
+          <span>Notifications</span>
+        </a>
+
+        <a
+          *ngIf="canAccessPath('/app/settings/payment-methods')"
+          routerLink="/app/settings/payment-methods"
+          routerLinkActive="active"
+          class="report-subitem">
+          <i class="bi bi-credit-card"></i>
+          <span>Payment Methods</span>
+        </a>
+
+        <a
+          *ngIf="canAccessPath('/app/settings/billing')"
+          routerLink="/app/settings/billing"
+          routerLinkActive="active"
+          class="report-subitem">
+          <i class="bi bi-wallet2"></i>
+          <span>Billing</span>
+        </a>
+
+        <a
+          *ngIf="canAccessPath('/app/settings/saas-plan')"
+          routerLink="/app/settings/saas-plan"
+          routerLinkActive="active"
+          class="report-subitem">
+          <i class="bi bi-layers"></i>
+          <span>Subscription Plan</span>
+        </a>
+
+        <a
+          *ngIf="canAccessPath('/app/settings/usage')"
+          routerLink="/app/settings/usage"
+          routerLinkActive="active"
+          class="report-subitem">
+          <i class="bi bi-speedometer2"></i>
+          <span>Usage &amp; Limits</span>
+        </a>
+
+        <a
+          *ngIf="canAccessPath('/app/settings/user-registration')"
+          routerLink="/app/settings/user-registration"
+          routerLinkActive="active"
+          class="report-subitem">
+          <i class="bi bi-person-plus"></i>
+          <span>User Registration</span>
+        </a>
+
+        <a
+          *ngIf="canManageUsers()"
+          routerLink="/app/settings/users"
+          routerLinkActive="active"
+          class="report-subitem">
+          <i class="bi bi-person-gear"></i>
+          <span>User Management</span>
+        </a>
+
+        <a
+          *ngIf="isTenantAdmin() && canAccessPath('/app/settings/roles')"
+          routerLink="/app/settings/roles"
+          routerLinkActive="active"
+          class="report-subitem">
+          <i class="bi bi-shield-lock"></i>
+          <span>Roles &amp; Permissions</span>
+        </a>
+      </div>
+    </div>
+
+  </nav>
+
+  <!-- FOOTER -->
+  <div class="sidebar-footer">
+    <button
+      type="button"
+      class="logout-btn"
+      (click)="logout()"
+      title="Logout">
+
+      <i class="bi bi-box-arrow-right"></i>
+      <span>Logout</span>
+    </button>
+  </div>
+
+</aside>

@@ -1,0 +1,360 @@
+<div class="subscription-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div>
+      <div class="breadcrumb">
+        <span>Super Admin</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Subscriptions</span>
+      </div>
+
+      <h1>Subscription Management</h1>
+
+      <p>
+        Manage pharmacy subscriptions, plans and billing cycles.
+      </p>
+    </div>
+
+  </div>
+
+
+  <!-- SUMMARY CARDS -->
+  <div class="summary-grid">
+
+    <div class="summary-card">
+      <div class="summary-icon blue">
+        <i class="bi bi-credit-card"></i>
+      </div>
+
+      <div>
+        <span>Total Subscriptions</span>
+        <h2>{{ totalSubscriptions }}</h2>
+      </div>
+    </div>
+
+
+    <div class="summary-card">
+      <div class="summary-icon green">
+        <i class="bi bi-check-circle"></i>
+      </div>
+
+      <div>
+        <span>Active</span>
+        <h2>{{ activeSubscriptions }}</h2>
+      </div>
+    </div>
+
+
+    <div class="summary-card">
+      <div class="summary-icon orange">
+        <i class="bi bi-clock"></i>
+      </div>
+
+      <div>
+        <span>Trial</span>
+        <h2>{{ trialSubscriptions }}</h2>
+      </div>
+    </div>
+
+
+    <div class="summary-card">
+      <div class="summary-icon purple">
+        <i class="bi bi-cash-stack"></i>
+      </div>
+
+      <div>
+        <span>Monthly Recurring Revenue</span>
+
+        <h2>
+          ৳{{ monthlyRecurringRevenue | number:'1.0-0' }}
+        </h2>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+
+    <div class="search-box">
+
+      <i class="bi bi-search"></i>
+
+      <input
+        type="text"
+        placeholder="Search pharmacy, tenant, plan..."
+        [(ngModel)]="searchText"
+        (input)="searchSubscriptions()"
+      />
+
+    </div>
+
+
+    <div class="filter-buttons">
+
+      <button
+        [class.active]="selectedFilter === 'All'"
+        (click)="filterSubscriptions('All')">
+        All
+      </button>
+
+      <button
+        [class.active]="selectedFilter === 'Active'"
+        (click)="filterSubscriptions('Active')">
+        Active
+      </button>
+
+      <button
+        [class.active]="selectedFilter === 'Trial'"
+        (click)="filterSubscriptions('Trial')">
+        Trial
+      </button>
+
+      <button
+        [class.active]="selectedFilter === 'Cancelled'"
+        (click)="filterSubscriptions('Cancelled')">
+        Cancelled
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- TABLE -->
+  <div class="table-card">
+
+    <div class="table-header">
+
+      <div>
+        <h3>Subscription List</h3>
+
+        <p>
+          {{ filteredSubscriptions.length }} subscriptions found
+        </p>
+      </div>
+
+    </div>
+
+
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>Subscription</th>
+
+            <th>Pharmacy</th>
+
+            <th>Plan</th>
+
+            <th>Billing</th>
+
+            <th>Amount</th>
+
+            <th>Next Billing</th>
+
+            <th>Status</th>
+
+            <th>Action</th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="let subscription of filteredSubscriptions"
+          >
+
+            <!-- SUBSCRIPTION -->
+            <td>
+
+              <div class="subscription-info">
+
+                <strong>
+                  {{ subscription.id }}
+                </strong>
+
+                <span>
+                  {{ subscription.tenantId }}
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <!-- PHARMACY -->
+            <td>
+
+              <div class="pharmacy-info">
+
+                <strong>
+                  {{ subscription.pharmacyName }}
+                </strong>
+
+                <span>
+                  {{ subscription.owner }}
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <!-- PLAN -->
+            <td>
+
+              <span
+                class="plan-badge"
+                [class.basic]="subscription.plan === 'Basic'"
+                [class.standard]="subscription.plan === 'Standard'"
+                [class.premium]="subscription.plan === 'Premium'"
+              >
+                {{ subscription.plan }}
+              </span>
+
+            </td>
+
+
+            <!-- BILLING -->
+            <td>
+
+              <span class="billing-cycle">
+
+                <i
+                  class="bi"
+                  [class.bi-calendar-month]="subscription.billingCycle === 'Monthly'"
+                  [class.bi-calendar3]="subscription.billingCycle === 'Yearly'"
+                ></i>
+
+                {{ subscription.billingCycle }}
+
+              </span>
+
+            </td>
+
+
+            <!-- AMOUNT -->
+            <td>
+
+              <strong>
+                ৳{{ subscription.amount | number:'1.0-0' }}
+              </strong>
+
+              <small>
+                / {{ subscription.billingCycle === 'Monthly' ? 'month' : 'year' }}
+              </small>
+
+            </td>
+
+
+            <!-- NEXT BILLING -->
+            <td>
+
+              {{ subscription.nextBillingDate | date:'dd MMM yyyy' }}
+
+            </td>
+
+
+            <!-- STATUS -->
+            <td>
+
+              <span
+                class="status-badge"
+                [class.active]="subscription.status === 'Active'"
+                [class.trial]="subscription.status === 'Trial'"
+                [class.cancelled]="subscription.status === 'Cancelled'"
+                [class.expired]="subscription.status === 'Expired'"
+              >
+
+                <span class="status-dot"></span>
+
+                {{ subscription.status }}
+
+              </span>
+
+            </td>
+
+
+            <!-- ACTION -->
+            <td>
+
+              <div class="actions">
+
+                <button
+                  class="view-btn"
+                  title="View"
+                  (click)="viewSubscription(subscription)"
+                >
+                  <i class="bi bi-eye"></i>
+                </button>
+
+
+                <button
+                  *ngIf="subscription.status === 'Active'"
+                  class="cancel-btn"
+                  title="Cancel"
+                  (click)="cancelSubscription(subscription)"
+                >
+                  <i class="bi bi-x-circle"></i>
+                </button>
+
+
+                <button
+                  *ngIf="
+                    subscription.status === 'Cancelled' ||
+                    subscription.status === 'Expired'
+                  "
+                  class="activate-btn"
+                  title="Activate"
+                  (click)="activateSubscription(subscription)"
+                >
+                  <i class="bi bi-check-circle"></i>
+                </button>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+
+          <!-- EMPTY STATE -->
+          <tr *ngIf="filteredSubscriptions.length === 0">
+
+            <td
+              colspan="8"
+              class="empty-state"
+            >
+
+              <i class="bi bi-search"></i>
+
+              <h3>No subscriptions found</h3>
+
+              <p>
+                Try changing your search or filter.
+              </p>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>

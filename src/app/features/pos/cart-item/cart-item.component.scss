@@ -1,0 +1,197 @@
+.cart-item {
+  display: grid;
+
+  grid-template-columns:
+    minmax(180px, 1fr)
+    auto
+    90px
+    28px;
+
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 14px 0;
+
+  border-bottom: 1px solid #edf0f4;
+}
+
+
+/* PRODUCT */
+
+.product-info {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  min-width: 0;
+}
+
+.product-icon {
+  width: 38px;
+  height: 38px;
+
+  flex-shrink: 0;
+
+  border-radius: 9px;
+
+  background: #f4f7fb;
+
+  color: #64748b;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-details {
+  min-width: 0;
+}
+
+.product-details h4 {
+  margin: 0 0 4px;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  color: #263247;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.product-meta,
+.batch-meta,
+.expiry-meta {
+  font-size: 9px;
+
+  color: #8b95a5;
+
+  margin-top: 2px;
+}
+
+
+/* QUANTITY */
+
+.quantity-control {
+  display: flex;
+  align-items: center;
+
+  border: 1px solid #dfe5ec;
+
+  border-radius: 7px;
+
+  overflow: hidden;
+}
+
+.quantity-control button {
+  width: 26px;
+  height: 28px;
+
+  border: none;
+
+  background: #f8fafc;
+
+  color: #475569;
+
+  cursor: pointer;
+}
+
+.quantity-control button:hover:not(:disabled) {
+  background: #eef2f7;
+}
+
+.quantity-control button:disabled {
+  opacity: 0.4;
+
+  cursor: not-allowed;
+}
+
+.quantity-control span {
+  min-width: 28px;
+
+  text-align: center;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  color: #334155;
+}
+
+
+/* PRICE */
+
+.price {
+  display: flex;
+  flex-direction: column;
+
+  align-items: flex-end;
+
+  gap: 2px;
+}
+
+.price span {
+  font-size: 9px;
+
+  color: #94a3b8;
+}
+
+.price strong {
+  font-size: 12px;
+
+  color: #172033;
+}
+
+
+/* REMOVE */
+
+.remove-btn {
+  width: 27px;
+  height: 27px;
+
+  border: none;
+
+  background: transparent;
+
+  color: #9aa3b2;
+
+  border-radius: 6px;
+
+  cursor: pointer;
+}
+
+.remove-btn:hover {
+  background: #fef2f2;
+
+  color: #dc2626;
+}
+
+
+/* RESPONSIVE */
+
+@media (max-width: 650px) {
+
+  .cart-item {
+    grid-template-columns: 1fr auto;
+  }
+
+  .quantity-control {
+    grid-column: 1;
+  }
+
+  .price {
+    grid-column: 2;
+    grid-row: 2;
+
+    justify-self: end;
+  }
+
+  .remove-btn {
+    grid-column: 2;
+    grid-row: 1;
+
+    justify-self: end;
+  }
+}

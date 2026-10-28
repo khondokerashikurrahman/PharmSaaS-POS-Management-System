@@ -1,0 +1,317 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import {
+  SupplierApiService,
+  SupplierRequest,
+  SupplierResponse
+} from '../../../core/services/supplier-api.service';
+
+@Component({
+  selector: 'app-supplier-list',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  templateUrl: './supplier-list.component.html',
+  styleUrl: './supplier-list.component.scss'
+})
+export class SupplierListComponent implements OnInit {
+  suppliers: SupplierResponse[] = [];
+
+  searchTerm = '';
+  statusFilter = 'All';
+
+  loading = false;
+  saving = false;
+  showForm = false;
+  editingSupplierId: number | null = null;
+
+  loadError = '';
+  message = '';
+  messageType: 'success' | 'error' = 'success';
+
+  form: SupplierRequest = this.emptyForm();
+
+  constructor(
+    private readonly router: Router,
+    private readonly route: ActivatedRoute,
+    private readonly supplierApi: SupplierApiService
+  ) {}
+
+  ngOnInit(): void {
+    this.loadSuppliers();
+  }
+
+  private getTenantId(): number {
+    const id = Number(localStorage.getItem('tenantId'));
+    return Number.isSafeInteger(id) && id > 0 ? id : 0;
+  }
+
+  private emptyForm(): SupplierRequest {
+    return {
+      name: '',
+      companyName: '',
+      contactPerson: '',
+      phone: '',
+      email: '',
+      address: '',
+      openingBalance: 0,
+      creditLimit: 0,
+      status: 'Active'
+    };
+  }
+
+  loadSuppliers(): void {
+    const tenantId = this.getTenantId();
+
+    if (!tenantId) {
+      this.loading = false;
+      this.loadError = 'Tenant ID পাওয়া যায়নি। আবার tenant account দিয়ে login করুন।';
+      this.suppliers = [];
+      return;
+    }
+
+    this.loading = true;
+    this.loadError = '';
+
+    this.supplierApi.list(tenantId).subscribe({
+      next: suppliers => {
+        this.suppliers = suppliers || [];
+        this.loading = false;
+
+        const editId = Number(
+          this.route.snapshot.queryParamMap.get('editSupplierId')
+        );
+        if (Number.isSafeInteger(editId) && editId > 0) {
+          const target = this.suppliers.find(item => item.id === editId);
+          if (target) this.editSupplier(target);
+
+          this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: { editSupplierId: null },
+            queryParamsHandling: 'merge',
+            replaceUrl: true
+          });
+        }
+      },
+      error: err => {
+        this.suppliers = [];
+        this.loading = false;
+        this.loadError =
+          err?.error?.message ||
+          'Supplier list load করা যায়নি। Backend, login ও permissions যাচাই করুন।';
+      }
+    });
+  }
+
+  get filteredSuppliers(): SupplierResponse[] {
+    const search = this.searchTerm.trim().toLowerCase();
+
+    return this.suppliers.filter(supplier => {
+      const matchesSearch = !search || [
+        supplier.supplierCode,
+        supplier.name,
+        supplier.companyName,
+        supplier.contactPerson,
+        supplier.phone,
+        supplier.email,
+        supplier.address
+      ].some(value => String(value || '').toLowerCase().includes(search));
+
+      const matchesStatus =
+        this.statusFilter === 'All' ||
+        supplier.status?.toLowerCase() === this.statusFilter.toLowerCase();
+
+      return matchesSearch && matchesStatus;
+    });
+  }
+
+  get totalSuppliers(): number {
+    return this.suppliers.length;
+  }
+
+  get activeSuppliers(): number {
+    return this.suppliers.filter(
+      s => s.status?.toLowerCase() === 'active'
+    ).length;
+  }
+
+  get inactiveSuppliers(): number {
+    return this.suppliers.filter(
+      s => s.status?.toLowerCase() === 'inactive'
+    ).length;
+  }
+
+  get blockedSuppliers(): number {
+    return this.suppliers.filter(
+      s => s.status?.toLowerCase() === 'blocked'
+    ).length;
+  }
+
+  getInitial(name: string): string {
+    return (name || 'S').charAt(0).toUpperCase();
+  }
+
+  getStatusClass(status: string): string {
+    return status?.toLowerCase() === 'active'
+      ? 'status-active'
+      : 'status-inactive';
+  }
+
+  addSupplier(): void {
+    this.editingSupplierId = null;
+    this.form = this.emptyForm();
+    this.showForm = true;
+    this.message = '';
+    this.loadError = '';
+  }
+
+  editSupplier(supplier: SupplierResponse): void {
+    this.editingSupplierId = supplier.id;
+    this.form = {
+      name: supplier.name || '',
+      companyName: supplier.companyName || '',
+      contactPerson: supplier.contactPerson || '',
+      phone: supplier.phone || '',
+      email: supplier.email || '',
+      address: supplier.address || '',
+      openingBalance: Number(supplier.openingBalance || 0),
+      creditLimit: Number(supplier.creditLimit || 0),
+      status: (supplier.status || 'Active') as
+        'Active' | 'Inactive' | 'Blocked'
+    };
+    this.showForm = true;
+    this.message = '';
+    this.loadError = '';
+  }
+
+  cancelForm(): void {
+    if (this.saving) return;
+    this.showForm = false;
+    this.editingSupplierId = null;
+    this.form = this.emptyForm();
+  }
+
+  saveSupplier(): void {
+    if (this.saving) return;
+
+    const tenantId = this.getTenantId();
+    if (!tenantId) {
+      this.showError('Tenant ID পাওয়া যায়নি। আবার login করুন।');
+      return;
+    }
+
+    if (!this.form.name?.trim()) {
+      this.showError('Supplier name দিতে হবে।');
+      return;
+    }
+
+    const openingBalance = Number(this.form.openingBalance ?? 0);
+    const creditLimit = Number(this.form.creditLimit ?? 0);
+
+    if (
+      !Number.isFinite(openingBalance) || openingBalance < 0 ||
+      !Number.isFinite(creditLimit) || creditLimit < 0
+    ) {
+      this.showError('Opening balance ও credit limit ঋণাত্মক হতে পারবে না।');
+      return;
+    }
+
+    const request: SupplierRequest = {
+      name: this.form.name.trim(),
+      companyName: this.clean(this.form.companyName),
+      contactPerson: this.clean(this.form.contactPerson),
+      phone: this.clean(this.form.phone),
+      email: this.clean(this.form.email),
+      address: this.clean(this.form.address),
+      openingBalance,
+      creditLimit,
+      status: this.form.status || 'Active'
+    };
+
+    this.saving = true;
+    this.message = '';
+
+    const operation = this.editingSupplierId === null
+      ? this.supplierApi.create(tenantId, request)
+      : this.supplierApi.update(
+          tenantId, this.editingSupplierId, request
+        );
+
+    operation.subscribe({
+      next: saved => {
+        this.saving = false;
+        this.showForm = false;
+        this.editingSupplierId = null;
+        this.form = this.emptyForm();
+
+        this.message = `Supplier "${saved.name}" ${
+          this.editingSupplierId === null ? 'save' : 'update'
+        } request সফল হয়েছে।`;
+        this.messageType = 'success';
+
+        this.loadSuppliers();
+      },
+      error: err => {
+        this.saving = false;
+        this.showError(
+          err?.error?.message ||
+          'Supplier save করা যায়নি। নাম, tenant status ও permission যাচাই করুন।'
+        );
+      }
+    });
+  }
+
+  deactivateSupplier(supplier: SupplierResponse): void {
+    if (this.saving || supplier.status?.toLowerCase() !== 'active') return;
+
+    if (!confirm(
+      `Supplier "${supplier.name}" deactivate করতে চান? পুরোনো purchase history মুছে যাবে না।`
+    )) return;
+
+    const tenantId = this.getTenantId();
+    if (!tenantId) {
+      this.showError('Tenant ID পাওয়া যায়নি। আবার login করুন।');
+      return;
+    }
+
+    this.saving = true;
+    this.message = '';
+
+    this.supplierApi.deactivate(tenantId, supplier.id).subscribe({
+      next: updated => {
+        this.saving = false;
+        this.message = `Supplier "${updated.name}" deactivate হয়েছে।`;
+        this.messageType = 'success';
+        this.loadSuppliers();
+      },
+      error: err => {
+        this.saving = false;
+        this.showError(
+          err?.error?.message || 'Supplier deactivate করা যায়নি।'
+        );
+      }
+    });
+  }
+
+  viewSupplier(id: number): void {
+    this.router.navigate(['/app/stakeholders/suppliers', id]);
+  }
+
+  openLedger(id: number): void {
+    this.router.navigate(
+      ['/app/stakeholders/suppliers/ledger'],
+      { queryParams: { supplierId: id } }
+    );
+  }
+
+  private clean(value?: string): string | undefined {
+    const result = value?.trim();
+    return result || undefined;
+  }
+
+  private showError(message: string): void {
+    this.message = message;
+    this.messageType = 'error';
+  }
+}

@@ -1,0 +1,978 @@
+<!-- =========================================================
+     LANDING PAGE
+========================================================= -->
+
+<div class="landing-page">
+
+
+  <!-- =======================================================
+       HERO
+  ======================================================== -->
+
+  <section class="hero-section">
+
+    <div class="hero-container">
+
+
+      <!-- ===================================================
+           LEFT SIDE
+      ==================================================== -->
+
+      <div class="hero-content">
+
+        <div class="hero-badge">
+
+          <span class="badge-dot"></span>
+
+          Smart Pharmacy SaaS Platform
+
+        </div>
+
+
+        <h1 class="hero-title">
+
+          Run Your Pharmacy
+
+          <br>
+
+          <span class="gradient-text">
+            {{ displayedText }}
+          </span>
+
+          <span class="typing-cursor">|</span>
+
+        </h1>
+
+
+        <p class="hero-description">
+
+          Manage your pharmacy smarter with powerful
+          POS, inventory, procurement, sales,
+          reports and business analytics — all
+          from one modern platform.
+
+        </p>
+
+
+        <div class="hero-actions">
+
+          <a
+            routerLink="/register"
+            class="btn-primary"
+          >
+
+            Get Started
+
+            <i class="bi bi-arrow-right"></i>
+
+          </a>
+
+
+          <a
+            routerLink="/pricing"
+            class="btn-secondary"
+          >
+
+            View Pricing
+
+          </a>
+
+        </div>
+
+
+        <!-- Trust -->
+
+        <div class="hero-trust">
+
+          <div class="trust-item">
+
+            <i class="bi bi-check-circle-fill"></i>
+
+            Easy to Use
+
+          </div>
+
+
+          <div class="trust-item">
+
+            <i class="bi bi-check-circle-fill"></i>
+
+            Secure
+
+          </div>
+
+
+          <div class="trust-item">
+
+            <i class="bi bi-check-circle-fill"></i>
+
+            Multi-Branch
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- ===================================================
+           RIGHT SIDE — REALISTIC VIDEO SCENE
+      ==================================================== -->
+
+      <div class="hero-visual">
+
+
+        <!-- Background glow -->
+
+        <div class="visual-glow glow-one"></div>
+
+        <div class="visual-glow glow-two"></div>
+
+
+        <!-- =================================================
+             VIDEO
+        ================================================== -->
+
+        <div class="video-frame">
+
+
+          
+            <!-- PUT YOUR REAL VIDEO HERE: -->
+
+            src:
+            assets/videos/pharmacy-operation.mp4
+
+            Recommended duration:
+            15–16 seconds
+
+            Recommended:
+            1920x1080
+            MP4
+            H.264
+         
+
+          <video
+            #heroVideo
+            class="pharmacy-video"
+            autoplay
+            muted
+            loop
+            playsinline
+            preload="auto"
+            (timeupdate)="syncVideoScene(heroVideo.currentTime)"
+          >
+
+            <source
+              src="assets/videos/pharmacy-operation.mp4"
+              type="video/mp4"
+            >
+
+          </video>
+
+
+          <!-- =================================================
+               FALLBACK OVERLAY
+          ================================================== -->
+
+          <div class="video-overlay">
+
+
+            <!-- TOP LABEL -->
+
+            <div class="scene-label">
+
+              <span class="live-dot"></span>
+
+              LIVE PHARMACY OPERATIONS
+
+            </div>
+
+
+            <!-- ===============================================
+                 DELIVERY STATUS
+            ================================================ -->
+
+            <div
+              class="floating-card delivery-card"
+              [class.active]="heroAnimationStep === 'delivery'"
+            >
+
+              <div class="floating-icon delivery-icon">
+
+                <i class="bi bi-truck"></i>
+
+              </div>
+
+              <div>
+
+                <small>
+                  Delivery
+                </small>
+
+                <strong>
+                  Medicine Arriving
+                </strong>
+
+              </div>
+
+            </div>
+
+
+            <!-- ===============================================
+                 INVENTORY STATUS
+            ================================================ -->
+
+            <div
+              class="floating-card inventory-card"
+              [class.active]="heroAnimationStep === 'inventory'"
+            >
+
+              <div class="floating-icon inventory-icon">
+
+                <i class="bi bi-box-seam-fill"></i>
+
+              </div>
+
+              <div>
+
+                <small>
+                  Inventory
+                </small>
+
+                <strong>
+                  Stock Received
+                </strong>
+
+              </div>
+
+            </div>
+
+
+            <!-- ===============================================
+                 POS MONITOR
+            ================================================ -->
+
+            <div
+              class="pos-screen"
+              [class.active]="heroAnimationStep === 'scan' ||
+                              heroAnimationStep === 'sale'"
+            >
+
+              <div class="pos-top">
+
+                <div>
+
+                  <span class="pos-small">
+                    PharmSaaS POS
+                  </span>
+
+                  <strong>
+                    New Sale
+                  </strong>
+
+                </div>
+
+                <div class="pos-online">
+
+                  <span></span>
+
+                  Online
+
+                </div>
+
+              </div>
+
+
+              <div class="pos-products">
+
+
+                <div class="pos-product">
+
+                  <div class="product-icon">
+                    <i class="bi bi-capsule"></i>
+                  </div>
+
+                  <div class="product-info">
+
+                    <strong>
+                      Napa 500mg
+                    </strong>
+
+                    <small>
+                      Qty × 2
+                    </small>
+
+                  </div>
+
+                  <span class="product-price">
+                    ৳100
+                  </span>
+
+                </div>
+
+
+                <div class="pos-product">
+
+                  <div class="product-icon">
+                    <i class="bi bi-capsule-pill"></i>
+                  </div>
+
+                  <div class="product-info">
+
+                    <strong>
+                      Seclo 20mg
+                    </strong>
+
+                    <small>
+                      Qty × 1
+                    </small>
+
+                  </div>
+
+                  <span class="product-price">
+                    ৳290
+                  </span>
+
+                </div>
+
+
+              </div>
+
+
+              <div class="pos-total">
+
+                <span>
+                  Total
+                </span>
+
+                <strong>
+                  ৳{{ currentSaleAmount }}
+                </strong>
+
+              </div>
+
+
+              <div
+                class="scan-line"
+                *ngIf="heroAnimationStep === 'scan'"
+              ></div>
+
+
+            </div>
+
+
+            <!-- ===============================================
+                 PAYMENT SUCCESS
+            ================================================ -->
+
+            <div
+              class="payment-success"
+              *ngIf="saleCompleted"
+            >
+
+              <div class="success-icon">
+
+                <i class="bi bi-check-lg"></i>
+
+              </div>
+
+              <div>
+
+                <strong>
+                  Payment Successful
+                </strong>
+
+                <span>
+                  ৳{{ currentSaleAmount }}
+                </span>
+
+              </div>
+
+            </div>
+
+
+            <!-- ===============================================
+                 RECEIPT
+            ================================================ -->
+
+            <div
+              class="receipt-wrapper"
+              [class.show]="receiptVisible"
+            >
+
+              <div class="receipt-printer">
+
+                <div class="printer-top"></div>
+
+                <div class="printer-body">
+
+                  <div class="printer-light"></div>
+
+                </div>
+
+              </div>
+
+
+              <div class="receipt-paper">
+
+                <div class="receipt-header">
+
+                  <strong>
+                    PHARMSAAS
+                  </strong>
+
+                  <small>
+                    Smart Pharmacy POS
+                  </small>
+
+                </div>
+
+
+                <div class="receipt-line"></div>
+
+
+                <div class="receipt-item">
+
+                  <span>
+                    Napa 500mg × 2
+                  </span>
+
+                  <strong>
+                    ৳100
+                  </strong>
+
+                </div>
+
+
+                <div class="receipt-item">
+
+                  <span>
+                    Seclo 20mg × 1
+                  </span>
+
+                  <strong>
+                    ৳290
+                  </strong>
+
+                </div>
+
+
+                <div class="receipt-line"></div>
+
+
+                <div class="receipt-total">
+
+                  <span>
+                    Total
+                  </span>
+
+                  <strong>
+                    ৳390
+                  </strong>
+
+                </div>
+
+
+                <div class="receipt-paid">
+
+                  <i class="bi bi-check-circle-fill"></i>
+
+                  Payment Successful
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <!-- ===============================================
+                 STOCK UPDATED
+            ================================================ -->
+
+            <div
+              class="stock-update"
+              *ngIf="stockUpdated"
+            >
+
+              <div class="stock-update-icon">
+
+                <i class="bi bi-box-arrow-in-down"></i>
+
+              </div>
+
+              <div>
+
+                <small>
+                  Inventory
+                </small>
+
+                <strong>
+                  Stock Updated +2
+                </strong>
+
+              </div>
+
+            </div>
+
+
+            <!-- ===============================================
+                 SALES GRAPH
+            ================================================ -->
+
+            <div
+              class="sales-widget"
+              [class.show]="growthVisible"
+            >
+
+              <div class="sales-widget-header">
+
+                <div>
+
+                  <small>
+                    Today's Sales
+                  </small>
+
+                  <strong>
+                    ৳48,520
+                  </strong>
+
+                </div>
+
+                <span class="growth-value">
+
+                  <i class="bi bi-arrow-up"></i>
+
+                  +18%
+
+                </span>
+
+              </div>
+
+
+              <div class="mini-chart">
+
+                <div class="chart-bar bar-one"></div>
+
+                <div class="chart-bar bar-two"></div>
+
+                <div class="chart-bar bar-three"></div>
+
+                <div class="chart-bar bar-four"></div>
+
+                <div class="chart-bar bar-five"></div>
+
+                <div class="chart-bar bar-six"></div>
+
+                <div class="chart-bar bar-seven"></div>
+
+              </div>
+
+            </div>
+
+
+          </div>
+
+
+          <!-- ===============================================
+               SCENE PROGRESS
+          ================================================ -->
+
+          <div class="scene-progress">
+
+            <span
+              [class.active]="heroAnimationStep === 'delivery'"
+            ></span>
+
+            <span
+              [class.active]="heroAnimationStep === 'inventory'"
+            ></span>
+
+            <span
+              [class.active]="heroAnimationStep === 'scan'"
+            ></span>
+
+            <span
+              [class.active]="heroAnimationStep === 'sale'"
+            ></span>
+
+            <span
+              [class.active]="heroAnimationStep === 'stock'"
+            ></span>
+
+            <span
+              [class.active]="heroAnimationStep === 'growth'"
+            ></span>
+
+          </div>
+
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- =======================================================
+       FEATURES
+  ======================================================== -->
+
+  <section class="features-section">
+
+    <div class="section-container">
+
+      <div class="section-heading">
+
+        <span class="section-label">
+          POWERFUL FEATURES
+        </span>
+
+        <h2>
+          Everything Your Pharmacy Needs
+        </h2>
+
+        <p>
+          One platform to manage your complete
+          pharmacy operation.
+        </p>
+
+      </div>
+
+
+      <div class="feature-carousel">
+
+
+        <button
+          class="carousel-arrow"
+          (click)="previousFeature()"
+          aria-label="Previous feature"
+        >
+
+          <i class="bi bi-chevron-left"></i>
+
+        </button>
+
+
+        <div class="feature-card">
+
+          <div class="feature-icon">
+
+            <i
+              [class]="features[currentFeatureIndex].icon"
+            ></i>
+
+          </div>
+
+
+          <div class="feature-content">
+
+            <h3>
+              {{ features[currentFeatureIndex].title }}
+            </h3>
+
+            <p>
+              {{ features[currentFeatureIndex].description }}
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <button
+          class="carousel-arrow"
+          (click)="nextFeature()"
+          aria-label="Next feature"
+        >
+
+          <i class="bi bi-chevron-right"></i>
+
+        </button>
+
+      </div>
+
+
+      <div class="feature-dots">
+
+        <button
+          *ngFor="let feature of features; let i = index"
+          [class.active]="currentFeatureIndex === i"
+          (click)="goToFeature(i)"
+          aria-label="Select feature"
+        ></button>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- =======================================================
+       WHY PHARMSAAS
+  ======================================================== -->
+
+  <section class="why-section">
+
+    <div class="section-container">
+
+      <div class="why-grid">
+
+
+        <div class="why-content">
+
+          <span class="section-label">
+            WHY PHARMSAAS
+          </span>
+
+          <h2>
+            Turn Daily Pharmacy Work
+            Into Smart Digital Operations
+          </h2>
+
+          <p>
+            From purchasing medicines to selling them
+            at the counter, PharmSaaS connects every
+            part of your pharmacy workflow.
+          </p>
+
+
+          <div class="why-list">
+
+            <div class="why-item">
+
+              <div class="why-check">
+                <i class="bi bi-check-lg"></i>
+              </div>
+
+              <div>
+
+                <strong>
+                  Faster Billing
+                </strong>
+
+                <span>
+                  Complete sales in seconds.
+                </span>
+
+              </div>
+
+            </div>
+
+
+            <div class="why-item">
+
+              <div class="why-check">
+                <i class="bi bi-check-lg"></i>
+              </div>
+
+              <div>
+
+                <strong>
+                  Better Inventory
+                </strong>
+
+                <span>
+                  Track stock and expiry automatically.
+                </span>
+
+              </div>
+
+            </div>
+
+
+            <div class="why-item">
+
+              <div class="why-check">
+                <i class="bi bi-check-lg"></i>
+              </div>
+
+              <div>
+
+                <strong>
+                  Smarter Decisions
+                </strong>
+
+                <span>
+                  Use reports and analytics to grow.
+                </span>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="why-visual">
+
+          <div class="dashboard-card">
+
+            <div class="dashboard-header">
+
+              <div>
+
+                <small>
+                  Business Overview
+                </small>
+
+                <strong>
+                  Today's Performance
+                </strong>
+
+              </div>
+
+              <i class="bi bi-three-dots"></i>
+
+            </div>
+
+
+            <div class="dashboard-stats">
+
+              <div class="dashboard-stat">
+
+                <span>
+                  Sales
+                </span>
+
+                <strong>
+                  ৳48,520
+                </strong>
+
+                <small class="positive">
+                  +18%
+                </small>
+
+              </div>
+
+
+              <div class="dashboard-stat">
+
+                <span>
+                  Orders
+                </span>
+
+                <strong>
+                  284
+                </strong>
+
+                <small class="positive">
+                  +12%
+                </small>
+
+              </div>
+
+
+              <div class="dashboard-stat">
+
+                <span>
+                  Products
+                </span>
+
+                <strong>
+                  1,284
+                </strong>
+
+                <small>
+                  Active
+                </small>
+
+              </div>
+
+            </div>
+
+
+            <div class="dashboard-chart">
+
+              <div class="chart-line">
+
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- =======================================================
+       CTA
+  ======================================================== -->
+
+  <section class="cta-section">
+
+    <div class="cta-container">
+
+      <div class="cta-content">
+
+        <span class="section-label">
+          READY TO GET STARTED?
+        </span>
+
+        <h2>
+          Build a Smarter Pharmacy
+          With PharmSaaS
+        </h2>
+
+        <p>
+          Bring your pharmacy operations,
+          inventory and sales together
+          in one powerful platform.
+        </p>
+
+
+        <div class="cta-actions">
+
+          <a
+            routerLink="/register"
+            class="btn-primary"
+          >
+
+            Start Free
+
+            <i class="bi bi-arrow-right"></i>
+
+          </a>
+
+
+          <a
+            routerLink="/pricing"
+            class="btn-secondary"
+          >
+
+            Explore Plans
+
+          </a>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+</div>

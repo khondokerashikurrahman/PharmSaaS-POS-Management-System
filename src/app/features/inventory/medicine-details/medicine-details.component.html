@@ -1,0 +1,702 @@
+
+<div class="medicine-details-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div class="header-left">
+
+      <div class="breadcrumb">
+        <span>Pharmacy</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Inventory</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Medicines</span>
+        <i class="bi bi-chevron-right"></i>
+        <strong>Details</strong>
+      </div>
+
+      <h1>Medicine Details</h1>
+
+      <p>
+        View complete information about this medicine.
+      </p>
+
+    </div>
+
+    <div class="header-actions">
+
+      <button
+        type="button"
+        class="btn btn-light"
+        (click)="goBack()"
+      >
+        <i class="bi bi-arrow-left"></i>
+        Back to Medicines
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="editMedicine()"
+        [disabled]="!medicine"
+      >
+        <i class="bi bi-pencil"></i>
+        Edit Medicine
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- LOADING / EMPTY STATE -->
+  <div class="empty-state" *ngIf="loading">
+    <div class="empty-icon"><i class="bi bi-arrow-repeat"></i></div>
+    <h3>Loading medicine details...</h3>
+    <p>Getting the latest inventory information from the backend.</p>
+  </div>
+
+  <div
+    class="empty-state"
+    *ngIf="!loading && !medicine"
+  >
+
+    <div class="empty-icon">
+      <i class="bi bi-capsule"></i>
+    </div>
+
+    <h3>Unable to load medicine</h3>
+
+    <p>
+      {{ errorMessage || 'The requested medicine could not be found.' }}
+    </p>
+
+    <button
+      type="button"
+      class="btn btn-primary"
+      (click)="goBack()"
+    >
+      Back to Medicines
+    </button>
+
+  </div>
+
+
+  <!-- MEDICINE CONTENT -->
+  <div
+    class="details-content"
+    *ngIf="medicine"
+  >
+
+    <!-- TOP SUMMARY -->
+    <div class="medicine-summary-card">
+
+      <div class="medicine-main-info">
+
+        <div class="medicine-avatar">
+          <i class="bi bi-capsule"></i>
+        </div>
+
+        <div class="medicine-title">
+
+          <div class="title-row">
+
+            <h2>
+              {{ medicine.name }}
+            </h2>
+
+            <span
+              class="status-badge"
+              [ngClass]="getStatusClass(medicine.status)"
+            >
+              <span class="status-dot"></span>
+              {{ medicine.status }}
+            </span>
+
+          </div>
+
+          <p class="generic-name">
+            {{ medicine.generic }}
+          </p>
+
+          <div class="medicine-meta">
+
+            <span>
+              <i class="bi bi-building"></i>
+              {{ medicine.company }}
+            </span>
+
+            <span>
+              <i class="bi bi-tag"></i>
+              {{ medicine.category }}
+            </span>
+
+            <span>
+              <i class="bi bi-upc-scan"></i>
+              {{ medicine.sku || ('MED-' + medicine.id.toString().padStart(4, '0')) }}
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="price-section">
+
+        <span>Unit Price</span>
+
+        <strong>
+          ৳{{ medicine.unitPrice | number:'1.2-2' }}
+        </strong>
+
+        <small>per unit</small>
+
+      </div>
+
+    </div>
+
+
+    <!-- QUICK STATS -->
+    <div class="quick-stats">
+
+      <div class="stat-card">
+
+        <div class="stat-icon stock-icon">
+          <i class="bi bi-box-seam"></i>
+        </div>
+
+        <div class="stat-content">
+
+          <span>Current Stock</span>
+
+          <strong>
+            {{ medicine.stock }}
+          </strong>
+
+          <small>units available</small>
+
+        </div>
+
+      </div>
+
+
+      <div class="stat-card">
+
+        <div class="stat-icon reorder-icon">
+          <i class="bi bi-arrow-repeat"></i>
+        </div>
+
+        <div class="stat-content">
+
+          <span>Reorder Level</span>
+
+          <strong>
+            {{ medicine.reorderLevel }}
+          </strong>
+
+          <small>minimum stock level</small>
+
+        </div>
+
+      </div>
+
+
+      <div class="stat-card">
+
+        <div class="stat-icon price-icon">
+          <i class="bi bi-currency-dollar"></i>
+        </div>
+
+        <div class="stat-content">
+
+          <span>Unit Price</span>
+
+          <strong>
+            ৳{{ medicine.unitPrice | number:'1.2-2' }}
+          </strong>
+
+          <small>selling price</small>
+
+        </div>
+
+      </div>
+
+
+      <div class="stat-card">
+
+        <div class="stat-icon category-icon">
+          <i class="bi bi-grid"></i>
+        </div>
+
+        <div class="stat-content">
+
+          <span>Category</span>
+
+          <strong class="category-value">
+            {{ medicine.category }}
+          </strong>
+
+          <small>medicine category</small>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- INFORMATION GRID -->
+    <div class="information-grid">
+
+      <!-- BASIC INFORMATION -->
+      <div class="details-card">
+
+        <div class="card-header">
+
+          <div>
+
+            <h3>
+              <i class="bi bi-info-circle"></i>
+              Basic Information
+            </h3>
+
+            <p>
+              General information about this medicine
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="details-list">
+
+          <div class="detail-row">
+
+            <span class="detail-label">
+              Medicine Name
+            </span>
+
+            <strong>
+              {{ medicine.name }}
+            </strong>
+
+          </div>
+
+
+          <div class="detail-row">
+
+            <span class="detail-label">
+              Generic Name
+            </span>
+
+            <strong>
+              {{ medicine.generic }}
+            </strong>
+
+          </div>
+
+
+          <div class="detail-row">
+
+            <span class="detail-label">
+              Manufacturer
+            </span>
+
+            <strong>
+              {{ medicine.company }}
+            </strong>
+
+          </div>
+
+
+          <div class="detail-row">
+
+            <span class="detail-label">
+              Category
+            </span>
+
+            <span class="category-badge">
+              {{ medicine.category }}
+            </span>
+
+          </div>
+
+
+          <div class="detail-row">
+
+            <span class="detail-label">
+              Strength
+            </span>
+
+            <strong>
+              {{ medicine.strength || 'Not specified' }}
+            </strong>
+
+          </div>
+
+
+          <div class="detail-row">
+
+            <span class="detail-label">
+              Dosage Form
+            </span>
+
+            <strong>
+              {{ medicine.dosageForm || 'Not specified' }}
+            </strong>
+
+          </div>
+
+          <div class="detail-row">
+
+            <span class="detail-label">
+              SKU
+            </span>
+
+            <strong>
+              {{ medicine.sku || 'Not recorded' }}
+            </strong>
+
+          </div>
+
+          <div class="detail-row">
+
+            <span class="detail-label">
+              Barcode
+            </span>
+
+            <strong>
+              {{ medicine.barcode || 'Not recorded' }}
+            </strong>
+
+          </div>
+
+          <div class="detail-row">
+
+            <span class="detail-label">
+              Purchase Price
+            </span>
+
+            <strong>
+              ৳{{ medicine.purchasePrice | number:'1.2-2' }}
+            </strong>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- INVENTORY INFORMATION -->
+      <div class="details-card">
+
+        <div class="card-header">
+
+          <div>
+
+            <h3>
+              <i class="bi bi-box-seam"></i>
+              Inventory Information
+            </h3>
+
+            <p>
+              Current stock and inventory levels
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="details-list">
+
+          <div class="detail-row">
+
+            <span class="detail-label">
+              Current Stock
+            </span>
+
+            <strong class="stock-value">
+              {{ medicine.stock }} units
+            </strong>
+
+          </div>
+
+
+          <div class="detail-row">
+
+            <span class="detail-label">
+              Reorder Level
+            </span>
+
+            <strong>
+              {{ medicine.reorderLevel }} units
+            </strong>
+
+          </div>
+
+
+          <div class="detail-row">
+
+            <span class="detail-label">
+              Stock Status
+            </span>
+
+            <span
+              class="status-badge"
+              [ngClass]="getStatusClass(medicine.status)"
+            >
+              <span class="status-dot"></span>
+              {{ medicine.status }}
+            </span>
+
+          </div>
+
+
+          <div class="detail-row">
+
+            <span class="detail-label">
+              Unit Price
+            </span>
+
+            <strong>
+              ৳{{ medicine.unitPrice | number:'1.2-2' }}
+            </strong>
+
+          </div>
+
+
+          <div class="detail-row">
+
+            <span class="detail-label">
+              Stock Value
+            </span>
+
+            <strong class="stock-value">
+              ৳{{ (medicine.stock * medicine.unitPrice) | number:'1.2-2' }}
+            </strong>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- STOCK LEVEL -->
+      <div class="details-card stock-level-card">
+
+        <div class="card-header">
+
+          <div>
+
+            <h3>
+              <i class="bi bi-bar-chart"></i>
+              Stock Level
+            </h3>
+
+            <p>
+              Current inventory status
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="stock-level-content">
+
+          <div class="stock-level-header">
+
+            <span>Current Stock</span>
+
+            <strong>
+              {{ medicine.stock }} / {{ medicine.reorderLevel * 4 }}
+            </strong>
+
+          </div>
+
+          <div class="progress-bar">
+
+            <div
+              class="progress-fill"
+              [ngClass]="getStatusClass(medicine.status)"
+              [style.width.%]="stockProgress"
+            ></div>
+
+          </div>
+
+
+          <div class="stock-level-footer">
+
+            <span>
+              <i class="bi bi-circle-fill"></i>
+              Reorder level: {{ medicine.reorderLevel }}
+            </span>
+
+            <span
+              class="stock-status-text"
+              [ngClass]="getStatusClass(medicine.status)"
+            >
+              {{ medicine.status }}
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- BATCH AND EXPIRY DETAILS -->
+      <div class="details-card">
+
+        <div class="card-header">
+          <div>
+            <h3>
+              <i class="bi bi-upc-scan"></i>
+              Batches &amp; Expiry
+            </h3>
+            <p>Batch balances and expiry information returned by the backend</p>
+          </div>
+        </div>
+
+        <div class="description-box" *ngIf="batchesLoading">
+          <p>Loading batch information...</p>
+        </div>
+
+        <div class="description-box" *ngIf="!batchesLoading && batchErrorMessage">
+          <p>{{ batchErrorMessage }}</p>
+        </div>
+
+        <div class="description-box" *ngIf="!batchesLoading && !batchErrorMessage && batches.length === 0">
+          <p>No batches are currently recorded for this medicine.</p>
+        </div>
+
+        <div class="details-list" *ngIf="!batchesLoading && !batchErrorMessage && batches.length > 0">
+
+          <div class="detail-row" *ngFor="let batch of batches">
+            <div>
+              <strong>{{ batch.batchNumber }}</strong>
+              <div>
+                <small>Expires: {{ formatBatchDate(batch.expiryDate) }}</small>
+              </div>
+              <div>
+                <small>{{ getBatchExpiryStatus(batch) }}</small>
+              </div>
+            </div>
+
+            <strong>{{ batch.quantity }} units</strong>
+          </div>
+
+          <div class="detail-row">
+            <span class="detail-label">Total batch stock</span>
+            <strong>{{ totalBatchStock }} units</strong>
+          </div>
+
+        </div>
+
+        <div class="description-box" *ngIf="stockMismatch">
+          <p>
+            Stock balance warning: batch total ({{ totalBatchStock }}) differs
+            from medicine total ({{ medicine.stock }}). Check the stock movement history.
+          </p>
+        </div>
+
+        <div class="card-header">
+          <div class="d-flex flex-wrap gap-2">
+            <button type="button" class="btn btn-light" (click)="goToStockManagement('batches')">
+              <i class="bi bi-box-seam"></i>
+              All Batches
+            </button>
+            <button type="button" class="btn btn-light" (click)="goToStockManagement('grn')">
+              <i class="bi bi-box-arrow-in-down"></i>
+              Receive Stock
+            </button>
+            <button type="button" class="btn btn-light" (click)="goToStockManagement('adjustment')">
+              <i class="bi bi-sliders"></i>
+              Adjust Stock
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+
+      <!-- DESCRIPTION -->
+      <div class="details-card">
+
+        <div class="card-header">
+
+          <div>
+
+            <h3>
+              <i class="bi bi-file-text"></i>
+              Additional Information
+            </h3>
+
+            <p>
+              Medicine description and notes
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="description-box">
+
+          <p *ngIf="medicine.description">
+            {{ medicine.description }}
+          </p>
+
+          <div
+            class="no-description"
+            *ngIf="!medicine.description"
+          >
+
+            <i class="bi bi-file-earmark-text"></i>
+
+            <span>
+              No additional description available.
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- BOTTOM ACTIONS -->
+    <div class="bottom-actions">
+
+      <button
+        type="button"
+        class="btn btn-light"
+        (click)="goBack()"
+      >
+        <i class="bi bi-arrow-left"></i>
+        Back to Medicines
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="editMedicine()"
+      >
+        <i class="bi bi-pencil"></i>
+        Edit Medicine
+      </button>
+
+    </div>
+
+  </div>
+
+</div>

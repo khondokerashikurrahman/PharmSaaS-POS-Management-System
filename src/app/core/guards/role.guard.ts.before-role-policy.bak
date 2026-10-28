@@ -1,0 +1,54 @@
+
+import { inject } from '@angular/core';
+import {
+  CanActivateFn,
+  Router,
+  UrlTree
+} from '@angular/router';
+
+import { AuthService } from '../services/auth.service';
+import { UserRole } from '../models/user.model';
+
+export const roleGuard: CanActivateFn = (route, state): boolean | UrlTree => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  // User login koreche kina
+  if (!authService.isLoggedIn()) {
+    return router.createUrlTree(['/login'], {
+      queryParams: { returnUrl: state.url }
+    });
+  }
+
+  // Route-er allowed role
+  const allowedRoles = route.data?.['roles'] as UserRole[] | undefined;
+
+  // Role restriction na thakle access allow
+  if (!allowedRoles || allowedRoles.length === 0) {
+    return true;
+  }
+
+  const currentRole = authService.getRole();
+
+  // Role match korle access allow
+  if (currentRole && allowedRoles.includes(currentRole)) {
+    return true;
+  }
+
+  // Wrong role hole appropriate page-e pathano
+  if (currentRole === 'SUPER_ADMIN') {
+    return router.createUrlTree(['/admin/dashboard']);
+  }
+
+  if (
+    currentRole === 'TENANT_ADMIN' ||
+    currentRole === 'MANAGER' ||
+    currentRole === 'STAFF' ||
+    currentRole === 'STORE_KEEPER'
+  ) {
+    return router.createUrlTree(['/app/dashboard']);
+  }
+
+  // Unknown role hole login page-e ferot
+  return router.createUrlTree(['/login']);
+};

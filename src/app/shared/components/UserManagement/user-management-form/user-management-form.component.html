@@ -1,0 +1,57 @@
+
+<section class="user-form-card">
+  <div class="form-heading">
+    <div class="heading-icon">＋</div>
+    <div>
+      <h2>Create a team member</h2>
+      <p>Add a user and assign the appropriate role.</p>
+    </div>
+  </div>
+
+  <div class="notice success" *ngIf="success">{{ success }}</div>
+  <div class="notice error" *ngIf="error">{{ error }}</div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="form-grid">
+      <label>
+        Full name
+        <input formControlName="fullName" placeholder="Enter full name" />
+        <small *ngIf="form.controls.fullName.touched && form.controls.fullName.invalid">
+          Enter a name (maximum 120 characters).
+        </small>
+      </label>
+
+      <label>
+        Email address
+        <input type="email" formControlName="email" placeholder="name@pharmacy.com" />
+        <small *ngIf="form.controls.email.touched && form.controls.email.invalid">
+          Enter a valid email address.
+        </small>
+      </label>
+
+      <label>
+        Temporary password
+        <input type="password" formControlName="password" placeholder="At least 8 characters" />
+        <small *ngIf="form.controls.password.touched && form.controls.password.invalid">
+          Password must contain at least 8 characters.
+        </small>
+      </label>
+
+      <label>
+        Assigned role
+        <select formControlName="role">
+          <option *ngFor="let role of roles" [value]="role.value">
+            {{ role.label }}
+          </option>
+        </select>
+      </label>
+    </div>
+
+    <div class="form-footer">
+      <span>Access is controlled by your account permissions.</span>
+      <button type="submit" [disabled]="loading">
+        {{ loading ? 'Creating...' : 'Create user' }}
+      </button>
+    </div>
+  </form>
+</section>

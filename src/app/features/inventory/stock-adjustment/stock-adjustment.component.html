@@ -1,0 +1,829 @@
+
+<div class="adjustment-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+
+    <div class="header-left">
+
+      <div class="breadcrumb">
+        <span>Pharmacy</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Inventory</span>
+        <i class="bi bi-chevron-right"></i>
+        <span class="current">Stock Adjustment</span>
+      </div>
+
+      <h1>Stock Adjustment</h1>
+
+      <p>
+        Manually increase or decrease medicine stock and maintain an adjustment history.
+      </p>
+
+    </div>
+
+    <div class="header-actions">
+
+      <button
+        type="button"
+        class="btn btn-light"
+        (click)="goBack()"
+      >
+        <i class="bi bi-arrow-left"></i>
+        Back to Medicines
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- SUMMARY -->
+  <div class="summary-grid">
+
+    <div class="summary-card">
+
+      <div class="summary-icon total">
+        <i class="bi bi-arrow-left-right"></i>
+      </div>
+
+      <div class="summary-content">
+        <span>Total Adjustments</span>
+        <strong>{{ totalAdjustments }}</strong>
+        <small>Adjustment records</small>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon increase">
+        <i class="bi bi-arrow-up-circle"></i>
+      </div>
+
+      <div class="summary-content">
+        <span>Stock Increased</span>
+        <strong>{{ totalIncreases }}</strong>
+        <small>Units added</small>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon decrease">
+        <i class="bi bi-arrow-down-circle"></i>
+      </div>
+
+      <div class="summary-content">
+        <span>Stock Decreased</span>
+        <strong>{{ totalDecreases }}</strong>
+        <small>Units removed</small>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon medicine">
+        <i class="bi bi-capsule"></i>
+      </div>
+
+      <div class="summary-content">
+        <span>Total Medicines</span>
+        <strong>{{ medicines.length }}</strong>
+        <small>Available medicines</small>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ADJUSTMENT FORM -->
+  <div class="content-grid">
+
+    <div class="form-card">
+
+      <div class="card-header">
+
+        <div class="header-icon">
+          <i class="bi bi-sliders"></i>
+        </div>
+
+        <div>
+          <h2>Adjust Stock</h2>
+          <p>
+            Select a medicine and enter the stock adjustment details.
+          </p>
+        </div>
+
+      </div>
+
+
+      <div class="card-body">
+
+        <!-- MEDICINE -->
+        <div class="form-group">
+
+          <label for="medicine">
+            Medicine <span>*</span>
+          </label>
+
+          <div class="input-wrapper">
+
+            <i class="bi bi-capsule"></i>
+
+            <select
+              id="medicine"
+              name="medicine"
+              [(ngModel)]="selectedMedicineId"
+              (ngModelChange)="selectMedicine($event)"
+            >
+
+              <option [ngValue]="null">
+                Select medicine
+              </option>
+
+              <option
+                *ngFor="let medicine of medicines"
+                [ngValue]="medicine.id"
+              >
+                {{ medicine.name }} — {{ medicine.strength }}
+              </option>
+
+            </select>
+
+          </div>
+
+          <small>
+            Choose the medicine whose stock needs adjustment.
+          </small>
+
+        </div>
+
+
+        <!-- CURRENT STOCK -->
+        <div
+          class="current-stock"
+          *ngIf="selectedMedicine"
+        >
+
+          <div class="stock-icon">
+            <i class="bi bi-box-seam"></i>
+          </div>
+
+          <div class="stock-details">
+
+            <span>Current Stock</span>
+
+            <strong>
+              {{ selectedMedicine.stock }} units
+            </strong>
+
+          </div>
+
+          <span
+            class="stock-status"
+            [ngClass]="selectedMedicine.status?.toLowerCase()?.replace(' ', '-')"
+          >
+            {{ selectedMedicine.status }}
+          </span>
+
+        </div>
+
+
+        <!-- ADJUSTMENT TYPE -->
+        <div class="form-group">
+
+          <label>
+            Adjustment Type <span>*</span>
+          </label>
+
+          <div class="type-selector">
+
+            <button
+              type="button"
+              class="type-option increase-option"
+              [class.active]="selectedType === 'Increase'"
+              (click)="setAdjustmentType('Increase')"
+            >
+
+              <span class="type-icon">
+                <i class="bi bi-plus-lg"></i>
+              </span>
+
+              <span>
+                <strong>Increase Stock</strong>
+                <small>Add units to inventory</small>
+              </span>
+
+            </button>
+
+
+            <button
+              type="button"
+              class="type-option decrease-option"
+              [class.active]="selectedType === 'Decrease'"
+              (click)="setAdjustmentType('Decrease')"
+            >
+
+              <span class="type-icon">
+                <i class="bi bi-dash-lg"></i>
+              </span>
+
+              <span>
+                <strong>Decrease Stock</strong>
+                <small>Remove units from inventory</small>
+              </span>
+
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <div class="form-row">
+
+          <!-- QUANTITY -->
+          <div class="form-group">
+
+            <label for="quantity">
+              Quantity <span>*</span>
+            </label>
+
+            <div class="input-wrapper">
+
+              <i class="bi bi-boxes"></i>
+
+              <input
+                id="quantity"
+                type="number"
+                name="quantity"
+                [(ngModel)]="adjustmentQuantity"
+                min="1"
+                step="1"
+                placeholder="Enter quantity"
+              />
+
+            </div>
+
+            <small>
+              Number of units to
+              {{ selectedType === 'Increase' ? 'add' : 'remove' }}.
+            </small>
+
+          </div>
+
+
+          <!-- BATCH -->
+        <div class="form-group">
+
+          <label for="batchId">
+            Batch <span>*</span>
+          </label>
+
+          <div class="input-wrapper">
+            <i class="bi bi-upc-scan"></i>
+
+            <select
+              id="batchId"
+              name="batchId"
+              [(ngModel)]="selectedBatchId"
+            >
+              <option [ngValue]="null">
+                {{ batchesLoading ? 'Loading batches...' : 'Select batch' }}
+              </option>
+
+              <option
+                *ngFor="let batch of selectableBatches"
+                [ngValue]="batch.id"
+              >
+                {{ batch.batchNumber }} — {{ batch.quantity }} units
+                (Expiry: {{ formatDate(batch.expiryDate) }})
+              </option>
+            </select>
+          </div>
+
+          <small *ngIf="selectedBatch">
+            Selected batch stock: {{ selectedBatch.quantity }} units.
+            Medicine total stock: {{ selectedMedicine?.stock ?? 0 }} units.
+          </small>
+
+          <small *ngIf="!batchesLoading && selectedMedicine && selectableBatches.length === 0">
+            এই adjustment type-এর জন্য উপযুক্ত batch নেই। Batch receiving/expiry status পরীক্ষা করুন।
+          </small>
+
+        </div>
+
+
+        <!-- REASON -->
+        <div class="form-group">
+
+          <label for="reason">
+            Adjustment Reason <span>*</span>
+          </label>
+
+          <div class="input-wrapper">
+
+            <i class="bi bi-list-check"></i>
+
+            <select
+              id="reason"
+              name="reason"
+              [(ngModel)]="selectedReason"
+            >
+
+              <option value="">
+                Select adjustment reason
+              </option>
+
+              <option
+                *ngFor="let reason of reasons"
+                [value]="reason"
+              >
+                {{ reason }}
+              </option>
+
+            </select>
+
+          </div>
+
+        </div>
+
+
+        <!-- NOTE -->
+        <div class="form-group">
+
+          <label for="note">
+            Note
+          </label>
+
+          <textarea
+            id="note"
+            name="note"
+            [(ngModel)]="note"
+            rows="4"
+            placeholder="Add any additional note or explanation..."
+          ></textarea>
+
+          <small>
+            Optional note for future reference.
+          </small>
+
+        </div>
+
+
+        <!-- PREVIEW -->
+        <div
+          class="adjustment-preview"
+          *ngIf="selectedMedicine"
+        >
+
+          <div class="preview-header">
+            <span>Stock Preview</span>
+            <i class="bi bi-eye"></i>
+          </div>
+
+          <div class="preview-body">
+
+            <div class="preview-item">
+
+              <span>Current Stock</span>
+
+              <strong>
+                {{ selectedMedicine.stock }} units
+              </strong>
+
+            </div>
+
+            <div class="preview-symbol">
+
+              <i
+                class="bi"
+                [class.bi-plus-lg]="selectedType === 'Increase'"
+                [class.bi-dash-lg]="selectedType === 'Decrease'"
+              ></i>
+
+            </div>
+
+            <div class="preview-item">
+
+              <span>Adjustment</span>
+
+              <strong
+                [class.increase-text]="selectedType === 'Increase'"
+                [class.decrease-text]="selectedType === 'Decrease'"
+              >
+                {{ selectedType === 'Increase' ? '+' : '-' }}
+                {{ adjustmentQuantity || 0 }}
+              </strong>
+
+            </div>
+
+            <div class="preview-symbol">
+              <i class="bi bi-arrow-right"></i>
+            </div>
+
+            <div class="preview-item final">
+
+              <span>New Stock</span>
+
+              <strong>
+                {{
+                  selectedType === 'Increase'
+                    ? selectedMedicine.stock + (adjustmentQuantity || 0)
+                    : selectedMedicine.stock - (adjustmentQuantity || 0)
+                }}
+                units
+              </strong>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- ACTIONS -->
+        <div class="form-actions">
+
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="resetForm()"
+          >
+            <i class="bi bi-arrow-counterclockwise"></i>
+            Reset
+          </button>
+
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="adjustStock()"
+          >
+            <i class="bi bi-check-circle"></i>
+            Adjust Stock
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- SIDE INFORMATION -->
+    <div class="info-card">
+
+      <div class="info-header">
+
+        <div class="info-icon">
+          <i class="bi bi-info-circle"></i>
+        </div>
+
+        <div>
+          <h3>Stock Adjustment</h3>
+          <p>Quick reference</p>
+        </div>
+
+      </div>
+
+
+      <div class="info-section">
+
+        <div class="info-row">
+
+          <div class="row-icon increase">
+            <i class="bi bi-plus-lg"></i>
+          </div>
+
+          <div>
+            <strong>Increase Stock</strong>
+            <p>
+              Use when receiving new stock, customer returns,
+              or correcting an under-counted quantity.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="info-row">
+
+          <div class="row-icon decrease">
+            <i class="bi bi-dash-lg"></i>
+          </div>
+
+          <div>
+            <strong>Decrease Stock</strong>
+            <p>
+              Use for damaged, expired, missing, or returned
+              stock.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="info-row">
+
+          <div class="row-icon history">
+            <i class="bi bi-clock-history"></i>
+          </div>
+
+          <div>
+            <strong>Adjustment History</strong>
+            <p>
+              Every adjustment is recorded with date,
+              reason and user information.
+            </p>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="warning-box">
+
+        <i class="bi bi-exclamation-triangle"></i>
+
+        <div>
+          <strong>Important</strong>
+
+          <p>
+            Make sure the adjustment quantity and reason
+            are correct before saving.
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- HISTORY -->
+  <div class="history-card">
+
+    <div class="history-header">
+
+      <div>
+
+        <div class="history-title">
+
+          <div class="history-icon">
+            <i class="bi bi-clock-history"></i>
+          </div>
+
+          <div>
+            <h2>Adjustment History</h2>
+            <p>Recent stock adjustment records.</p>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="search-wrapper">
+
+        <i class="bi bi-search"></i>
+
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          placeholder="Search adjustment..."
+        />
+
+        <button
+          *ngIf="searchTerm"
+          type="button"
+          class="clear-search"
+          (click)="searchTerm = ''"
+        >
+          <i class="bi bi-x"></i>
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <div
+      class="table-wrapper"
+      *ngIf="filteredAdjustments.length > 0"
+    >
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>Date</th>
+            <th>Medicine</th>
+            <th>Batch</th>
+            <th>Type</th>
+            <th>Status / Approval</th>
+            <th>Quantity</th>
+            <th>Reason</th>
+            <th>User</th>
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="let adjustment of filteredAdjustments"
+          >
+
+            <td>
+              <span class="date">
+                {{ formatDate(adjustment.date) }}
+              </span>
+            </td>
+
+
+            <td>
+
+              <div class="medicine-cell">
+
+                <div class="medicine-icon">
+                  <i class="bi bi-capsule"></i>
+                </div>
+
+                <div>
+                  <strong>
+                    {{ adjustment.medicineName }}
+                  </strong>
+
+                  <span>
+                    ID: {{ adjustment.medicineId }}
+                  </span>
+                </div>
+
+              </div>
+
+            </td>
+
+
+            <td>
+
+              <span class="batch-number">
+                {{ adjustment.batchNumber }}
+              </span>
+
+            </td>
+
+
+            <td>
+
+              <span
+                class="adjustment-badge"
+                [ngClass]="getAdjustmentClass(adjustment.type)"
+              >
+
+                <i
+                  class="bi"
+                  [class.bi-arrow-up]="adjustment.type === 'Increase'"
+                  [class.bi-arrow-down]="adjustment.type === 'Decrease'"
+                ></i>
+
+                {{ adjustment.type }}
+
+              </span>
+
+            </td>
+
+            <td>
+              <span class="request-status">{{ adjustment.status }}</span>
+              <div *ngIf="canReviewRequests && adjustment.status === 'PENDING'">
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  (click)="approveAdjustment(adjustment)"
+                >Approve</button>
+                <button
+                  type="button"
+                  class="btn btn-light"
+                  (click)="rejectAdjustment(adjustment)"
+                >Reject</button>
+              </div>
+            </td>
+
+            <td>
+              <strong
+                class="quantity"
+                [class.increase-text]="adjustment.type === 'Increase'"
+                [class.decrease-text]="adjustment.type === 'Decrease'"
+              >
+                {{ adjustment.type === 'Increase' ? '+' : '-' }}
+                {{ adjustment.quantity }}
+              </strong>
+
+              <span class="units">
+                units
+              </span>
+
+            </td>
+
+
+            <td>
+
+              <span class="reason">
+                {{ adjustment.reason }}
+              </span>
+
+            </td>
+
+
+            <td>
+
+              <div class="user-cell">
+
+                <div class="user-avatar">
+                  {{ adjustment.user.charAt(0) }}
+                </div>
+
+                <span>
+                  {{ adjustment.user }}
+                </span>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    <!-- EMPTY -->
+    <div
+      class="empty-state"
+      *ngIf="filteredAdjustments.length === 0"
+    >
+
+      <div class="empty-icon">
+        <i class="bi bi-clipboard-x"></i>
+      </div>
+
+      <h3>No adjustment records found</h3>
+
+      <p>
+        {{
+          searchTerm
+            ? 'No adjustment records match your search.'
+            : 'No stock adjustments have been recorded yet.'
+        }}
+      </p>
+
+      <button
+        *ngIf="searchTerm"
+        type="button"
+        class="btn btn-light"
+        (click)="searchTerm = ''"
+      >
+        <i class="bi bi-arrow-counterclockwise"></i>
+        Clear Search
+      </button>
+
+    </div>
+
+
+    <div
+      class="table-footer"
+      *ngIf="filteredAdjustments.length > 0"
+    >
+
+      <span>
+        Showing
+        <strong>{{ filteredAdjustments.length }}</strong>
+        of
+        <strong>{{ totalAdjustments }}</strong>
+        adjustments
+      </span>
+
+      <span class="footer-note">
+        <i class="bi bi-shield-check"></i>
+        Inventory audit ready
+      </span>
+
+    </div>
+
+  </div>
+
+</div>
+

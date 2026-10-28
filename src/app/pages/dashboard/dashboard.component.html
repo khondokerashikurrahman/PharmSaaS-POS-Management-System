@@ -1,0 +1,355 @@
+
+<div class="dashboard">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1>Dashboard</h1>
+      <p>Welcome back, Admin. Here's what's happening today.</p>
+    </div>
+
+    <button class="date-btn">
+      📅 Today
+    </button>
+  </div>
+
+
+  <!-- Statistics Cards -->
+  <div class="stats-grid">
+
+    <div class="stat-card">
+      <div class="stat-icon sales-icon">💰</div>
+
+      <div class="stat-content">
+        <span>Today's Sales</span>
+        <h2>৳ 45,850</h2>
+        <small class="positive">↑ 12.5% from yesterday</small>
+      </div>
+    </div>
+
+
+    <div class="stat-card">
+      <div class="stat-icon orders-icon">🧾</div>
+
+      <div class="stat-content">
+        <span>Today's Orders</span>
+        <h2>128</h2>
+        <small class="positive">↑ 8.2% from yesterday</small>
+      </div>
+    </div>
+
+
+    <div class="stat-card">
+      <div class="stat-icon medicine-icon">💊</div>
+
+      <div class="stat-content">
+        <span>Total Medicines</span>
+        <h2>2,458</h2>
+        <small>Active medicines</small>
+      </div>
+    </div>
+
+
+    <div class="stat-card">
+      <div class="stat-icon stock-icon">⚠️</div>
+
+      <div class="stat-content">
+        <span>Low Stock</span>
+        <h2>24</h2>
+        <small class="warning">Need attention</small>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- Main Grid -->
+  <div class="dashboard-grid">
+
+    <!-- Sales Overview -->
+    <div class="dashboard-card sales-overview">
+
+      <div class="card-header">
+        <div>
+          <h3>Sales Overview</h3>
+          <p>Sales performance for this week</p>
+        </div>
+
+        <select>
+          <option>This Week</option>
+          <option>This Month</option>
+          <option>This Year</option>
+        </select>
+      </div>
+
+
+      <!-- Simple Chart -->
+      <div class="chart">
+
+        <div class="chart-bars">
+
+          <div class="bar-container">
+            <div class="bar" style="height: 45%"></div>
+            <span>Mon</span>
+          </div>
+
+          <div class="bar-container">
+            <div class="bar" style="height: 65%"></div>
+            <span>Tue</span>
+          </div>
+
+          <div class="bar-container">
+            <div class="bar" style="height: 50%"></div>
+            <span>Wed</span>
+          </div>
+
+          <div class="bar-container">
+            <div class="bar" style="height: 80%"></div>
+            <span>Thu</span>
+          </div>
+
+          <div class="bar-container">
+            <div class="bar" style="height: 70%"></div>
+            <span>Fri</span>
+          </div>
+
+          <div class="bar-container">
+            <div class="bar" style="height: 90%"></div>
+            <span>Sat</span>
+          </div>
+
+          <div class="bar-container">
+            <div class="bar" style="height: 60%"></div>
+            <span>Sun</span>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- Expiry Alert -->
+    <div class="dashboard-card expiry-card">
+
+      <div class="card-header">
+        <div>
+          <h3>Expiry Alert</h3>
+          <p>Medicines expiring soon</p>
+        </div>
+
+        <span class="badge danger">8</span>
+      </div>
+
+
+      <div class="expiry-list">
+
+        <div class="expiry-item">
+          <div class="medicine-info">
+            <strong>Napa 500mg</strong>
+            <span>Paracetamol</span>
+          </div>
+
+          <span class="expiry-date">15 Sep 2026</span>
+        </div>
+
+
+        <div class="expiry-item">
+          <div class="medicine-info">
+            <strong>Seclo 20mg</strong>
+            <span>Omeprazole</span>
+          </div>
+
+          <span class="expiry-date">20 Sep 2026</span>
+        </div>
+
+
+        <div class="expiry-item">
+          <div class="medicine-info">
+            <strong>DP 25mg</strong>
+            <span>Diclofenac</span>
+          </div>
+
+          <span class="expiry-date">25 Sep 2026</span>
+        </div>
+
+
+        <div class="expiry-item">
+          <div class="medicine-info">
+            <strong>Monas 10mg</strong>
+            <span>Montelukast</span>
+          </div>
+
+          <span class="expiry-date">28 Sep 2026</span>
+        </div>
+
+      </div>
+
+      <button class="view-btn">
+        View All Expiring Medicines →
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- Bottom Grid -->
+  <div class="bottom-grid">
+
+    <!-- Recent Sales -->
+    <div class="dashboard-card recent-sales">
+
+      <div class="card-header">
+        <div>
+          <h3>Recent Sales</h3>
+          <p>Latest transactions</p>
+        </div>
+
+        <a routerLink="/pos">View All</a>
+      </div>
+
+
+      <div class="table-wrapper">
+
+        <table>
+
+          <thead>
+            <tr>
+              <th>Invoice</th>
+              <th>Customer</th>
+              <th>Date</th>
+              <th>Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+
+          <tbody>
+
+            <tr>
+              <td>#INV-1025</td>
+              <td>Rahim Ahmed</td>
+              <td>09 Sep 2026</td>
+              <td>৳ 2,450</td>
+              <td>
+                <span class="status paid">Paid</span>
+              </td>
+            </tr>
+
+            <tr>
+              <td>#INV-1024</td>
+              <td>Karim Hasan</td>
+              <td>09 Sep 2026</td>
+              <td>৳ 1,850</td>
+              <td>
+                <span class="status paid">Paid</span>
+              </td>
+            </tr>
+
+            <tr>
+              <td>#INV-1023</td>
+              <td>Sumaiya Akter</td>
+              <td>09 Sep 2026</td>
+              <td>৳ 3,200</td>
+              <td>
+                <span class="status pending">Pending</span>
+              </td>
+            </tr>
+
+            <tr>
+              <td>#INV-1022</td>
+              <td>Hasan Mahmud</td>
+              <td>08 Sep 2026</td>
+              <td>৳ 980</td>
+              <td>
+                <span class="status paid">Paid</span>
+              </td>
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+
+    <!-- Low Stock -->
+    <div class="dashboard-card low-stock">
+
+      <div class="card-header">
+        <div>
+          <h3>Low Stock</h3>
+          <p>Medicines running low</p>
+        </div>
+
+        <span class="badge warning-badge">24</span>
+      </div>
+
+
+      <div class="stock-list">
+
+        <div class="stock-item">
+          <div>
+            <strong>Napa Extra</strong>
+            <span>Paracetamol</span>
+          </div>
+
+          <div class="stock-number">
+            <strong>5</strong>
+            <span>left</span>
+          </div>
+        </div>
+
+
+        <div class="stock-item">
+          <div>
+            <strong>Azithro 500</strong>
+            <span>Azithromycin</span>
+          </div>
+
+          <div class="stock-number">
+            <strong>8</strong>
+            <span>left</span>
+          </div>
+        </div>
+
+
+        <div class="stock-item">
+          <div>
+            <strong>Fexo 120</strong>
+            <span>Fexofenadine</span>
+          </div>
+
+          <div class="stock-number">
+            <strong>3</strong>
+            <span>left</span>
+          </div>
+        </div>
+
+
+        <div class="stock-item">
+          <div>
+            <strong>Rivotril 0.5</strong>
+            <span>Clonazepam</span>
+          </div>
+
+          <div class="stock-number">
+            <strong>6</strong>
+            <span>left</span>
+          </div>
+        </div>
+
+      </div>
+
+      <button class="view-btn">
+        View Inventory →
+      </button>
+
+    </div>
+
+  </div>
+
+</div>

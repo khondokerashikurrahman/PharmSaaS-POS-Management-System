@@ -1,0 +1,629 @@
+<div class="report-page">
+
+  <!-- ================= HEADER ================= -->
+  <div class="report-header">
+
+    <div class="header-content">
+      <div class="breadcrumb">
+        <span>Reports</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Purchase Report</span>
+      </div>
+
+      <h1>Purchase Report</h1>
+
+      <p>
+        Analyze purchase orders, supplier spending and payment activity.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="refresh-btn"
+      (click)="refreshReport()"
+    >
+      <i class="bi bi-arrow-clockwise"></i>
+      Refresh
+    </button>
+
+  </div>
+
+
+  <!-- ================= DATE FILTER ================= -->
+  <section class="filter-card">
+
+    <div class="filter-header">
+      <div>
+        <h2>Purchase Period</h2>
+        <p>Choose a period to filter purchase transactions.</p>
+      </div>
+
+      <div class="selected-period">
+        <i class="bi bi-calendar3"></i>
+        {{ selectedRangeLabel }}
+      </div>
+    </div>
+
+    <div class="filter-content">
+
+      <div class="quick-filters">
+
+        <button
+          type="button"
+          [class.active]="selectedRange === 'today'"
+          (click)="selectRange('today')"
+        >
+          Today
+        </button>
+
+        <button
+          type="button"
+          [class.active]="selectedRange === 'week'"
+          (click)="selectRange('week')"
+        >
+          This Week
+        </button>
+
+        <button
+          type="button"
+          [class.active]="selectedRange === 'month'"
+          (click)="selectRange('month')"
+        >
+          This Month
+        </button>
+
+        <button
+          type="button"
+          [class.active]="selectedRange === 'all'"
+          (click)="selectRange('all')"
+        >
+          All Time
+        </button>
+
+      </div>
+
+      <div class="custom-filter">
+
+        <div class="date-field">
+          <label>From Date</label>
+
+          <input
+            type="date"
+            [(ngModel)]="fromDate"
+          />
+        </div>
+
+        <div class="date-field">
+          <label>To Date</label>
+
+          <input
+            type="date"
+            [(ngModel)]="toDate"
+          />
+        </div>
+
+        <button
+          type="button"
+          class="apply-btn"
+          (click)="applyCustomDate()"
+        >
+          <i class="bi bi-funnel"></i>
+          Apply
+        </button>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ================= MAIN STAT CARDS ================= -->
+  <section class="stats-grid">
+
+    <div class="stat-card">
+
+      <div class="stat-icon purchase-icon">
+        <i class="bi bi-bag-check"></i>
+      </div>
+
+      <div class="stat-info">
+        <span class="stat-label">Purchase Amount</span>
+
+        <h3>
+          ৳{{ totalPurchaseAmount | number:'1.2-2' }}
+        </h3>
+
+        <span class="stat-description">
+          Completed purchases
+        </span>
+      </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+      <div class="stat-icon transaction-icon">
+        <i class="bi bi-receipt"></i>
+      </div>
+
+      <div class="stat-info">
+        <span class="stat-label">Transactions</span>
+
+        <h3>
+          {{ totalPurchases }}
+        </h3>
+
+        <span class="stat-description">
+          Completed purchase orders
+        </span>
+      </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+      <div class="stat-icon items-icon">
+        <i class="bi bi-box-seam"></i>
+      </div>
+
+      <div class="stat-info">
+        <span class="stat-label">Items Purchased</span>
+
+        <h3>
+          {{ totalItemsPurchased | number }}
+        </h3>
+
+        <span class="stat-description">
+          Total units purchased
+        </span>
+      </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+      <div class="stat-icon average-icon">
+        <i class="bi bi-bar-chart"></i>
+      </div>
+
+      <div class="stat-info">
+        <span class="stat-label">Average Purchase</span>
+
+        <h3>
+          ৳{{ averagePurchase | number:'1.2-2' }}
+        </h3>
+
+        <span class="stat-description">
+          Average order value
+        </span>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ================= SECONDARY STATS ================= -->
+  <section class="secondary-grid">
+
+    <div class="summary-card pending-card">
+
+      <div class="summary-icon">
+        <i class="bi bi-clock-history"></i>
+      </div>
+
+      <div>
+        <span>Pending Purchases</span>
+
+        <strong>
+          {{ pendingPurchases.length }}
+        </strong>
+
+        <small>
+          ৳{{ totalPendingAmount | number:'1.2-2' }}
+        </small>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card cancelled-card">
+
+      <div class="summary-icon">
+        <i class="bi bi-x-circle"></i>
+      </div>
+
+      <div>
+        <span>Cancelled Purchases</span>
+
+        <strong>
+          {{ cancelledPurchases.length }}
+        </strong>
+
+        <small>
+          ৳{{ totalCancelledAmount | number:'1.2-2' }}
+        </small>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card total-card">
+
+      <div class="summary-icon">
+        <i class="bi bi-clipboard-data"></i>
+      </div>
+
+      <div>
+        <span>Filtered Orders</span>
+
+        <strong>
+          {{ filteredPurchases.length }}
+        </strong>
+
+        <small>
+          Current period
+        </small>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ================= PAYMENT SUMMARY ================= -->
+  <section class="report-card">
+
+    <div class="card-header">
+
+      <div>
+        <h2>Payment Summary</h2>
+        <p>Purchase spending by payment method.</p>
+      </div>
+
+      <i class="bi bi-credit-card"></i>
+
+    </div>
+
+
+    <div class="payment-grid">
+
+      <!-- Cash -->
+      <div class="payment-item">
+
+        <div class="payment-top">
+
+          <div class="payment-name">
+            <span class="payment-dot cash"></span>
+            <span>Cash</span>
+          </div>
+
+          <strong>
+            ৳{{ getPaymentAmount('Cash') | number:'1.2-2' }}
+          </strong>
+
+        </div>
+
+        <div class="payment-progress">
+          <div
+            class="progress-fill cash-fill"
+            [style.width.%]="getPaymentPercentage('Cash')"
+          ></div>
+        </div>
+
+        <div class="payment-bottom">
+          <span>
+            {{ getPaymentTransactions('Cash') }} transactions
+          </span>
+
+          <span>
+            {{ getPaymentPercentage('Cash') | number:'1.0-0' }}%
+          </span>
+        </div>
+
+      </div>
+
+
+      <!-- Card -->
+      <div class="payment-item">
+
+        <div class="payment-top">
+
+          <div class="payment-name">
+            <span class="payment-dot card"></span>
+            <span>Card</span>
+          </div>
+
+          <strong>
+            ৳{{ getPaymentAmount('Card') | number:'1.2-2' }}
+          </strong>
+
+        </div>
+
+        <div class="payment-progress">
+          <div
+            class="progress-fill card-fill"
+            [style.width.%]="getPaymentPercentage('Card')"
+          ></div>
+        </div>
+
+        <div class="payment-bottom">
+          <span>
+            {{ getPaymentTransactions('Card') }} transactions
+          </span>
+
+          <span>
+            {{ getPaymentPercentage('Card') | number:'1.0-0' }}%
+          </span>
+        </div>
+
+      </div>
+
+
+      <!-- Credit -->
+      <div class="payment-item">
+
+        <div class="payment-top">
+
+          <div class="payment-name">
+            <span class="payment-dot credit"></span>
+            <span>Credit</span>
+          </div>
+
+          <strong>
+            ৳{{ getPaymentAmount('Credit') | number:'1.2-2' }}
+          </strong>
+
+        </div>
+
+        <div class="payment-progress">
+          <div
+            class="progress-fill credit-fill"
+            [style.width.%]="getPaymentPercentage('Credit')"
+          ></div>
+        </div>
+
+        <div class="payment-bottom">
+          <span>
+            {{ getPaymentTransactions('Credit') }} transactions
+          </span>
+
+          <span>
+            {{ getPaymentPercentage('Credit') | number:'1.0-0' }}%
+          </span>
+        </div>
+
+      </div>
+
+
+      <!-- Bank -->
+      <div class="payment-item">
+
+        <div class="payment-top">
+
+          <div class="payment-name">
+            <span class="payment-dot bank"></span>
+            <span>Bank</span>
+          </div>
+
+          <strong>
+            ৳{{ getPaymentAmount('Bank') | number:'1.2-2' }}
+          </strong>
+
+        </div>
+
+        <div class="payment-progress">
+          <div
+            class="progress-fill bank-fill"
+            [style.width.%]="getPaymentPercentage('Bank')"
+          ></div>
+        </div>
+
+        <div class="payment-bottom">
+          <span>
+            {{ getPaymentTransactions('Bank') }} transactions
+          </span>
+
+          <span>
+            {{ getPaymentPercentage('Bank') | number:'1.0-0' }}%
+          </span>
+        </div>
+
+      </div>
+
+
+      <!-- Mobile -->
+      <div class="payment-item">
+
+        <div class="payment-top">
+
+          <div class="payment-name">
+            <span class="payment-dot mobile"></span>
+            <span>Mobile</span>
+          </div>
+
+          <strong>
+            ৳{{ getPaymentAmount('Mobile') | number:'1.2-2' }}
+          </strong>
+
+        </div>
+
+        <div class="payment-progress">
+          <div
+            class="progress-fill mobile-fill"
+            [style.width.%]="getPaymentPercentage('Mobile')"
+          ></div>
+        </div>
+
+        <div class="payment-bottom">
+          <span>
+            {{ getPaymentTransactions('Mobile') }} transactions
+          </span>
+
+          <span>
+            {{ getPaymentPercentage('Mobile') | number:'1.0-0' }}%
+          </span>
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ================= PURCHASE TRANSACTIONS ================= -->
+  <section class="report-card transactions-card">
+
+    <div class="card-header">
+
+      <div>
+        <h2>Purchase Transactions</h2>
+
+        <p>
+          Showing {{ filteredPurchases.length }} purchase orders for
+          {{ selectedRangeLabel }}.
+        </p>
+      </div>
+
+      <div class="record-count">
+        {{ filteredPurchases.length }} records
+      </div>
+
+    </div>
+
+
+    <!-- Table -->
+    <div
+      class="table-wrapper"
+      *ngIf="filteredPurchases.length > 0"
+    >
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Purchase Order</th>
+            <th>Date</th>
+            <th>Supplier</th>
+            <th>Items</th>
+            <th>Payment</th>
+            <th>Amount</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <tr
+            *ngFor="
+              let order of filteredPurchases;
+              trackBy: trackByOrder
+            "
+          >
+
+            <td>
+              <span class="order-number">
+                {{ getOrderNumber(order) }}
+              </span>
+            </td>
+
+            <td>
+              <span class="date-value">
+                {{ getOrderDate(order) | date:'dd MMM yyyy' }}
+              </span>
+            </td>
+
+            <td>
+              <div class="supplier-cell">
+                <div class="supplier-avatar">
+                  {{ getSupplierName(order).charAt(0).toUpperCase() }}
+                </div>
+
+                <span>
+                  {{ getSupplierName(order) }}
+                </span>
+              </div>
+            </td>
+
+            <td>
+              {{ getOrderItems(order) | number }}
+            </td>
+
+            <td>
+
+              <span
+                class="payment-badge"
+                [ngClass]="{
+                  'payment-cash': getPaymentMethod(order) === 'Cash',
+                  'payment-card': getPaymentMethod(order) === 'Card',
+                  'payment-credit': getPaymentMethod(order) === 'Credit',
+                  'payment-bank': getPaymentMethod(order) === 'Bank',
+                  'payment-mobile': getPaymentMethod(order) === 'Mobile'
+                }"
+              >
+                {{ getPaymentMethod(order) }}
+              </span>
+
+            </td>
+
+            <td>
+              <strong class="amount">
+                ৳{{ getOrderAmount(order) | number:'1.2-2' }}
+              </strong>
+            </td>
+
+            <td>
+
+              <span
+                class="status-badge"
+                [ngClass]="getStatusClass(getNormalizedStatus(order))"
+              >
+                <span class="status-dot"></span>
+                {{ getNormalizedStatus(order) }}
+              </span>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    <!-- Empty -->
+    <div
+      class="empty-state"
+      *ngIf="filteredPurchases.length === 0"
+    >
+
+      <div class="empty-icon">
+        <i class="bi bi-bag-x"></i>
+      </div>
+
+      <h3>No Purchase Records Found</h3>
+
+      <p>
+        There are no purchase transactions available for
+        <strong>{{ selectedRangeLabel }}</strong>.
+      </p>
+
+      <button
+        type="button"
+        (click)="selectRange('all')"
+      >
+        View All Purchases
+      </button>
+
+    </div>
+
+  </section>
+
+</div>
