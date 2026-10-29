@@ -1,0 +1,425 @@
+<div class="ledger-page">
+  <div *ngIf="errorMessage" class="supplier-ledger-live-error" role="alert">
+    {{ errorMessage }}
+  </div>
+  <div *ngIf="loading" role="status">
+    Loading live supplier ledger...
+  </div>
+
+
+  <!-- HEADER -->
+  <div class="page-header">
+
+    <div class="header-left">
+
+      <button
+        class="back-btn"
+        (click)="goBack()">
+
+        <i class="bi bi-arrow-left"></i>
+
+      </button>
+
+      <div>
+
+        <div class="breadcrumb">
+
+          <span>Stakeholders</span>
+
+          <i class="bi bi-chevron-right"></i>
+
+          <span>Suppliers</span>
+
+          <i class="bi bi-chevron-right"></i>
+
+          <span>Supplier Ledger</span>
+
+        </div>
+
+        <h1>Supplier Ledger</h1>
+
+        <p>
+          View supplier purchases, payments and outstanding balance
+        </p>
+
+      </div>
+
+    </div>
+
+    <button
+      class="primary-btn"
+      (click)="printLedger()">
+
+      <i class="bi bi-printer"></i>
+
+      Print Ledger
+
+    </button>
+
+  </div>
+
+
+  <!-- SUPPLIER INFO -->
+  <div class="supplier-card">
+
+    <div class="supplier-avatar">
+      {{ supplier.name.charAt(0).toUpperCase() }}
+    </div>
+
+    <div class="supplier-info">
+
+      <div class="supplier-name-row">
+
+        <h2>{{ supplier.name }}</h2>
+
+        <span
+          class="status-badge"
+          [class.active]="supplier.status === 'Active'"
+          [class.inactive]="supplier.status === 'Inactive'">
+
+          {{ supplier.status }}
+
+        </span>
+
+      </div>
+
+      <div class="supplier-meta">
+
+        <span>
+          <i class="bi bi-hash"></i>
+          {{ supplier.id }}
+        </span>
+
+        <span>
+          <i class="bi bi-person"></i>
+          {{ supplier.contactPerson }}
+        </span>
+
+        <span>
+          <i class="bi bi-telephone"></i>
+          {{ supplier.phone }}
+        </span>
+
+        <span>
+          <i class="bi bi-envelope"></i>
+          {{ supplier.email }}
+        </span>
+
+        <span>
+          <i class="bi bi-geo-alt"></i>
+          {{ supplier.address }}
+        </span>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- SUMMARY -->
+  <div class="summary-grid">
+
+    <div class="summary-card">
+
+      <div class="summary-icon purchase">
+        <i class="bi bi-box-seam"></i>
+      </div>
+
+      <div>
+
+        <span>Total Purchases</span>
+
+        <strong>
+          ৳{{ totalPurchases | number:'1.2-2' }}
+        </strong>
+
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon payment">
+        <i class="bi bi-cash-stack"></i>
+      </div>
+
+      <div>
+
+        <span>Total Payments</span>
+
+        <strong>
+          ৳{{ totalPayments | number:'1.2-2' }}
+        </strong>
+
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon due">
+        <i class="bi bi-wallet2"></i>
+      </div>
+
+      <div>
+
+        <span>{{ balanceLabel }}</span>
+
+        <strong
+          [class.due-text]="currentBalance > 0">
+
+          ৳{{ currentBalance | number:'1.2-2' }}
+
+        </strong>
+
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon transaction">
+        <i class="bi bi-receipt"></i>
+      </div>
+
+      <div>
+
+        <span>Transactions</span>
+
+        <strong>
+          {{ totalTransactions }}
+        </strong>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- LEDGER -->
+  <div class="ledger-card">
+
+    <div class="ledger-toolbar">
+
+      <div>
+
+        <h3>Transaction History</h3>
+
+        <p>
+          Supplier purchase and payment records
+        </p>
+
+      </div>
+
+      <div class="filters">
+
+        <div class="search-box">
+
+          <i class="bi bi-search"></i>
+
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            placeholder="Search reference...">
+
+        </div>
+
+        <select [(ngModel)]="typeFilter">
+
+          <option value="All">
+            All Transactions
+          </option>
+
+          <option value="Purchase">
+            Purchase
+          </option>
+
+          <option value="Payment">
+            Payment
+          </option>
+
+          <option value="Adjustment">
+            Adjustment
+          </option>
+
+        </select>
+
+      </div>
+
+    </div>
+
+
+    <!-- TABLE -->
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>Date</th>
+
+            <th>Reference</th>
+
+            <th>Description</th>
+
+            <th>Type</th>
+
+            <th class="amount">Purchase</th>
+
+            <th class="amount">Payment</th>
+
+            <th class="amount">Balance</th>
+
+          </tr>
+
+        </thead>
+
+        <tbody>
+
+          <tr
+            *ngFor="let transaction of filteredTransactions">
+
+            <td>
+              {{ transaction.date | date:'dd MMM yyyy' }}
+            </td>
+
+            <td>
+
+              <strong class="reference">
+                {{ transaction.reference }}
+              </strong>
+
+            </td>
+
+            <td>
+              {{ transaction.description }}
+            </td>
+
+            <td>
+
+              <span
+                class="type-badge"
+                [ngClass]="getTypeClass(transaction.type)">
+
+                <i
+                  class="bi"
+                  [ngClass]="{
+                    'bi-box-seam': transaction.type === 'Purchase',
+                    'bi-cash-stack': transaction.type === 'Payment',
+                    'bi-sliders': transaction.type === 'Adjustment'
+                  }">
+                </i>
+
+                {{ transaction.type }}
+
+              </span>
+
+            </td>
+
+            <td class="amount purchase-amount">
+
+              <span *ngIf="transaction.debit > 0">
+                ৳{{ transaction.debit | number:'1.2-2' }}
+              </span>
+
+              <span
+                *ngIf="transaction.debit === 0"
+                class="dash">
+
+                —
+
+              </span>
+
+            </td>
+
+            <td class="amount payment-amount">
+
+              <span *ngIf="transaction.credit > 0">
+                ৳{{ transaction.credit | number:'1.2-2' }}
+              </span>
+
+              <span
+                *ngIf="transaction.credit === 0"
+                class="dash">
+
+                —
+
+              </span>
+
+            </td>
+
+            <td class="amount">
+
+              <strong
+                [class.balance-positive]="transaction.balance > 0"
+                [class.balance-zero]="transaction.balance === 0">
+
+                ৳{{ transaction.balance | number:'1.2-2' }}
+
+              </strong>
+
+            </td>
+
+          </tr>
+
+
+          <tr
+            *ngIf="filteredTransactions.length === 0">
+
+            <td colspan="7">
+
+              <div class="empty-state">
+
+                <div class="empty-icon">
+                  <i class="bi bi-journal-x"></i>
+                </div>
+
+                <h3>No transactions found</h3>
+
+                <p>
+                  No ledger transactions match your filters.
+                </p>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    <!-- FOOTER -->
+    <div class="ledger-footer">
+
+      <span>
+        Showing {{ filteredTransactions.length }}
+        of {{ transactions.length }} transactions
+      </span>
+
+      <div class="footer-balance">
+
+        <span>Current Payable</span>
+
+        <strong [ngClass]="getBalanceClass()">
+          ৳{{ currentBalance | number:'1.2-2' }}
+        </strong>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

@@ -1,0 +1,253 @@
+.category-page {
+  padding: 24px;
+  color: #111827;
+}
+
+.page-header {
+  margin-bottom: 24px;
+}
+
+.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.page-header h1 {
+  margin: 0 0 8px;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.page-header p, .card-heading p, .list-header p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.category-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 360px) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.category-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: white;
+}
+
+.editor-card {
+  padding: 22px;
+}
+
+.card-heading, .list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.card-heading {
+  justify-content: flex-start;
+}
+
+.icon-box {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border-radius: 10px;
+  background: #eef2ff;
+  color: #3730a3;
+  font-size: 20px;
+}
+
+.card-heading h2, .list-header h2 {
+  margin: 0 0 6px;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 17px;
+}
+
+.form-group label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.form-group input, .form-group select {
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 11px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  color: #111827;
+  font: inherit;
+}
+
+.form-group input:focus, .form-group select:focus {
+  border-color: #6366f1;
+  outline: 2px solid #e0e7ff;
+}
+
+.form-actions, .row-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.primary-btn, .secondary-btn, .refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 39px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary-btn {
+  border: 1px solid #4338ca;
+  background: #4f46e5;
+  color: white;
+}
+
+.primary-btn:disabled, .refresh-btn:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+.secondary-btn, .refresh-btn {
+  border: 1px solid #d1d5db;
+  background: white;
+  color: #374151;
+}
+
+.hint {
+  display: flex;
+  gap: 8px;
+  margin: 20px 0 0;
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.list-card {
+  padding: 22px;
+}
+
+.list-header {
+  margin-bottom: 16px;
+}
+
+.category-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+th, td {
+  padding: 13px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+th {
+  background: #f9fafb;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.type-badge {
+  display: inline-flex;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #eef2ff;
+  color: #3730a3;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.row-actions button {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #e5e7eb;
+  border-radius: 7px;
+  background: white;
+  color: #374151;
+  cursor: pointer;
+}
+
+.row-actions .archive-btn {
+  color: #b91c1c;
+}
+
+.error-message, .success-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 12px 0;
+  padding: 11px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.error-message {
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.success-message {
+  border: 1px solid #bbf7d0;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.empty-state, .no-data {
+  padding: 24px;
+  color: #6b7280;
+  text-align: center;
+}
+
+.empty-state i {
+  font-size: 22px;
+}
+
+@media (max-width: 900px) {
+  .category-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .category-page {
+    padding: 16px;
+  }
+}

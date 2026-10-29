@@ -6,6 +6,11 @@ import {
   TenantInventoryItem
 } from '../../../core/services/tenant-inventory-api.service';
 
+import {
+  InventoryBatchApiService,
+  InventoryBatch
+} from '../../../core/services/inventory-batch-api.service';
+
 interface StockReportItem {
   id: string;
   name: string;
@@ -30,6 +35,7 @@ interface StockReportItem {
 })
 export class StockReportComponent implements OnInit {
   private readonly inventoryApi = inject(TenantInventoryApiService);
+  private readonly batchApi = inject(InventoryBatchApiService);
 
   stockItems: StockReportItem[] = [];
   filteredItems: StockReportItem[] = [];
@@ -40,6 +46,9 @@ export class StockReportComponent implements OnInit {
 
   lastUpdated = new Date();
   loading = false;
+  batchLoading = false;
+  batchLoadError = false;
+  batches: InventoryBatch[] = [];
 
   totalProducts = 0;
   totalQuantity = 0;
@@ -58,6 +67,9 @@ export class StockReportComponent implements OnInit {
 
     if (!Number.isInteger(tenantId) || tenantId <= 0) {
       this.stockItems = [];
+      this.batches = [];
+      this.batchLoading = false;
+      this.batchLoadError = false;
       this.calculateSummary();
       this.applyFilters();
       console.error('Stock Report: valid tenantId was not found.');
@@ -66,6 +78,24 @@ export class StockReportComponent implements OnInit {
     }
 
     this.loading = true;
+
+    // Load batch-level expiry data separately. If it fails,
+    // the main product-level stock report remains available.
+    this.batchLoading = true;
+    this.batchLoadError = false;
+
+    this.batchApi.list(tenantId).subscribe({
+      next: (batches: InventoryBatch[]) => {
+        this.batches = Array.isArray(batches) ? batches : [];
+        this.batchLoading = false;
+      },
+      error: error => {
+        console.error('Unable to load batch expiry data:', error);
+        this.batches = [];
+        this.batchLoading = false;
+        this.batchLoadError = true;
+      }
+    });
 
     this.inventoryApi.list(tenantId).subscribe({
       next: (medicines: TenantInventoryItem[]) => {
@@ -220,6 +250,102 @@ export class StockReportComponent implements OnInit {
 
   getExpectedProfit(): number {
     return this.getPotentialSalesValue() - this.totalStockValue;
+  }
+
+  // =========================
+  // BATCH EXPIRY MONITORING
+  // =========================
+
+  private dateKey(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  private get todayKey(): string {
+    return this.dateKey(new Date());
+  }
+
+  private get expiryCutoffKey(): string {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() + 60);
+    return this.dateKey(cutoff);
+  }
+
+  private isUsableBatchRecord(batch: InventoryBatch): boolean {
+    return Number(batch.quantity) > 0 &&
+      /^\d{4}-\d{2}-\d{2}$/.test(String(batch.expiryDate || ''));
+  }
+
+  get expiredBatches(): InventoryBatch[] {
+    return this.batches.filter(batch =>
+      this.isUsableBatchRecord(batch) &&
+      batch.expiryDate < this.todayKey
+    );
+  }
+
+  get expiringSoonBatches(): InventoryBatch[] {
+    return this.batches.filter(batch =>
+      this.isUsableBatchRecord(batch) &&
+      batch.expiryDate >= this.todayKey &&
+      batch.expiryDate <= this.expiryCutoffKey
+    );
+  }
+
+  get monitoredExpiryBatches(): InventoryBatch[] {
+    return [
+      ...this.expiredBatches,
+      ...this.expiringSoonBatches
+    ].sort((a, b) => a.expiryDate.localeCompare(b.expiryDate));
+  }
+
+  get expiredBatchQuantity(): number {
+    return this.expiredBatches.reduce(
+      (total, batch) => total + this.getNumber(batch.quantity), 0
+    );
+  }
+
+  get expiringSoonQuantity(): number {
+    return this.expiringSoonBatches.reduce(
+      (total, batch) => total + this.getNumber(batch.quantity), 0
+    );
+  }
+
+  get expiredBatchValue(): number {
+    return this.expiredBatches.reduce(
+      (total, batch) =>
+        total + this.getNumber(batch.quantity) * this.getNumber(batch.purchasePrice),
+      0
+    );
+  }
+
+  get expiringSoonValue(): number {
+    return this.expiringSoonBatches.reduce(
+      (total, batch) =>
+        total + this.getNumber(batch.quantity) * this.getNumber(batch.purchasePrice),
+      0
+    );
+  }
+
+  getBatchMedicineName(batch: InventoryBatch): string {
+    if (batch.medicineName) return batch.medicineName;
+
+    const item = this.stockItems.find(
+      stockItem => stockItem.id === String(batch.inventoryItemId)
+    );
+
+    return item?.name || 'Unknown Medicine';
+  }
+
+  getBatchExpiryStatus(batch: InventoryBatch): string {
+    return batch.expiryDate < this.todayKey ? 'Expired' : 'Expiring Soon';
+  }
+
+  getBatchExpiryStatusClass(batch: InventoryBatch): string {
+    return batch.expiryDate < this.todayKey
+      ? 'status-out-stock'
+      : 'status-low-stock';
   }
 
   private getNumber(value: unknown): number {

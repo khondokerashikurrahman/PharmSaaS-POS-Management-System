@@ -1,0 +1,208 @@
+
+<div class="return-overlay" (click)="close()">
+
+  <div class="return-modal" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+
+      <div>
+        <div class="title-row">
+          <div class="title-icon">
+            <i class="bi bi-arrow-return-left"></i>
+          </div>
+
+          <div>
+            <h2>Return Sale</h2>
+            <p>Return products from a completed sale.</p>
+          </div>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="close-btn"
+        (click)="close()">
+
+        <i class="bi bi-x-lg"></i>
+
+      </button>
+
+    </div>
+
+
+    <div class="sale-info" *ngIf="sale">
+
+      <div>
+        <span>Invoice</span>
+        <strong>{{ sale.invoice }}</strong>
+      </div>
+
+      <div>
+        <span>Customer</span>
+        <strong>{{ sale.customer }}</strong>
+      </div>
+
+      <div>
+        <span>Total</span>
+        <strong>৳{{ sale.total | number:'1.2-2' }}</strong>
+      </div>
+
+    </div>
+
+
+    <div class="modal-body">
+
+      <h3>Select Products</h3>
+
+      <div
+        class="return-item"
+        *ngFor="let item of returnItems">
+
+        <div class="item-check">
+
+          <input
+            type="checkbox"
+            [checked]="item.selected"
+            (change)="toggleItem(item)"
+          />
+
+        </div>
+
+
+        <div class="item-info">
+
+          <strong>
+            {{ item.name }}
+          </strong>
+
+          <span>
+            SKU: {{ item.sku }}
+            • Batch: {{ item.batchNumber }}
+          </span>
+
+          <small>
+            Sold: {{ item.quantity }}
+            × ৳{{ item.price | number:'1.2-2' }}
+          </small>
+
+        </div>
+
+
+        <div class="quantity-control">
+
+          <button
+            type="button"
+            (click)="decreaseQuantity(item)">
+
+            −
+
+          </button>
+
+          <span>
+            {{ item.returnQuantity }}
+          </span>
+
+          <button
+            type="button"
+            (click)="increaseQuantity(item)">
+
+            +
+
+          </button>
+
+        </div>
+
+
+        <div class="item-total">
+
+          ৳{{ (item.returnQuantity * item.price) | number:'1.2-2' }}
+
+        </div>
+
+      </div>
+
+
+      <div
+        class="empty-state"
+        *ngIf="returnItems.length === 0">
+
+        <i class="bi bi-box"></i>
+
+        <h3>No items available</h3>
+
+        <p>
+          This sale does not contain returnable items.
+        </p>
+
+      </div>
+
+
+      <div class="reason-section">
+
+        <label>
+          Return Reason
+        </label>
+
+        <select [(ngModel)]="reason">
+
+          <option value="">
+            Select reason
+          </option>
+
+          <option
+            *ngFor="let item of reasons"
+            [value]="item">
+
+            {{ item }}
+
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="refund-box">
+
+        <span>
+          Refund Amount
+        </span>
+
+        <strong>
+          ৳{{ refundAmount | number:'1.2-2' }}
+        </strong>
+
+      </div>
+
+    </div>
+
+
+    <div class="modal-footer">
+
+      <button
+        type="button"
+        class="cancel-btn"
+        (click)="close()">
+
+        Cancel
+
+      </button>
+
+      <button
+        type="button"
+        class="return-btn"
+        [disabled]="processing || selectedItems.length === 0 || !reason"
+        (click)="confirmReturn()">
+
+        <i class="bi bi-arrow-return-left"></i>
+
+        {{ processing ? 'Processing...' : 'Confirm Return' }}
+
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+

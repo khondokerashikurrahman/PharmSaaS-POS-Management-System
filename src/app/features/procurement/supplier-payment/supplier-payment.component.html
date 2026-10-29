@@ -2,6 +2,10 @@
 <div class="supplier-payment-page">
 
   <!-- PAGE HEADER -->
+  <div *ngIf="errorMessage" class="notice error-notice" role="alert">{{ errorMessage }}</div>
+  <div *ngIf="successMessage" class="notice success-notice" role="status">{{ successMessage }}</div>
+  <div *ngIf="loading" class="notice info-notice" role="status">Loading supplier payments...</div>
+
   <div class="page-header">
 
     <div>
@@ -296,7 +300,7 @@
 
 
                 <button
-                  *ngIf="payment.status === 'Pending'"
+                  *ngIf="payment.status === 'Paid'"
                   class="action-btn cancel"
                   title="Cancel Payment"
                   (click)="cancelPayment(payment)"
@@ -390,16 +394,14 @@
 
             <select
               [(ngModel)]="selectedSupplier"
+              [disabled]="saving || !suppliers.length"
             >
-              <option value="">
-                Select supplier
-              </option>
-
+              <option [ngValue]="''">Select supplier</option>
               <option
                 *ngFor="let supplier of suppliers"
-                [value]="supplier"
+                [ngValue]="supplier.id"
               >
-                {{ supplier }}
+                {{ supplier.name }} — {{ supplier.supplierCode }}
               </option>
 
             </select>
@@ -517,9 +519,10 @@
         <button
           class="btn btn-primary"
           (click)="savePayment()"
+          [disabled]="saving || !suppliers.length"
         >
           <i class="bi bi-check-lg"></i>
-          Record Payment
+          {{ saving ? 'Saving...' : 'Record Payment' }}
         </button>
 
       </div>

@@ -199,7 +199,7 @@
                   type="button"
                   class="small-button edit-button"
                   (click)="editStore(store)"
-                  [disabled]="togglingStoreId !== null || saving">
+                  [disabled]="togglingStoreId !== null || deletingStoreId !== null || saving">
                   Edit
                 </button>
                 <button
@@ -208,9 +208,18 @@
                   [class.activate-button]="store.status.toLowerCase() !== 'active'"
                   [class.deactivate-button]="store.status.toLowerCase() === 'active'"
                   (click)="toggleStatus(store)"
-                  [disabled]="togglingStoreId === store.id || saving">
+                  [disabled]="togglingStoreId === store.id || deletingStoreId !== null || saving">
                   {{ togglingStoreId === store.id ? 'Saving…' :
                     store.status.toLowerCase() === 'active' ? 'Deactivate' : 'Activate' }}
+                </button>
+
+                <button
+                  type="button"
+                  class="small-button"
+                  (click)="archiveStore(store)"
+                  [disabled]="deletingStoreId !== null || togglingStoreId !== null || saving"
+                  [attr.aria-label]="'Archive ' + store.name">
+                  {{ deletingStoreId === store.id ? 'Archiving…' : 'Archive' }}
                 </button>
               </div>
             </td>

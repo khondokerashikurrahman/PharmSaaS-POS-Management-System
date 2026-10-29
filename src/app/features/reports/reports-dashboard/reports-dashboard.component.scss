@@ -765,3 +765,44 @@ tbody tr {
     flex-direction: column;
   }
 }
+
+
+/* Reports Dashboard loading and API error states */
+.dashboard-error,
+.dashboard-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+  padding: 0.875rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.925rem;
+}
+
+.dashboard-error {
+  color: #842029;
+  background: #f8d7da;
+  border: 1px solid #f1aeb5;
+}
+
+.dashboard-error span {
+  flex: 1;
+}
+
+.dashboard-error button {
+  border: 1px solid currentColor;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: inherit;
+  padding: 0.35rem 0.75rem;
+  font-weight: 600;
+}
+
+.dashboard-error button:disabled {
+  opacity: 0.6;
+}
+
+.dashboard-loading {
+  color: #344054;
+  background: #f2f4f7;
+}

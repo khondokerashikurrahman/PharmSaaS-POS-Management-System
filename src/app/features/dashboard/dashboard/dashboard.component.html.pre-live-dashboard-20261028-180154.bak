@@ -1,0 +1,546 @@
+<div class="dashboard">
+
+  <!-- ================= PAGE HEADER ================= -->
+
+  <div class="page-header">
+
+    <div>
+      <div class="breadcrumb">
+        <span>Pharmacy</span>
+        <span class="separator">/</span>
+        <span>Dashboard</span>
+      </div>
+
+      <h1>{{ getGreeting() }}, {{ currentUserName }} 👋</h1>
+
+      <p>
+        Here's what's happening at
+        <strong>{{ getTenantName() }}</strong> today.
+      </p>
+    </div>
+
+    <div class="header-right">
+
+      <div class="tenant-badge" *ngIf="currentTenant">
+
+        <div class="tenant-icon">
+          🏥
+        </div>
+
+        <div>
+          <strong>{{ currentTenant.name }}</strong>
+          <span>{{ currentTenant.id }}</span>
+        </div>
+
+      </div>
+
+      <div class="header-date">
+        <span>📅</span>
+        <span>{{ today }}</span>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ================= STAT CARDS ================= -->
+
+  <div class="stats-grid">
+
+    <div
+      class="stat-card"
+      *ngFor="let stat of stats"
+    >
+
+      <div class="stat-top">
+
+        <div
+          class="stat-icon"
+          [ngClass]="stat.type"
+        >
+          {{ stat.icon }}
+        </div>
+
+        <span
+          class="stat-change"
+          [class.warning-change]="stat.type === 'orange'"
+        >
+          {{ stat.change }}
+        </span>
+
+      </div>
+
+      <div class="stat-content">
+
+        <span class="stat-title">
+          {{ stat.title }}
+        </span>
+
+        <h2>
+          {{ stat.value }}
+        </h2>
+
+        <small>
+          {{ stat.label || 'Needs attention' }}
+        </small>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ================= QUICK ACTIONS ================= -->
+
+  <div class="section-heading">
+
+    <div>
+      <h2>Quick Actions</h2>
+      <p>Common pharmacy operations</p>
+    </div>
+
+  </div>
+
+  <div class="quick-actions">
+
+    <a
+      class="quick-action"
+      *ngFor="let action of quickActions"
+      [routerLink]="action.route"
+    >
+
+      <div class="quick-icon">
+        {{ action.icon }}
+      </div>
+
+      <div class="quick-content">
+        <strong>{{ action.title }}</strong>
+        <span>{{ action.description }}</span>
+      </div>
+
+      <span class="arrow">
+        →
+      </span>
+
+    </a>
+
+  </div>
+
+
+  <!-- ================= MAIN GRID ================= -->
+
+  <div class="main-grid">
+
+
+    <!-- SALES OVERVIEW -->
+
+    <div class="card sales-card">
+
+      <div class="card-header">
+
+        <div>
+          <h3>Sales Overview</h3>
+          <p>Sales performance for the last 7 days</p>
+        </div>
+
+        <select>
+          <option>Last 7 Days</option>
+          <option>This Month</option>
+          <option>This Year</option>
+        </select>
+
+      </div>
+
+
+      <div class="sales-chart">
+
+        <div class="chart-y-axis">
+          <span>100K</span>
+          <span>75K</span>
+          <span>50K</span>
+          <span>25K</span>
+          <span>0</span>
+        </div>
+
+
+        <div class="bars">
+
+          <div
+            class="bar-item"
+            *ngFor="let item of salesData"
+          >
+
+            <div class="bar-wrapper">
+
+              <div
+                class="bar"
+                [style.height.%]="item.value"
+              ></div>
+
+            </div>
+
+            <span>
+              {{ item.day }}
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- SALES SUMMARY -->
+
+    <div class="card summary-card">
+
+      <div class="card-header">
+
+        <div>
+          <h3>Sales Summary</h3>
+          <p>Today's payment breakdown</p>
+        </div>
+
+      </div>
+
+
+      <div class="summary-total">
+
+        <div class="summary-circle">
+          <strong>৳42.8K</strong>
+          <span>Today's Sales</span>
+        </div>
+
+      </div>
+
+
+      <div class="summary-list">
+
+        <div
+          class="summary-row"
+          *ngFor="let item of salesSummary"
+        >
+
+          <div class="summary-name">
+
+            <span class="summary-dot"></span>
+
+            <span>
+              {{ item.name }}
+            </span>
+
+          </div>
+
+          <div class="summary-value">
+
+            <strong>
+              {{ item.value }}
+            </strong>
+
+            <small>
+              {{ item.percentage }}%
+            </small>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ================= INVENTORY + ALERTS ================= -->
+
+  <div class="secondary-grid">
+
+
+    <!-- INVENTORY STATUS -->
+
+    <div class="card">
+
+      <div class="card-header">
+
+        <div>
+          <h3>Inventory Status</h3>
+          <p>Current medicine stock overview</p>
+        </div>
+
+        <a
+          routerLink="/app/inventory"
+          class="view-link"
+        >
+          View Inventory
+        </a>
+
+      </div>
+
+
+      <div class="inventory-grid">
+
+        <div
+          class="inventory-box"
+          *ngFor="let item of inventoryStatus"
+          [ngClass]="item.class"
+        >
+
+          <div class="inventory-icon">
+            {{ item.icon }}
+          </div>
+
+          <div>
+            <strong>
+              {{ item.value }}
+            </strong>
+
+            <span>
+              {{ item.title }}
+            </span>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- EXPIRY ALERTS -->
+
+    <div class="card">
+
+      <div class="card-header">
+
+        <div>
+          <h3>Expiry Alerts</h3>
+          <p>Medicines nearing expiry</p>
+        </div>
+
+        <span class="alert-count">
+          {{ expiryAlerts.length }}
+        </span>
+
+      </div>
+
+
+      <div class="expiry-list">
+
+        <div
+          class="expiry-item"
+          *ngFor="let item of expiryAlerts"
+        >
+
+          <div class="expiry-icon">
+            ⏰
+          </div>
+
+          <div class="expiry-info">
+
+            <strong>
+              {{ item.medicine }}
+            </strong>
+
+            <span>
+              Batch: {{ item.batch }}
+            </span>
+
+            <small>
+              Expires {{ item.expiry }}
+            </small>
+
+          </div>
+
+          <div class="expiry-right">
+
+            <strong>
+              {{ item.quantity }}
+            </strong>
+
+            <span>
+              {{ item.daysLeft }} days
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ================= BOTTOM GRID ================= -->
+
+  <div class="bottom-grid">
+
+
+    <!-- RECENT SALES -->
+
+    <div class="card table-card">
+
+      <div class="card-header">
+
+        <div>
+          <h3>Recent Sales</h3>
+          <p>Latest invoices from your pharmacy</p>
+        </div>
+
+        <a
+          routerLink="/app/pos/sales-history"
+          class="view-link"
+        >
+          View All
+        </a>
+
+      </div>
+
+
+      <div class="table-wrapper">
+
+        <table>
+
+          <thead>
+
+            <tr>
+              <th>Invoice</th>
+              <th>Customer</th>
+              <th>Items</th>
+              <th>Amount</th>
+              <th>Payment</th>
+              <th>Time</th>
+            </tr>
+
+          </thead>
+
+          <tbody>
+
+            <tr
+              *ngFor="let sale of recentSales"
+            >
+
+              <td>
+                <strong class="invoice-number">
+                  {{ sale.invoice }}
+                </strong>
+              </td>
+
+              <td>
+                {{ sale.customer }}
+              </td>
+
+              <td>
+                {{ sale.items }}
+              </td>
+
+              <td>
+                <strong class="amount">
+                  {{ sale.amount }}
+                </strong>
+              </td>
+
+              <td>
+
+                <span
+                  class="payment-badge"
+                  [ngClass]="sale.payment.toLowerCase()"
+                >
+                  {{ sale.payment }}
+                </span>
+
+              </td>
+
+              <td>
+                {{ sale.time }}
+              </td>
+
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+
+    <!-- LOW STOCK -->
+
+    <div class="card low-stock-card">
+
+      <div class="card-header">
+
+        <div>
+          <h3>Low Stock</h3>
+          <p>Medicines requiring restock</p>
+        </div>
+
+        <a
+          routerLink="/app/inventory/low-stock"
+          class="view-link"
+        >
+          View All
+        </a>
+
+      </div>
+
+
+      <div class="low-stock-list">
+
+        <div
+          class="low-stock-item"
+          *ngFor="let item of lowStockItems"
+        >
+
+          <div class="medicine-icon">
+            💊
+          </div>
+
+          <div class="medicine-info">
+
+            <strong>
+              {{ item.medicine }}
+            </strong>
+
+            <span>
+              {{ item.category }}
+            </span>
+
+          </div>
+
+          <div class="stock-info">
+
+            <strong>
+              {{ item.stock }}
+            </strong>
+
+            <span>
+              Min {{ item.minimum }}
+            </span>
+
+          </div>
+
+          <span
+            class="stock-status"
+            [ngClass]="item.status.toLowerCase()"
+          >
+            {{ item.status }}
+          </span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

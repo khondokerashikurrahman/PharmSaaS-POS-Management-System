@@ -673,3 +673,320 @@
   background: transparent;
   font: inherit;
 }
+
+/* ===== PharmSaaS Product Form: visual refinement ===== */
+.medicine-form-page {
+  max-width: 1540px;
+  margin: 0 auto;
+  padding: 26px clamp(16px, 2.5vw, 34px) 40px;
+  color: #19263c;
+}
+
+.medicine-form-page .page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-bottom: 25px;
+}
+
+.medicine-form-page .breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+  color: #8290a5;
+  font-size: 12px;
+}
+
+.medicine-form-page .breadcrumb .current {
+  color: #4f46e5;
+  font-weight: 700;
+}
+
+.medicine-form-page .page-header h1 {
+  margin: 8px 0 7px;
+  color: #17243b;
+  font-size: clamp(25px, 3vw, 32px);
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -.8px;
+}
+
+.medicine-form-page .page-header p {
+  margin: 0;
+  color: #748299;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.medicine-form-page .header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.medicine-form-page .medicine-form {
+  display: grid;
+  gap: 20px;
+  max-width: 1220px;
+  margin: 0 auto;
+}
+
+.medicine-form-page .form-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #e4eaf2;
+  border-radius: 17px;
+  background: #fff;
+  box-shadow: 0 5px 22px rgba(23, 36, 59, .045);
+}
+
+.medicine-form-page .card-header {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 21px 25px;
+  border-bottom: 1px solid #edf1f6;
+  background: linear-gradient(110deg, #fbfcff, #fff);
+}
+
+.medicine-form-page .card-header h2,
+.medicine-form-page .card-header h3 {
+  margin: 0 0 5px;
+  color: #1b2941;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.medicine-form-page .card-header p {
+  margin: 0;
+  color: #8390a5;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.medicine-form-page .card-body {
+  padding: 25px;
+}
+
+.medicine-form-page .form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 22px;
+  row-gap: 20px;
+}
+
+.medicine-form-page .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+}
+
+.medicine-form-page .form-group label {
+  color: #394861;
+  font-size: 12px;
+  line-height: 1.5;
+  font-weight: 750;
+}
+
+.medicine-form-page .form-group label span {
+  color: #dc424b;
+}
+
+.medicine-form-page .input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.medicine-form-page .input-wrapper > i {
+  position: absolute;
+  left: 13px;
+  z-index: 1;
+  color: #8794aa;
+  font-size: 15px;
+  pointer-events: none;
+}
+
+.medicine-form-page .input-wrapper input,
+.medicine-form-page .input-wrapper select,
+.medicine-form-page .input-wrapper textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  padding: 11px 13px;
+  border: 1px solid #dbe3ee;
+  border-radius: 10px;
+  outline: none;
+  background: #fbfcff;
+  color: #233149;
+  font: inherit;
+  font-size: 13px;
+  transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
+}
+
+.medicine-form-page .input-wrapper:has(> i) input,
+.medicine-form-page .input-wrapper:has(> i) select {
+  padding-left: 39px;
+}
+
+.medicine-form-page .form-group > input,
+.medicine-form-page .form-group > select,
+.medicine-form-page .form-group > textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  padding: 11px 13px;
+  border: 1px solid #dbe3ee;
+  border-radius: 10px;
+  outline: none;
+  background: #fbfcff;
+  color: #233149;
+  font: inherit;
+  font-size: 13px;
+  transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
+}
+
+.medicine-form-page .input-wrapper input:hover,
+.medicine-form-page .input-wrapper select:hover,
+.medicine-form-page .form-group > input:hover,
+.medicine-form-page .form-group > select:hover,
+.medicine-form-page .form-group > textarea:hover {
+  border-color: #b8c5d7;
+}
+
+.medicine-form-page .input-wrapper input:focus,
+.medicine-form-page .input-wrapper select:focus,
+.medicine-form-page .input-wrapper textarea:focus,
+.medicine-form-page .form-group > input:focus,
+.medicine-form-page .form-group > select:focus,
+.medicine-form-page .form-group > textarea:focus {
+  border-color: #8279ed;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(99, 88, 220, .11);
+}
+
+.medicine-form-page .form-group small,
+.medicine-form-page .field-hint,
+.medicine-form-page .hint {
+  color: #8794a8;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.medicine-form-page .form-group input.ng-invalid.ng-touched,
+.medicine-form-page .form-group select.ng-invalid.ng-touched {
+  border-color: #e05252;
+}
+
+.medicine-form-page .form-actions,
+.medicine-form-page .form-footer,
+.medicine-form-page .submit-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 11px;
+  padding: 19px 25px;
+  border-top: 1px solid #edf1f6;
+  background: #fbfcff;
+}
+
+.medicine-form-page button[type="submit"],
+.medicine-form-page .btn-primary,
+.medicine-form-page .btn-submit {
+  min-height: 44px;
+  padding: 11px 18px;
+  border: 1px solid #4338ca;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #5b52ef, #4338ca);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: transform .16s ease, box-shadow .16s ease;
+}
+
+.medicine-form-page button[type="submit"]:hover:not(:disabled),
+.medicine-form-page .btn-primary:hover:not(:disabled),
+.medicine-form-page .btn-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 7px 17px rgba(79, 70, 229, .2);
+}
+
+.medicine-form-page button:disabled {
+  opacity: .58;
+  cursor: not-allowed;
+}
+
+.medicine-form-page .btn-light,
+.medicine-form-page .btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 10px 15px;
+  border: 1px solid #dce4ee;
+  border-radius: 10px;
+  background: #fff;
+  color: #485972;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@media (max-width: 720px) {
+  .medicine-form-page {
+    padding: 17px 13px 28px;
+  }
+
+  .medicine-form-page .page-header {
+    align-items: flex-start;
+  }
+
+  .medicine-form-page .header-actions {
+    width: 100%;
+  }
+
+  .medicine-form-page .header-actions button {
+    flex: 1;
+  }
+
+  .medicine-form-page .card-header {
+    padding: 17px;
+  }
+
+  .medicine-form-page .card-body {
+    padding: 18px;
+  }
+
+  .medicine-form-page .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 17px;
+  }
+
+  .medicine-form-page .form-actions,
+  .medicine-form-page .form-footer,
+  .medicine-form-page .submit-actions {
+    padding: 15px 18px;
+  }
+
+  .medicine-form-page .form-actions > button,
+  .medicine-form-page .form-footer > button,
+  .medicine-form-page .submit-actions > button {
+    flex: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .medicine-form-page *,
+  .medicine-form-page *::before,
+  .medicine-form-page *::after {
+    transition-duration: .01ms !important;
+  }
+}

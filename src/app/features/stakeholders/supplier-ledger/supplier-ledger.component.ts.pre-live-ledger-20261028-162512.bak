@@ -1,0 +1,217 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
+import {
+  SupplierApiService,
+  SupplierResponse
+} from '../../../core/services/supplier-api.service';
+import {
+  SupplierLedgerApiService,
+  SupplierLedgerResponse
+} from '../../../core/services/supplier-ledger-api.service';
+
+interface LedgerTransaction {
+  id: string;
+  date: string | null;
+  reference: string;
+  description: string;
+  debit: number;
+  credit: number;
+  balance: number;
+  type: 'Purchase' | 'Payment' | 'Adjustment';
+  status: string;
+}
+
+interface Supplier {
+  id: string;
+  name: string;
+  contactPerson: string;
+  phone: string;
+  email: string;
+  address: string;
+  status: 'Active' | 'Inactive';
+}
+
+@Component({
+  selector: 'app-supplier-ledger',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './supplier-ledger.component.html',
+  styleUrl: './supplier-ledger.component.scss'
+})
+export class SupplierLedgerComponent implements OnInit {
+  supplierId = '';
+  searchTerm = '';
+  typeFilter = 'All';
+  loading = false;
+  errorMessage = '';
+  ledger: SupplierLedgerResponse | null = null;
+  transactions: LedgerTransaction[] = [];
+
+  supplier: Supplier = {
+    id: '',
+    name: '',
+    contactPerson: '',
+    phone: '',
+    email: '',
+    address: '',
+    status: 'Active'
+  };
+
+  constructor(
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly supplierApi: SupplierApiService,
+    private readonly ledgerApi: SupplierLedgerApiService
+  ) {}
+
+  ngOnInit(): void {
+    this.route.queryParamMap.subscribe(params => {
+      const id = Number(params.get('supplierId') || 0);
+      if (!Number.isSafeInteger(id) || id <= 0) {
+        this.errorMessage =
+          'সঠিক Supplier ID পাওয়া যায়নি। Supplier Details থেকে Ledger খুলুন।';
+        return;
+      }
+
+      this.supplierId = String(id);
+      this.loadData(id);
+    });
+  }
+
+  private getTenantId(): number {
+    for (const key of ['tenantId', 'tenant_id']) {
+      const id = Number(localStorage.getItem(key) || 0);
+      if (Number.isSafeInteger(id) && id > 0) return id;
+    }
+
+    try {
+      const user = JSON.parse(localStorage.getItem('pharm_user') || '{}');
+      for (const candidate of [
+        user.tenantId,
+        user.tenant?.id,
+        user.currentTenantId
+      ]) {
+        const id = Number(candidate || 0);
+        if (Number.isSafeInteger(id) && id > 0) return id;
+      }
+    } catch {}
+
+    return 0;
+  }
+
+  private loadData(supplierId: number): void {
+    const tenantId = this.getTenantId();
+    if (!tenantId) {
+      this.errorMessage = 'Tenant ID পাওয়া যায়নি। আবার login করুন।';
+      return;
+    }
+
+    this.loading = true;
+    this.errorMessage = '';
+
+    this.supplierApi.getById(tenantId, supplierId).subscribe({
+      next: supplier => {
+        this.supplier = {
+          id: String(supplier.id),
+          name: supplier.name || '',
+          contactPerson: supplier.contactPerson || '',
+          phone: supplier.phone || '',
+          email: supplier.email || '',
+          address: supplier.address || '',
+          status: String(supplier.status).toUpperCase() === 'ACTIVE'
+            ? 'Active' : 'Inactive'
+        };
+      },
+      error: err => {
+        this.errorMessage = err?.error?.message ||
+          'Supplier details load করা যায়নি।';
+      }
+    });
+
+    this.ledgerApi.get(tenantId, supplierId).subscribe({
+      next: response => {
+        this.ledger = response;
+        this.transactions = (response.transactions || []).map(row => ({
+          id: row.id,
+          date: row.date,
+          reference: row.reference || '',
+          description: row.description || '',
+          debit: Number(row.debit || 0),
+          credit: Number(row.credit || 0),
+          balance: Number(row.balance || 0),
+          type: row.type === 'Purchase'
+            ? 'Purchase'
+            : row.type === 'Payment'
+              ? 'Payment' : 'Adjustment',
+          status: row.status || ''
+        }));
+        this.loading = false;
+      },
+      error: err => {
+        this.ledger = null;
+        this.transactions = [];
+        this.loading = false;
+        this.errorMessage = err?.error?.message ||
+          'Supplier Ledger API load করা যায়নি। Backend ও permission যাচাই করুন।';
+      }
+    });
+  }
+
+  get filteredTransactions(): LedgerTransaction[] {
+    const search = this.searchTerm.trim().toLowerCase();
+
+    return this.transactions.filter(transaction => {
+      const matchesSearch = !search ||
+        transaction.reference.toLowerCase().includes(search) ||
+        transaction.description.toLowerCase().includes(search);
+
+      const matchesType = this.typeFilter === 'All' ||
+        transaction.type === this.typeFilter;
+
+      return matchesSearch && matchesType;
+    });
+  }
+
+  get totalPurchases(): number {
+    return Number(this.ledger?.totalPurchases || 0);
+  }
+
+  get totalPayments(): number {
+    return Number(this.ledger?.totalPayments || 0);
+  }
+
+  get currentBalance(): number {
+    return Number(this.ledger?.outstandingBalance || 0);
+  }
+
+  get totalTransactions(): number {
+    return this.transactions.length;
+  }
+
+  get balanceLabel(): string {
+    if (this.currentBalance > 0) return 'Payable Due';
+    if (this.currentBalance < 0) return 'Supplier Advance';
+    return 'No Due';
+  }
+
+  getTypeClass(type: string): string {
+    switch (type) {
+      case 'Purchase': return 'type-purchase';
+      case 'Payment': return 'type-payment';
+      default: return 'type-adjustment';
+    }
+  }
+
+  getBalanceClass(): string {
+    return this.currentBalance > 0 ? 'balance-due' : 'balance-clear';
+  }
+
+  goBack(): void {
+    this.router.navigate(['/app/stakeholders/suppliers']);
+  }
+
+  printLedger(): void {
+    window.print();
+  }
+}

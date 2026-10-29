@@ -1,17 +1,26 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import {
+  SupplierApiService,
+  SupplierResponse
+} from '../../../core/services/supplier-api.service';
+import {
+  SupplierLedgerApiService,
+  SupplierLedgerResponse
+} from '../../../core/services/supplier-ledger-api.service';
 
 interface LedgerTransaction {
   id: string;
-  date: string;
+  date: string | null;
   reference: string;
   description: string;
   debit: number;
   credit: number;
   balance: number;
   type: 'Purchase' | 'Payment' | 'Adjustment';
+  status: string;
 }
 
 interface Supplier {
@@ -32,10 +41,13 @@ interface Supplier {
   styleUrl: './supplier-ledger.component.scss'
 })
 export class SupplierLedgerComponent implements OnInit {
-
   supplierId = '';
   searchTerm = '';
   typeFilter = 'All';
+  loading = false;
+  errorMessage = '';
+  ledger: SupplierLedgerResponse | null = null;
+  transactions: LedgerTransaction[] = [];
 
   supplier: Supplier = {
     id: '',
@@ -47,219 +59,115 @@ export class SupplierLedgerComponent implements OnInit {
     status: 'Active'
   };
 
-  transactions: LedgerTransaction[] = [];
-
-  private suppliers: Record<string, Supplier> = {
-    'SUP-001': {
-      id: 'SUP-001',
-      name: 'Square Pharmaceuticals Ltd.',
-      contactPerson: 'Abdul Karim',
-      phone: '+880 1712-345678',
-      email: 'contact@squarepharma.com',
-      address: 'Mohakhali, Dhaka',
-      status: 'Active'
-    },
-    'SUP-002': {
-      id: 'SUP-002',
-      name: 'Beximco Pharmaceuticals Ltd.',
-      contactPerson: 'Rahim Ahmed',
-      phone: '+880 1812-456789',
-      email: 'info@beximco.com',
-      address: 'Dhanmondi, Dhaka',
-      status: 'Active'
-    },
-    'SUP-003': {
-      id: 'SUP-003',
-      name: 'Renata Limited',
-      contactPerson: 'Karim Hasan',
-      phone: '+880 1912-567890',
-      email: 'contact@renata-ltd.com',
-      address: 'Mirpur, Dhaka',
-      status: 'Active'
-    },
-    'SUP-004': {
-      id: 'SUP-004',
-      name: 'ACME Laboratories Ltd.',
-      contactPerson: 'Sakib Khan',
-      phone: '+880 1612-678901',
-      email: 'info@acme.com.bd',
-      address: 'Tongi, Gazipur',
-      status: 'Active'
-    }
-  };
-
-  private ledgerData: Record<string, LedgerTransaction[]> = {
-
-    'SUP-001': [
-      {
-        id: 'SL-001',
-        date: '2026-09-12',
-        reference: 'PO-2026-1045',
-        description: 'Medicine purchase',
-        debit: 28500,
-        credit: 20000,
-        balance: 8500,
-        type: 'Purchase'
-      },
-      {
-        id: 'SL-002',
-        date: '2026-09-09',
-        reference: 'PAY-2026-0088',
-        description: 'Supplier payment',
-        debit: 0,
-        credit: 10000,
-        balance: 8500,
-        type: 'Payment'
-      },
-      {
-        id: 'SL-003',
-        date: '2026-09-05',
-        reference: 'PO-2026-1018',
-        description: 'Medicine purchase',
-        debit: 32000,
-        credit: 25000,
-        balance: 18500,
-        type: 'Purchase'
-      },
-      {
-        id: 'SL-004',
-        date: '2026-09-01',
-        reference: 'PAY-2026-0065',
-        description: 'Supplier payment',
-        debit: 0,
-        credit: 15000,
-        balance: 11500,
-        type: 'Payment'
-      }
-    ],
-
-    'SUP-002': [
-      {
-        id: 'SL-005',
-        date: '2026-09-10',
-        reference: 'PO-2026-1038',
-        description: 'Medicine purchase',
-        debit: 45000,
-        credit: 30000,
-        balance: 15000,
-        type: 'Purchase'
-      },
-      {
-        id: 'SL-006',
-        date: '2026-09-07',
-        reference: 'PAY-2026-0079',
-        description: 'Supplier payment',
-        debit: 0,
-        credit: 20000,
-        balance: 15000,
-        type: 'Payment'
-      },
-      {
-        id: 'SL-007',
-        date: '2026-09-02',
-        reference: 'PO-2026-0988',
-        description: 'Medicine purchase',
-        debit: 28000,
-        credit: 18000,
-        balance: 25000,
-        type: 'Purchase'
-      }
-    ],
-
-    'SUP-003': [
-      {
-        id: 'SL-008',
-        date: '2026-09-08',
-        reference: 'PO-2026-1029',
-        description: 'Medicine purchase',
-        debit: 19500,
-        credit: 19500,
-        balance: 0,
-        type: 'Purchase'
-      },
-      {
-        id: 'SL-009',
-        date: '2026-09-04',
-        reference: 'PAY-2026-0061',
-        description: 'Supplier payment',
-        debit: 0,
-        credit: 12000,
-        balance: 0,
-        type: 'Payment'
-      }
-    ],
-
-    'SUP-004': [
-      {
-        id: 'SL-010',
-        date: '2026-09-06',
-        reference: 'PO-2026-1021',
-        description: 'Medicine purchase',
-        debit: 56000,
-        credit: 40000,
-        balance: 16000,
-        type: 'Purchase'
-      },
-      {
-        id: 'SL-011',
-        date: '2026-09-03',
-        reference: 'PAY-2026-0054',
-        description: 'Supplier payment',
-        debit: 0,
-        credit: 20000,
-        balance: 16000,
-        type: 'Payment'
-      }
-    ]
-  };
-
   constructor(
-    private route: ActivatedRoute,
-    private router: Router
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly supplierApi: SupplierApiService,
+    private readonly ledgerApi: SupplierLedgerApiService
   ) {}
 
   ngOnInit(): void {
     this.route.queryParamMap.subscribe(params => {
+      const id = Number(params.get('supplierId') || 0);
+      if (!Number.isSafeInteger(id) || id <= 0) {
+        this.errorMessage =
+          'সঠিক Supplier ID পাওয়া যায়নি। Supplier Details থেকে Ledger খুলুন।';
+        return;
+      }
 
-      this.supplierId =
-        params.get('supplierId') || 'SUP-001';
-
-      this.loadSupplier();
-      this.loadLedger();
+      this.supplierId = String(id);
+      this.loadData(id);
     });
   }
 
-  loadSupplier(): void {
-    const supplier = this.suppliers[this.supplierId];
-
-    if (supplier) {
-      this.supplier = { ...supplier };
+  private getTenantId(): number {
+    for (const key of ['tenantId', 'tenant_id']) {
+      const id = Number(localStorage.getItem(key) || 0);
+      if (Number.isSafeInteger(id) && id > 0) return id;
     }
+
+    try {
+      const user = JSON.parse(localStorage.getItem('pharm_user') || '{}');
+      for (const candidate of [
+        user.tenantId,
+        user.tenant?.id,
+        user.currentTenantId
+      ]) {
+        const id = Number(candidate || 0);
+        if (Number.isSafeInteger(id) && id > 0) return id;
+      }
+    } catch {}
+
+    return 0;
   }
 
-  loadLedger(): void {
-    this.transactions =
-      this.ledgerData[this.supplierId] || [];
+  private loadData(supplierId: number): void {
+    const tenantId = this.getTenantId();
+    if (!tenantId) {
+      this.errorMessage = 'Tenant ID পাওয়া যায়নি। আবার login করুন।';
+      return;
+    }
+
+    this.loading = true;
+    this.errorMessage = '';
+
+    this.supplierApi.getById(tenantId, supplierId).subscribe({
+      next: supplier => {
+        this.supplier = {
+          id: String(supplier.id),
+          name: supplier.name || '',
+          contactPerson: supplier.contactPerson || '',
+          phone: supplier.phone || '',
+          email: supplier.email || '',
+          address: supplier.address || '',
+          status: String(supplier.status).toUpperCase() === 'ACTIVE'
+            ? 'Active' : 'Inactive'
+        };
+      },
+      error: err => {
+        this.errorMessage = err?.error?.message ||
+          'Supplier details load করা যায়নি।';
+      }
+    });
+
+    this.ledgerApi.get(tenantId, supplierId).subscribe({
+      next: response => {
+        this.ledger = response;
+        this.transactions = (response.transactions || []).map(row => ({
+          id: row.id,
+          date: row.date,
+          reference: row.reference || '',
+          description: row.description || '',
+          debit: Number(row.debit || 0),
+          credit: Number(row.credit || 0),
+          balance: Number(row.balance || 0),
+          type: row.type === 'Purchase'
+            ? 'Purchase'
+            : row.type === 'Payment'
+              ? 'Payment' : 'Adjustment',
+          status: row.status || ''
+        }));
+        this.loading = false;
+      },
+      error: err => {
+        this.ledger = null;
+        this.transactions = [];
+        this.loading = false;
+        this.errorMessage = err?.error?.message ||
+          'Supplier Ledger API load করা যায়নি। Backend ও permission যাচাই করুন।';
+      }
+    });
   }
 
   get filteredTransactions(): LedgerTransaction[] {
-
-    const search =
-      this.searchTerm.trim().toLowerCase();
+    const search = this.searchTerm.trim().toLowerCase();
 
     return this.transactions.filter(transaction => {
+      const matchesSearch = !search ||
+        transaction.reference.toLowerCase().includes(search) ||
+        transaction.description.toLowerCase().includes(search);
 
-      const matchesSearch =
-        !search ||
-        transaction.reference
-          .toLowerCase()
-          .includes(search) ||
-        transaction.description
-          .toLowerCase()
-          .includes(search);
-
-      const matchesType =
-        this.typeFilter === 'All' ||
+      const matchesType = this.typeFilter === 'All' ||
         transaction.type === this.typeFilter;
 
       return matchesSearch && matchesType;
@@ -267,30 +175,15 @@ export class SupplierLedgerComponent implements OnInit {
   }
 
   get totalPurchases(): number {
-    return this.transactions.reduce(
-      (total, transaction) =>
-        total + transaction.debit,
-      0
-    );
+    return Number(this.ledger?.totalPurchases || 0);
   }
 
   get totalPayments(): number {
-    return this.transactions.reduce(
-      (total, transaction) =>
-        total + transaction.credit,
-      0
-    );
+    return Number(this.ledger?.totalPayments || 0);
   }
 
   get currentBalance(): number {
-
-    if (!this.transactions.length) {
-      return 0;
-    }
-
-    return this.transactions[
-      this.transactions.length - 1
-    ].balance;
+    return Number(this.ledger?.outstandingBalance || 0);
   }
 
   get totalTransactions(): number {
@@ -298,36 +191,25 @@ export class SupplierLedgerComponent implements OnInit {
   }
 
   get balanceLabel(): string {
-    return this.currentBalance > 0
-      ? 'Payable Due'
-      : 'No Due';
+    if (this.currentBalance > 0) return 'Payable Due';
+    if (this.currentBalance < 0) return 'Supplier Advance';
+    return 'No Due';
   }
 
   getTypeClass(type: string): string {
-
     switch (type) {
-
-      case 'Purchase':
-        return 'type-purchase';
-
-      case 'Payment':
-        return 'type-payment';
-
-      default:
-        return 'type-adjustment';
+      case 'Purchase': return 'type-purchase';
+      case 'Payment': return 'type-payment';
+      default: return 'type-adjustment';
     }
   }
 
   getBalanceClass(): string {
-    return this.currentBalance > 0
-      ? 'balance-due'
-      : 'balance-clear';
+    return this.currentBalance > 0 ? 'balance-due' : 'balance-clear';
   }
 
   goBack(): void {
-    this.router.navigate([
-      '/app/stakeholders/suppliers'
-    ]);
+    this.router.navigate(['/app/stakeholders/suppliers']);
   }
 
   printLedger(): void {

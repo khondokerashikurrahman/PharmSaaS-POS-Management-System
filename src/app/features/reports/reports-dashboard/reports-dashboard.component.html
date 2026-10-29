@@ -38,7 +38,8 @@
       <button
         class="refresh-btn"
         type="button"
-        (click)="refreshReports()">
+        (click)="refreshReports()"
+        [disabled]="loading">
 
         <i class="bi bi-arrow-clockwise"></i>
         Refresh
@@ -48,6 +49,19 @@
 
   </div>
 
+
+  <div class="dashboard-error" *ngIf="errorMessage" role="alert">
+    <i class="bi bi-exclamation-triangle"></i>
+    <span>{{ errorMessage }}</span>
+    <button type="button" (click)="refreshReports()" [disabled]="loading">
+      Retry
+    </button>
+  </div>
+
+  <div class="dashboard-loading" *ngIf="loading" role="status">
+    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+    Loading live report data...
+  </div>
 
   <!-- Summary Cards -->
   <div class="stats-grid">
@@ -147,11 +161,9 @@
       <div class="chart-area">
 
         <div class="y-axis">
-          <span>৳40K</span>
-          <span>৳30K</span>
-          <span>৳20K</span>
-          <span>৳10K</span>
-          <span>৳0</span>
+          <span *ngFor="let tick of chartAxisLabels">
+            ৳{{ tick | number:'1.0-0' }}
+          </span>
         </div>
 
         <div class="chart">

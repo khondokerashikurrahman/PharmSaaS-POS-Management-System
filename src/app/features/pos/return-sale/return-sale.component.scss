@@ -272,3 +272,14 @@ p {
     text-align: left;
   }
 }
+
+
+/* Clarify that the pre-submit refund amount is an estimate. */
+.refund-box .refund-note {
+  display: block;
+  margin-top: 8px;
+  color: #64748b;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  font-weight: 400;
+}

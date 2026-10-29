@@ -54,6 +54,7 @@ export class ReportsDashboardComponent implements OnInit {
 
   selectedPeriod = '7 Days';
   loading = false;
+  errorMessage = '';
 
   reportStats: ReportStat[] = [
     {
@@ -97,16 +98,73 @@ export class ReportsDashboardComponent implements OnInit {
     this.refreshReports();
   }
 
+  private resolveTenantId(): number {
+    const validId = (value: unknown): number => {
+      const id = Number(value);
+      return Number.isInteger(id) && id > 0 ? id : 0;
+    };
+
+    for (const key of ['tenantId', 'tenant_id']) {
+      const id = validId(localStorage.getItem(key));
+      if (id) return id;
+    }
+
+    for (const key of ['pharm_user', 'currentTenant', 'tenant']) {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+
+      const directId = validId(raw);
+      if (directId) return directId;
+
+      try {
+        const data = JSON.parse(raw) as {
+          id?: number | string;
+          tenantId?: number | string;
+          tenant_id?: number | string;
+          selectedTenantId?: number | string;
+          activeTenantId?: number | string;
+          tenant?: { id?: number | string } | null;
+          currentTenant?: { id?: number | string } | null;
+        };
+
+        const candidates: unknown[] = [
+          data.tenantId,
+          data.tenant_id,
+          data.selectedTenantId,
+          data.activeTenantId,
+          data.tenant?.id,
+          data.currentTenant?.id
+        ];
+
+        if (key === 'currentTenant' || key === 'tenant') {
+          candidates.unshift(data.id);
+        }
+
+        for (const candidate of candidates) {
+          const id = validId(candidate);
+          if (id) return id;
+        }
+      } catch {
+        // Ignore malformed optional storage values.
+      }
+    }
+
+    return 0;
+  }
+
   refreshReports(): void {
-    const tenantId = Number(localStorage.getItem('tenantId'));
+    const tenantId = this.resolveTenantId();
 
     if (!Number.isInteger(tenantId) || tenantId <= 0) {
       this.clearDashboard();
-      alert('Tenant information is missing. Please log in and select your pharmacy again.');
+      this.loading = false;
+      this.errorMessage =
+        'Tenant information is missing. Please log in and select your pharmacy again.';
       return;
     }
 
     this.loading = true;
+    this.errorMessage = '';
 
     forkJoinDashboard(
       this.saleApi.getSales(tenantId),
@@ -142,12 +200,14 @@ export class ReportsDashboardComponent implements OnInit {
 
         this.rebuildDashboard();
         this.loading = false;
+        this.errorMessage = '';
       },
       error: error => {
         console.error('Reports Dashboard API error:', error);
         this.clearDashboard();
         this.loading = false;
-        alert('Reports Dashboard could not load data. Check your login and backend connection.');
+        this.errorMessage =
+          'Reports Dashboard could not load data. Check your login and backend connection, then retry.';
       }
     });
   }
@@ -264,6 +324,11 @@ export class ReportsDashboardComponent implements OnInit {
     return this.salesTrend.reduce((sum, item) => sum + item.orders, 0);
   }
 
+  get chartAxisLabels(): number[] {
+    const max = this.maxSales;
+    return [max, max * 0.75, max * 0.5, max * 0.25, 0];
+  }
+
   getBarHeight(sales: number): number {
     return this.maxSales ? (sales / this.maxSales) * 100 : 0;
   }
@@ -333,31 +398,70 @@ export class ReportsDashboardComponent implements OnInit {
     const products = new Map<string, TopProduct>();
 
     sales.forEach(sale => {
-      (sale.items || []).forEach(item => {
+      const lines = sale.items || [];
+
+      const lineNetBeforeOrderDiscount = (
+        item: SaleResponse['items'][number]
+      ): number => {
+        const quantity = Math.max(0, this.number(item.quantity));
+        const gross = Math.max(0, this.number(item.unitPrice) * quantity);
+        const lineDiscount = Math.max(0, this.number(item.discountAmount));
+
+        return Math.max(
+          0,
+          this.number(item.subtotal) || Math.max(0, gross - lineDiscount)
+        );
+      };
+
+      // SaleItem subtotal already excludes line discount.
+      // Allocate only the remaining order-level discount across sale lines.
+      const afterItemDiscounts = lines.reduce(
+        (sum, item) => sum + lineNetBeforeOrderDiscount(item),
+        0
+      );
+
+      const itemDiscountTotal = lines.reduce(
+        (sum, item) => sum + Math.max(0, this.number(item.discountAmount)),
+        0
+      );
+
+      const orderDiscount = Math.max(
+        0,
+        this.number(sale.discount) - itemDiscountTotal
+      );
+
+      lines.forEach(item => {
         const key = String(item.productId || item.productName || 'unknown');
         const medicine = this.medicinesById.get(Number(item.productId));
         const originalQuantity = Math.max(0, this.number(item.quantity));
+
         const returnedQuantity = Math.min(
           originalQuantity,
           this.returnedQuantity(
-            Number(sale.id), Number(item.productId), Number(item.batchId)
+            Number(sale.id),
+            Number(item.productId),
+            Number(item.batchId)
           )
         );
-        const quantity = Math.max(0, originalQuantity - returnedQuantity);
 
+        const quantity = Math.max(0, originalQuantity - returnedQuantity);
         if (quantity <= 0) return;
 
-        const originalRevenue = this.number(item.subtotal) ||
-          this.number(item.unitPrice) * originalQuantity;
+        const lineNet = lineNetBeforeOrderDiscount(item);
+        const allocatedOrderDiscount = afterItemDiscounts > 0
+          ? orderDiscount * lineNet / afterItemDiscounts
+          : 0;
+
+        const originalRevenue = Math.max(0, lineNet - allocatedOrderDiscount);
         const revenue = originalQuantity > 0
           ? originalRevenue * quantity / originalQuantity
           : 0;
 
-        const product = products.get(key);
+        const existing = products.get(key);
 
-        if (product) {
-          product.quantity += quantity;
-          product.revenue += revenue;
+        if (existing) {
+          existing.quantity += quantity;
+          existing.revenue += revenue;
         } else {
           products.set(key, {
             name: item.productName || medicine?.name || 'Unknown Medicine',
@@ -373,7 +477,6 @@ export class ReportsDashboardComponent implements OnInit {
       .sort((a, b) => b.quantity - a.quantity)
       .slice(0, 5);
   }
-
 
   private isDateInPeriod(date: Date): boolean {
     const now = new Date();

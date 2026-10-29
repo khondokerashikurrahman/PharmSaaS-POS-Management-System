@@ -38,6 +38,8 @@ export class SalesReportComponent implements OnInit {
   private readonly saleApi = inject(SaleApiService);
 
   sales: Sale[] = [];
+  loading = false;
+  loadError = '';
   selectedRange: DateRange = 'all';
   fromDate = '';
   toDate = '';
@@ -47,14 +49,19 @@ export class SalesReportComponent implements OnInit {
   }
 
   refreshReport(): void {
-    const tenantId = Number(localStorage.getItem('tenantId'));
+    const tenantId = this.getTenantId();
 
-    if (!Number.isInteger(tenantId) || tenantId <= 0) {
+    if (!Number.isSafeInteger(tenantId) || tenantId <= 0) {
       this.sales = [];
-      console.error('Sales Report: valid tenantId was not found in localStorage.');
-      alert('Tenant information is missing. Please log in and select your pharmacy again.');
+      this.loading = false;
+      this.loadError = 'Tenant information is missing. Please log in and select your pharmacy again.';
+      console.error('Sales Report: no valid tenant ID was found.');
       return;
     }
+
+    this.loading = true;
+    this.loadError = '';
+    this.sales = [];
 
     forkJoin({
       sales: this.saleApi.getSales(tenantId),
@@ -73,12 +80,56 @@ export class SalesReportComponent implements OnInit {
         this.sales = (Array.isArray(sales) ? sales : []).map(
           sale => this.mapSale(sale, returnsBySale.get(Number(sale.id)) || [])
         );
+        this.loading = false;
       },
       error: error => {
         console.error('Failed to load Sales Report/refund data:', error);
-        alert('Sales Report could not be loaded. Check your login and backend connection.');
+        this.sales = [];
+        this.loading = false;
+        this.loadError =
+          error?.error?.detail ||
+          error?.error?.message ||
+          'Sales Report could not be loaded. Check your login and backend connection.';
       }
     });
+  }
+
+  private getTenantId(): number {
+    const directValues = [
+      localStorage.getItem('tenantId'),
+      localStorage.getItem('tenant_id')
+    ];
+
+    for (const raw of directValues) {
+      const id = Number(raw);
+      if (Number.isSafeInteger(id) && id > 0) {
+        return id;
+      }
+    }
+
+    for (const key of ['pharm_user', 'currentTenant', 'current_tenant']) {
+      try {
+        const data = JSON.parse(localStorage.getItem(key) || '{}');
+        const candidates = [
+          data?.tenantId,
+          data?.tenant_id,
+          data?.tenant?.id,
+          data?.currentTenant?.id,
+          key === 'currentTenant' || key === 'current_tenant' ? data?.id : null
+        ];
+
+        for (const candidate of candidates) {
+          const id = Number(candidate);
+          if (Number.isSafeInteger(id) && id > 0) {
+            return id;
+          }
+        }
+      } catch {
+        // Try the next known storage key.
+      }
+    }
+
+    return 0;
   }
 
   private mapSale(

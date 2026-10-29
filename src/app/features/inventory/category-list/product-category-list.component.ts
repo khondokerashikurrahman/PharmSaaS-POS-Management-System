@@ -22,10 +22,10 @@ export class ProductCategoryListComponent implements OnInit {
 
   selectedProductType = 'MEDICINE';
   categories: ProductCategory[] = [];
-
   categoryName = '';
   editingId: number | null = null;
-
+  searchTerm = '';
+  showEditor = false;
   loading = false;
   saving = false;
   errorMessage = '';
@@ -58,8 +58,30 @@ export class ProductCategoryListComponent implements OnInit {
     return (type || '').replace(/_/g, ' ');
   }
 
+  get filteredCategories(): ProductCategory[] {
+    const search = this.searchTerm.trim().toLowerCase();
+    return this.categories.filter(category =>
+      !search ||
+      category.name.toLowerCase().includes(search) ||
+      this.getProductTypeLabel(category.productType).toLowerCase().includes(search)
+    );
+  }
+
+  openAddCategory(): void {
+    this.editingId = null;
+    this.categoryName = '';
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.showEditor = true;
+  }
+
   onProductTypeChange(): void {
-    this.cancelEdit();
+    const keepEditorOpen = this.showEditor;
+    this.editingId = null;
+    this.categoryName = '';
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.showEditor = keepEditorOpen;
     this.loadCategories();
   }
 
@@ -73,7 +95,6 @@ export class ProductCategoryListComponent implements OnInit {
 
     this.loading = true;
     this.errorMessage = '';
-    this.successMessage = '';
 
     this.categoryApi.list(tenantId, this.selectedProductType).subscribe({
       next: categories => {
@@ -95,6 +116,11 @@ export class ProductCategoryListComponent implements OnInit {
     const name = this.categoryName.trim();
     if (!name) {
       this.errorMessage = 'Category name লিখো।';
+      return;
+    }
+
+    if (name.length > 100) {
+      this.errorMessage = 'Category name 100 characters-এর মধ্যে রাখো।';
       return;
     }
 
@@ -122,6 +148,7 @@ export class ProductCategoryListComponent implements OnInit {
         this.saving = false;
         this.categoryName = '';
         this.editingId = null;
+        this.showEditor = false;
         this.successMessage = 'Category saved successfully.';
         this.loadCategories();
       },
@@ -137,10 +164,12 @@ export class ProductCategoryListComponent implements OnInit {
   }
 
   editCategory(category: ProductCategory): void {
+    this.selectedProductType = category.productType;
     this.editingId = category.id;
     this.categoryName = category.name;
     this.errorMessage = '';
     this.successMessage = '';
+    this.showEditor = true;
   }
 
   cancelEdit(): void {
@@ -148,6 +177,7 @@ export class ProductCategoryListComponent implements OnInit {
     this.categoryName = '';
     this.errorMessage = '';
     this.successMessage = '';
+    this.showEditor = false;
   }
 
   archiveCategory(category: ProductCategory): void {

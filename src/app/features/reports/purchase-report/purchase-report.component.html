@@ -476,6 +476,74 @@
   </section>
 
 
+  <!-- ================= GOODS RECEIVED ================= -->
+  <section class="report-card transactions-card">
+    <div class="card-header">
+      <div>
+        <h2>Goods Received (GRN)</h2>
+        <p>
+          Actual goods received during {{ selectedRangeLabel }}.
+          GRN value is calculated from received item line totals.
+        </p>
+        <p>
+          <strong>{{ totalReceivedNotes }}</strong> GRNs
+          &nbsp;·&nbsp;
+          <strong>{{ totalReceivedQuantity | number }}</strong> units
+          &nbsp;·&nbsp;
+          <strong>৳{{ totalReceivedValue | number:'1.2-2' }}</strong>
+        </p>
+      </div>
+      <div class="record-count">{{ totalReceivedNotes }} GRNs</div>
+    </div>
+
+    <div class="table-wrapper" *ngIf="filteredGrns.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>GRN Number</th>
+            <th>Received Date</th>
+            <th>Supplier</th>
+            <th>Purchase Order</th>
+            <th>Quantity</th>
+            <th>Received Value</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let grn of filteredGrns">
+            <td>
+              <span class="order-number">{{ grn.grnNumber || ('GRN-' + grn.id) }}</span>
+            </td>
+            <td>
+              <span class="date-value">{{ grn.receivedDate | date:'dd MMM yyyy' }}</span>
+            </td>
+            <td>{{ grn.supplierName || '—' }}</td>
+            <td>{{ grn.purchaseOrderNumber || '—' }}</td>
+            <td>{{ getGrnItemQuantity(grn) | number }}</td>
+            <td>
+              <strong class="amount">৳{{ getGrnValue(grn) | number:'1.2-2' }}</strong>
+            </td>
+            <td>
+              <span class="status-badge">
+                <span class="status-dot"></span>{{ grn.status }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="empty-state" *ngIf="filteredGrns.length === 0">
+      <div class="empty-icon"><i class="bi bi-box-seam"></i></div>
+      <h3>No Received Goods Found</h3>
+      <p>
+        There are no received-goods records for
+        <strong>{{ selectedRangeLabel }}</strong>.
+      </p>
+    </div>
+  </section>
+
+
   <!-- ================= PURCHASE TRANSACTIONS ================= -->
   <section class="report-card transactions-card">
 

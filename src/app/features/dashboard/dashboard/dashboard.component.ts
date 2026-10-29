@@ -4,376 +4,478 @@ import { RouterLink } from '@angular/router';
 
 import { AuthService } from '../../../core/services/auth.service';
 import { TenantService, Tenant } from '../../../core/services/tenant.service';
+import { SaleApiService, SaleResponse } from '../../../core/services/sale-api.service';
+import { TenantInventoryApiService, TenantInventoryItem } from '../../../core/services/tenant-inventory-api.service';
+import { InventoryBatchApiService, InventoryBatch } from '../../../core/services/inventory-batch-api.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterLink
-  ],
+  imports: [CommonModule, RouterLink],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
 export class DashboardComponent implements OnInit {
-
   currentTenant: Tenant | undefined;
+  currentUserName = 'Pharmacy User';
+  today = new Date().toLocaleDateString('en-GB', {
+    day: '2-digit', month: 'long', year: 'numeric'
+  });
 
-  currentUserName = 'Pharmacy Admin';
-
-  today = '13 September 2026';
-
-
-  // =====================================================
-  // STAT CARDS
-  // =====================================================
+  dashboardError = '';
+  salesLoading = false;
+  inventoryLoading = false;
+  salesChartTicks = [1, 0.75, 0.5, 0.25, 0];
+  salesChartMax = 1000;
+  todaySalesAmount = 0;
 
   stats = [
-
-    {
-      title: "Today's Sales",
-      value: '৳42,850',
-      icon: '💰',
-      change: '+12.5%',
-      label: 'from yesterday',
-      type: 'blue'
-    },
-
-    {
-      title: "Today's Invoices",
-      value: '86',
-      icon: '🧾',
-      change: '+8.2%',
-      label: 'from yesterday',
-      type: 'green'
-    },
-
-    {
-      title: 'Total Medicines',
-      value: '1,248',
-      icon: '💊',
-      change: '+24',
-      label: 'new this month',
-      type: 'purple'
-    },
-
-    {
-      title: 'Low Stock Items',
-      value: '17',
-      icon: '⚠️',
-      change: 'Needs attention',
-      label: '',
-      type: 'orange'
-    }
-
+    { title: "Today's Sales", value: '—', icon: '💰', change: 'Live data', label: 'From backend', type: 'blue' },
+    { title: "Today's Invoices", value: '—', icon: '🧾', change: 'Live data', label: 'From backend', type: 'green' },
+    { title: 'Total Medicines', value: '—', icon: '💊', change: 'Live data', label: 'Active inventory items', type: 'purple' },
+    { title: 'Low Stock Items', value: '—', icon: '⚠️', change: 'Checking', label: 'Needs attention', type: 'orange' }
   ];
 
+  salesData: Array<{ day: string; value: number; amount: number }> = [];
+  salesSummary: Array<{ name: string; value: string; percentage: number }> = [];
 
-  // =====================================================
-  // SALES OVERVIEW
-  // =====================================================
+  inventoryStatus: Array<{
+    title: string;
+    value: number | string;
+    icon: string;
+    class: string;
+  }> = [];
 
-  salesData = [
+  recentSales: Array<{
+    invoice: string;
+    customer: string;
+    items: number;
+    amount: string;
+    payment: string;
+    time: string;
+  }> = [];
 
-    { day: 'Mon', value: 55 },
-    { day: 'Tue', value: 68 },
-    { day: 'Wed', value: 48 },
-    { day: 'Thu', value: 76 },
-    { day: 'Fri', value: 65 },
-    { day: 'Sat', value: 88 },
-    { day: 'Sun', value: 72 }
+  lowStockItems: Array<{
+    medicine: string;
+    category: string;
+    stock: number;
+    minimum: number;
+    status: string;
+  }> = [];
 
-  ];
-
-
-  // =====================================================
-  // SALES SUMMARY
-  // =====================================================
-
-  salesSummary = [
-
-    {
-      name: 'Cash Sales',
-      value: '৳24,650',
-      percentage: 58
-    },
-
-    {
-      name: 'Card / Mobile Banking',
-      value: '৳12,400',
-      percentage: 29
-    },
-
-    {
-      name: 'Credit Sales',
-      value: '৳5,800',
-      percentage: 13
-    }
-
-  ];
-
-
-  // =====================================================
-  // INVENTORY STATUS
-  // =====================================================
-
-  inventoryStatus = [
-
-    {
-      title: 'In Stock',
-      value: 1085,
-      icon: '🟢',
-      class: 'active'
-    },
-
-    {
-      title: 'Low Stock',
-      value: 17,
-      icon: '🟡',
-      class: 'pending'
-    },
-
-    {
-      title: 'Expiring Soon',
-      value: 9,
-      icon: '🔴',
-      class: 'suspended'
-    }
-
-  ];
-
-
-  // =====================================================
-  // RECENT SALES
-  // =====================================================
-
-  recentSales = [
-
-    {
-      invoice: 'INV-2026-0148',
-      customer: 'Walk-in Customer',
-      items: 4,
-      amount: '৳1,850',
-      payment: 'Paid',
-      time: '10:42 AM'
-    },
-
-    {
-      invoice: 'INV-2026-0147',
-      customer: 'Rahim Ahmed',
-      items: 6,
-      amount: '৳3,240',
-      payment: 'Paid',
-      time: '10:25 AM'
-    },
-
-    {
-      invoice: 'INV-2026-0146',
-      customer: 'Nusrat Jahan',
-      items: 3,
-      amount: '৳980',
-      payment: 'Paid',
-      time: '10:08 AM'
-    },
-
-    {
-      invoice: 'INV-2026-0145',
-      customer: 'Karim Hasan',
-      items: 8,
-      amount: '৳4,560',
-      payment: 'Credit',
-      time: '09:46 AM'
-    },
-
-    {
-      invoice: 'INV-2026-0144',
-      customer: 'Walk-in Customer',
-      items: 2,
-      amount: '৳620',
-      payment: 'Paid',
-      time: '09:30 AM'
-    }
-
-  ];
-
-
-  // =====================================================
-  // LOW STOCK ITEMS
-  // =====================================================
-
-  lowStockItems = [
-
-    {
-      medicine: 'Napa 500mg',
-      category: 'Tablet',
-      stock: 12,
-      minimum: 50,
-      status: 'Critical'
-    },
-
-    {
-      medicine: 'Seclo 20mg',
-      category: 'Capsule',
-      stock: 24,
-      minimum: 60,
-      status: 'Low'
-    },
-
-    {
-      medicine: 'Azyth 500mg',
-      category: 'Tablet',
-      stock: 18,
-      minimum: 40,
-      status: 'Low'
-    },
-
-    {
-      medicine: 'DP 500mg',
-      category: 'Tablet',
-      stock: 8,
-      minimum: 30,
-      status: 'Critical'
-    }
-
-  ];
-
-
-  // =====================================================
-  // EXPIRY ALERTS
-  // =====================================================
-
-  expiryAlerts = [
-
-    {
-      medicine: 'Napa Extra',
-      batch: 'NAPA-2408',
-      expiry: '30 Sep 2026',
-      quantity: 85,
-      daysLeft: 17
-    },
-
-    {
-      medicine: 'Fexo 120mg',
-      batch: 'FEX-2406',
-      expiry: '15 Oct 2026',
-      quantity: 42,
-      daysLeft: 32
-    },
-
-    {
-      medicine: 'Omep 20mg',
-      batch: 'OMP-2405',
-      expiry: '28 Oct 2026',
-      quantity: 36,
-      daysLeft: 45
-    }
-
-  ];
-
-
-  // =====================================================
-  // QUICK ACTIONS
-  // =====================================================
+  expiryAlerts: Array<{
+    medicine: string;
+    batch: string;
+    expiry: string;
+    quantity: number;
+    daysLeft: number;
+  }> = [];
 
   quickActions = [
-
-    {
-      title: 'New Sale',
-      description: 'Create a new POS sale',
-      icon: '🛒',
-      route: '/app/pos'
-    },
-
-    {
-      title: 'Add Medicine',
-      description: 'Add new medicine to inventory',
-      icon: '💊',
-      route: '/app/inventory/medicines/new'
-    },
-
-    {
-      title: 'New Purchase',
-      description: 'Create purchase order',
-      icon: '🧾',
-      route: '/app/procurement/purchase-orders/new'
-    },
-
-    {
-      title: 'Stock Adjustment',
-      description: 'Adjust medicine stock',
-      icon: '📦',
-      route: '/app/inventory/stock-adjustment'
-    }
-
+    { title: 'New Sale', description: 'Create a new POS sale', icon: '🛒', route: '/app/pos' },
+    { title: 'Add Medicine', description: 'Add new medicine to inventory', icon: '💊', route: '/app/inventory/medicines/new' },
+    { title: 'New Purchase', description: 'Create purchase order', icon: '🧾', route: '/app/procurement/purchase-orders/new' },
+    { title: 'Stock Adjustment', description: 'Adjust medicine stock', icon: '📦', route: '/app/inventory/stock-adjustment' }
   ];
 
+  private products: TenantInventoryItem[] = [];
 
   constructor(
     private authService: AuthService,
-    private tenantService: TenantService
+    private tenantService: TenantService,
+    private saleApi: SaleApiService,
+    private inventoryApi: TenantInventoryApiService,
+    private batchApi: InventoryBatchApiService
   ) {}
 
-
   ngOnInit(): void {
+    this.currentTenant = this.tenantService.getCurrentTenant();
 
-    this.currentTenant =
-      this.tenantService.getCurrentTenant();
-
-    const user =
-      this.authService.getCurrentUser();
-
+    const user: any = this.authService.getCurrentUser();
     if (user) {
-      this.currentUserName = user.name;
+      this.currentUserName = user.name || user.fullName || 'Pharmacy User';
     }
 
+    this.loadDashboard();
   }
 
+  loadDashboard(): void {
+    this.dashboardError = '';
+    this.currentTenant = this.tenantService.getCurrentTenant();
+    this.today = new Date().toLocaleDateString('en-GB', {
+      day: '2-digit', month: 'long', year: 'numeric'
+    });
 
-  // =====================================================
-  // REFRESH DASHBOARD
-  // =====================================================
+    const tenantId = this.getTenantId();
+    if (!tenantId) {
+      this.dashboardError = 'Tenant information is missing. Please log in again.';
+      this.resetToUnavailable();
+      return;
+    }
+
+    this.salesLoading = true;
+    this.inventoryLoading = true;
+
+    this.saleApi.getSales(tenantId).subscribe({
+      next: sales => {
+        this.applySales(Array.isArray(sales) ? sales : []);
+        this.salesLoading = false;
+      },
+      error: error => {
+        console.error('Dashboard sales API failed:', error);
+        this.salesLoading = false;
+        this.recentSales = [];
+        this.salesData = [];
+        this.salesSummary = [];
+        this.todaySalesAmount = 0;
+        this.updateStat("Today's Sales", 'Unavailable', 'API error', 'Could not load sales');
+        this.updateStat("Today's Invoices", 'Unavailable', 'API error', 'Could not load invoices');
+        this.addError('Sales data could not be loaded.');
+      }
+    });
+
+    this.inventoryApi.list(tenantId).subscribe({
+      next: products => {
+        this.products = Array.isArray(products) ? products : [];
+        this.applyInventory(this.products);
+        this.inventoryLoading = false;
+      },
+      error: error => {
+        console.error('Dashboard inventory API failed:', error);
+        this.products = [];
+        this.lowStockItems = [];
+        this.inventoryStatus = [];
+        this.inventoryLoading = false;
+        this.updateStat('Total Medicines', 'Unavailable', 'API error', 'Could not load inventory');
+        this.updateStat('Low Stock Items', 'Unavailable', 'API error', 'Could not load inventory');
+        this.addError('Inventory data could not be loaded.');
+      }
+    });
+
+    this.batchApi.list(tenantId).subscribe({
+      next: batches => this.applyExpiryAlerts(Array.isArray(batches) ? batches : []),
+      error: error => {
+        console.error('Dashboard batch API failed:', error);
+        this.expiryAlerts = [];
+        this.addError('Expiry alerts could not be loaded.');
+      }
+    });
+  }
 
   refreshDashboard(): void {
-
-    this.currentTenant =
-      this.tenantService.getCurrentTenant();
-
-    console.log('Pharmacy dashboard refreshed');
-
+    this.loadDashboard();
   }
-
-
-  // =====================================================
-  // CURRENT TENANT NAME
-  // =====================================================
 
   getTenantName(): string {
-
-    return this.currentTenant?.name
-      || 'My Pharmacy';
-
+    return this.currentTenant?.name || 'My Pharmacy';
   }
-
-
-  // =====================================================
-  // USER GREETING
-  // =====================================================
 
   getGreeting(): string {
-
-    const hour =
-      new Date().getHours();
-
-    if (hour < 12) {
-      return 'Good morning';
-    }
-
-    if (hour < 18) {
-      return 'Good afternoon';
-    }
-
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
     return 'Good evening';
-
   }
 
+  formatMoney(value: number): string {
+    const amount = Number.isFinite(Number(value)) ? Number(value) : 0;
+    return '৳' + amount.toLocaleString('en-BD', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
+
+  formatCompactMoney(value: number): string {
+    const amount = Number(value) || 0;
+    if (amount >= 1_000_000) return '৳' + (amount / 1_000_000).toFixed(1) + 'M';
+    if (amount >= 1_000) return '৳' + (amount / 1_000).toFixed(amount >= 10_000 ? 0 : 1) + 'K';
+    return '৳' + Math.round(amount).toLocaleString('en-BD');
+  }
+
+  private applySales(sales: SaleResponse[]): void {
+    const validSales = sales.filter(sale => !!sale);
+    const now = new Date();
+    const todayKey = this.dateKey(now);
+    const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+    const yesterdayKey = this.dateKey(yesterday);
+
+    const todaysSales = validSales.filter(sale =>
+      this.dateKeyFromString(sale.createdAt) === todayKey
+    );
+    const yesterdaysSales = validSales.filter(sale =>
+      this.dateKeyFromString(sale.createdAt) === yesterdayKey
+    );
+
+    this.todaySalesAmount = this.sum(todaysSales.map(sale => sale.total));
+    const yesterdayTotal = this.sum(yesterdaysSales.map(sale => sale.total));
+
+    this.updateStat(
+      "Today's Sales",
+      this.formatMoney(this.todaySalesAmount),
+      this.changeLabel(this.todaySalesAmount, yesterdayTotal),
+      'Compared with yesterday'
+    );
+
+    this.updateStat(
+      "Today's Invoices",
+      String(todaysSales.length),
+      yesterdayTotal > 0 || yesterdaysSales.length > 0
+        ? this.changeLabel(todaysSales.length, yesterdaysSales.length)
+        : 'No comparison',
+      'Invoices created today'
+    );
+
+    const lastSevenDays: Date[] = [];
+    for (let offset = 6; offset >= 0; offset--) {
+      lastSevenDays.push(new Date(now.getFullYear(), now.getMonth(), now.getDate() - offset));
+    }
+
+    const dayAmounts = lastSevenDays.map(date => {
+      const key = this.dateKey(date);
+      const amount = this.sum(
+        validSales
+          .filter(sale => this.dateKeyFromString(sale.createdAt) === key)
+          .map(sale => sale.total)
+      );
+      return {
+        day: date.toLocaleDateString('en-GB', { weekday: 'short' }),
+        amount
+      };
+    });
+
+    const largestDay = Math.max(0, ...dayAmounts.map(day => day.amount));
+    this.salesChartMax = largestDay > 0
+      ? Math.ceil(largestDay / 1000) * 1000
+      : 1000;
+
+    this.salesData = dayAmounts.map(day => ({
+      day: day.day,
+      amount: day.amount,
+      value: Math.max(0, Math.min(100, day.amount / this.salesChartMax * 100))
+    }));
+
+    const methods = [
+      { key: 'CASH', name: 'Cash Sales' },
+      { key: 'CARD', name: 'Card Sales' },
+      { key: 'MOBILE', name: 'Mobile Banking' }
+    ];
+
+    this.salesSummary = methods.map(method => {
+      const amount = this.sum(
+        todaysSales
+          .filter(sale => String(sale.paymentMethod || '').toUpperCase() === method.key)
+          .map(sale => sale.total)
+      );
+
+      return {
+        name: method.name,
+        value: this.formatMoney(amount),
+        percentage: this.todaySalesAmount > 0
+          ? Math.round(amount / this.todaySalesAmount * 100)
+          : 0
+      };
+    });
+
+    this.recentSales = [...validSales]
+      .sort((a, b) => this.timeValue(b.createdAt) - this.timeValue(a.createdAt))
+      .slice(0, 5)
+      .map(sale => ({
+        invoice: sale.invoiceNumber || `SALE-${sale.id}`,
+        customer: sale.customerName || 'Walk-in Customer',
+        items: (sale.items || []).reduce((sum, item) => sum + Number(item.quantity || 0), 0),
+        amount: this.formatMoney(Number(sale.total || 0)),
+        payment: this.paymentLabel(sale.paymentMethod),
+        time: this.formatTime(sale.createdAt)
+      }));
+  }
+
+  private applyInventory(products: TenantInventoryItem[]): void {
+    const active = products.filter(product =>
+      String(product.status || 'ACTIVE').toUpperCase() !== 'INACTIVE'
+    );
+
+    const medicineProducts = active.filter(product => {
+      const type = String(product.productType || '').trim().toUpperCase();
+      return !type || type.includes('MEDICINE');
+    });
+
+    const lowStock = active.filter(product => {
+      const stock = Number(product.stockQuantity || 0);
+      const minimum = Math.max(Number(product.reorderLevel || 0), 0);
+      return stock === 0 || (minimum > 0 && stock <= minimum);
+    });
+
+    this.lowStockItems = lowStock
+      .sort((a, b) => Number(a.stockQuantity || 0) - Number(b.stockQuantity || 0))
+      .slice(0, 6)
+      .map(product => {
+        const stock = Number(product.stockQuantity || 0);
+        const minimum = Math.max(Number(product.reorderLevel || 0), 0);
+        return {
+          medicine: product.name || 'Unnamed product',
+          category: product.category || product.dosageForm || 'Uncategorised',
+          stock,
+          minimum,
+          status: stock === 0 || (minimum > 0 && stock <= minimum / 2)
+            ? 'Critical'
+            : 'Low'
+        };
+      });
+
+    const inStock = active.filter(product => {
+      const stock = Number(product.stockQuantity || 0);
+      const minimum = Number(product.reorderLevel || 0);
+      return stock > 0 && stock > minimum;
+    }).length;
+
+    this.inventoryStatus = [
+      { title: 'In Stock', value: inStock, icon: '🟢', class: 'active' },
+      { title: 'Low Stock', value: lowStock.length, icon: '🟡', class: 'pending' },
+      { title: 'Expiring Soon', value: this.expiryAlerts.length, icon: '🔴', class: 'suspended' }
+    ];
+
+    this.updateStat(
+      'Total Medicines',
+      String(medicineProducts.length),
+      'Live inventory',
+      'Active medicine items'
+    );
+
+    this.updateStat(
+      'Low Stock Items',
+      String(lowStock.length),
+      lowStock.length > 0 ? 'Needs attention' : 'All clear',
+      'Based on reorder levels'
+    );
+  }
+
+  private applyExpiryAlerts(batches: InventoryBatch[]): void {
+    const today = new Date();
+    const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const productNames = new Map<number, string>(
+      this.products.map(product => [product.id, product.name || 'Unknown product'])
+    );
+
+    this.expiryAlerts = batches
+      .filter(batch => Number(batch.quantity || 0) > 0 && !!batch.expiryDate)
+      .map(batch => {
+        const parts = String(batch.expiryDate).slice(0, 10).split('-').map(Number);
+        const expiryDate = parts.length === 3
+          ? new Date(parts[0], parts[1] - 1, parts[2])
+          : new Date(batch.expiryDate);
+        const daysLeft = Math.floor(
+          (expiryDate.getTime() - todayMidnight.getTime()) / 86400000
+        );
+
+        return {
+          medicine: batch.medicineName || productNames.get(batch.inventoryItemId) || 'Unknown product',
+          batch: batch.batchNumber || 'N/A',
+          expiry: Number.isNaN(expiryDate.getTime())
+            ? 'Unknown'
+            : expiryDate.toLocaleDateString('en-GB', {
+                day: '2-digit', month: 'short', year: 'numeric'
+              }),
+          quantity: Number(batch.quantity || 0),
+          daysLeft
+        };
+      })
+      .filter(item => item.expiry !== 'Unknown' && item.daysLeft <= 60)
+      .sort((a, b) => a.daysLeft - b.daysLeft)
+      .slice(0, 6);
+
+    const previous = this.inventoryStatus.filter(item => item.title !== 'Expiring Soon');
+    this.inventoryStatus = [
+      ...previous,
+      { title: 'Expiring Soon', value: this.expiryAlerts.length, icon: '🔴', class: 'suspended' }
+    ];
+  }
+
+  private updateStat(
+    title: string,
+    value: string,
+    change: string,
+    label: string
+  ): void {
+    this.stats = this.stats.map(stat =>
+      stat.title === title ? { ...stat, value, change, label } : stat
+    );
+  }
+
+  private getTenantId(): number {
+    const candidates = [
+      localStorage.getItem('tenantId'),
+      (this.authService.getCurrentUser() as any)?.tenantId,
+      (this.currentTenant as any)?.id
+    ];
+
+    for (const candidate of candidates) {
+      const value = Number(candidate);
+      if (Number.isSafeInteger(value) && value > 0) {
+        return value;
+      }
+    }
+    return 0;
+  }
+
+  private resetToUnavailable(): void {
+    this.stats = this.stats.map(stat => ({ ...stat, value: 'Unavailable' }));
+    this.salesData = [];
+    this.salesSummary = [];
+    this.inventoryStatus = [];
+    this.recentSales = [];
+    this.lowStockItems = [];
+    this.expiryAlerts = [];
+  }
+
+  private addError(message: string): void {
+    this.dashboardError = this.dashboardError
+      ? `${this.dashboardError} ${message}`
+      : message;
+  }
+
+  private sum(values: Array<number | string | null | undefined>): number {
+    return Math.round(
+      (values.reduce<number>((total, value) => total + (Number(value) || 0), 0) + Number.EPSILON) * 100
+    ) / 100;
+  }
+
+  private dateKey(date: Date): string {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  }
+
+  private dateKeyFromString(value: string | null | undefined): string {
+    if (!value) return '';
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? '' : this.dateKey(date);
+  }
+
+  private timeValue(value: string | null | undefined): number {
+    if (!value) return 0;
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+  }
+
+  private formatTime(value: string | null | undefined): string {
+    if (!value) return '—';
+    const date = new Date(value);
+    return Number.isNaN(date.getTime())
+      ? '—'
+      : date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  private paymentLabel(value: string | null | undefined): string {
+    switch (String(value || '').toUpperCase()) {
+      case 'CASH': return 'Cash';
+      case 'CARD': return 'Card';
+      case 'MOBILE': return 'Mobile';
+      default: return value || 'Unknown';
+    }
+  }
+
+  private changeLabel(current: number, previous: number): string {
+    if (previous <= 0) return current > 0 ? 'New activity' : '—';
+    const change = ((current - previous) / previous) * 100;
+    return `${change > 0 ? '+' : ''}${change.toFixed(1)}%`;
+  }
 }

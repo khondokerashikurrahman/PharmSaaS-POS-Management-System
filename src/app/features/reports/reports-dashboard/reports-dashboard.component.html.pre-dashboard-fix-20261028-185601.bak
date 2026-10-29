@@ -1,0 +1,505 @@
+
+<div class="reports-page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+
+    <div class="header-content">
+      <div class="breadcrumb">
+        <span>Pharmacy</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Reports</span>
+      </div>
+
+      <h1>Reports Dashboard</h1>
+
+      <p>
+        Monitor sales, purchases, profit and business performance
+        from one place.
+      </p>
+    </div>
+
+    <div class="header-actions">
+
+      <div class="period-selector">
+        <i class="bi bi-calendar3"></i>
+
+        <select
+          [(ngModel)]="selectedPeriod"
+          (change)="onPeriodChange()">
+
+          <option value="Today">Today</option>
+          <option value="7 Days">Last 7 Days</option>
+          <option value="30 Days">Last 30 Days</option>
+          <option value="90 Days">Last 90 Days</option>
+        </select>
+      </div>
+
+      <button
+        class="refresh-btn"
+        type="button"
+        (click)="refreshReports()">
+
+        <i class="bi bi-arrow-clockwise"></i>
+        Refresh
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- Summary Cards -->
+  <div class="stats-grid">
+
+    <div
+      class="stat-card"
+      *ngFor="let stat of reportStats">
+
+      <div class="stat-top">
+
+        <div class="stat-icon">
+          <i [class]="stat.icon"></i>
+        </div>
+
+        <span class="stat-link">
+          <i class="bi bi-arrow-up-right"></i>
+        </span>
+
+      </div>
+
+      <div class="stat-content">
+
+        <span class="stat-title">
+          {{ stat.title }}
+        </span>
+
+        <h2 *ngIf="stat.type === 'currency'">
+          ৳{{ stat.value | number:'1.0-0' }}
+        </h2>
+
+        <h2 *ngIf="stat.type === 'number'">
+          {{ stat.value | number }}
+        </h2>
+
+        <h2 *ngIf="stat.type === 'percentage'">
+          {{ stat.value | number:'1.1-1' }}%
+        </h2>
+
+        <span class="stat-description">
+          {{ stat.description }}
+        </span>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- Main Report Grid -->
+  <div class="dashboard-grid">
+
+    <!-- Sales Overview -->
+    <div class="report-card sales-card">
+
+      <div class="card-header">
+
+        <div>
+          <h3>Sales Overview</h3>
+          <p>Sales performance for the selected period</p>
+        </div>
+
+        <a routerLink="/app/reports/sales">
+          View Report
+          <i class="bi bi-arrow-right"></i>
+        </a>
+
+      </div>
+
+      <div class="sales-summary">
+
+        <div>
+          <span>Total Sales</span>
+          <strong>
+            ৳{{ totalWeeklySales | number:'1.0-0' }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Total Orders</span>
+          <strong>
+            {{ totalWeeklyOrders | number }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Avg. Order Value</span>
+          <strong>
+            ৳{{ averageOrderValue | number:'1.0-0' }}
+          </strong>
+        </div>
+
+      </div>
+
+
+      <!-- Chart -->
+      <div class="chart-area">
+
+        <div class="y-axis">
+          <span>৳40K</span>
+          <span>৳30K</span>
+          <span>৳20K</span>
+          <span>৳10K</span>
+          <span>৳0</span>
+        </div>
+
+        <div class="chart">
+
+          <div
+            class="chart-column"
+            *ngFor="let item of salesTrend">
+
+            <div class="bar-wrapper">
+
+              <div
+                class="bar"
+                [style.height.%]="getBarHeight(item.sales)"
+                [title]="'৳' + item.sales">
+
+                <span class="bar-tooltip">
+                  ৳{{ item.sales | number:'1.0-0' }}
+                </span>
+
+              </div>
+
+            </div>
+
+            <span class="chart-label">
+              {{ item.day }}
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- Profit Summary -->
+    <div class="report-card profit-card">
+
+      <div class="card-header">
+
+        <div>
+          <h3>Profit Summary</h3>
+          <p>Current business profitability</p>
+        </div>
+
+        <a routerLink="/app/reports/profit">
+          Details
+          <i class="bi bi-arrow-right"></i>
+        </a>
+
+      </div>
+
+
+      <div class="profit-main">
+
+        <div class="profit-icon">
+          <i class="bi bi-graph-up-arrow"></i>
+        </div>
+
+        <div>
+          <span>Gross Profit</span>
+
+          <h2>
+            ৳{{ grossProfit | number:'1.0-0' }}
+          </h2>
+
+          <small>
+            {{ totalProfitMargin | number:'1.1-1' }}% profit margin
+          </small>
+        </div>
+
+      </div>
+
+
+      <div class="profit-details">
+
+        <div class="profit-row">
+          <span>Total Sales</span>
+          <strong>৳{{ totalSales | number:'1.0-0' }}</strong>
+        </div>
+
+        <div class="profit-row">
+          <span>Total Purchase</span>
+          <strong>৳{{ totalPurchase | number:'1.0-0' }}</strong>
+        </div>
+
+        <div class="profit-row total">
+          <span>Gross Profit</span>
+          <strong>৳{{ grossProfit | number:'1.0-0' }}</strong>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- Bottom Grid -->
+  <div class="bottom-grid">
+
+    <!-- Top Products -->
+    <div class="report-card">
+
+      <div class="card-header">
+
+        <div>
+          <h3>Top Selling Products</h3>
+          <p>Best performing products</p>
+        </div>
+
+        <a routerLink="/app/reports/sales">
+          View All
+          <i class="bi bi-arrow-right"></i>
+        </a>
+
+      </div>
+
+
+      <div class="product-list">
+
+        <div
+          class="product-row"
+          *ngFor="let product of topProducts; let i = index">
+
+          <div class="product-rank">
+            {{ i + 1 }}
+          </div>
+
+          <div class="product-info">
+            <strong>{{ product.name }}</strong>
+            <span>{{ product.category }}</span>
+          </div>
+
+          <div class="product-quantity">
+            <strong>{{ product.quantity }}</strong>
+            <span>units</span>
+          </div>
+
+          <div class="product-revenue">
+            ৳{{ product.revenue | number:'1.0-0' }}
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- Quick Reports -->
+    <div class="report-card">
+
+      <div class="card-header">
+
+        <div>
+          <h3>Quick Reports</h3>
+          <p>Access detailed reports</p>
+        </div>
+
+      </div>
+
+
+      <div class="quick-report-list">
+
+        <a
+          routerLink="/app/reports/sales"
+          class="quick-report">
+
+          <div class="quick-icon sales">
+            <i class="bi bi-bar-chart-line"></i>
+          </div>
+
+          <div>
+            <strong>Sales Report</strong>
+            <span>Analyze daily and monthly sales</span>
+          </div>
+
+          <i class="bi bi-chevron-right"></i>
+
+        </a>
+
+
+        <a
+          routerLink="/app/reports/purchase"
+          class="quick-report">
+
+          <div class="quick-icon purchase">
+            <i class="bi bi-cart-check"></i>
+          </div>
+
+          <div>
+            <strong>Purchase Report</strong>
+            <span>Track purchase transactions</span>
+          </div>
+
+          <i class="bi bi-chevron-right"></i>
+
+        </a>
+
+
+        <a
+          routerLink="/app/reports/stock"
+          class="quick-report">
+
+          <div class="quick-icon stock">
+            <i class="bi bi-box-seam"></i>
+          </div>
+
+          <div>
+            <strong>Stock Report</strong>
+            <span>Review current inventory</span>
+          </div>
+
+          <i class="bi bi-chevron-right"></i>
+
+        </a>
+
+
+        <a
+          routerLink="/app/reports/expiry"
+          class="quick-report">
+
+          <div class="quick-icon expiry">
+            <i class="bi bi-calendar-x"></i>
+          </div>
+
+          <div>
+            <strong>Expiry Report</strong>
+            <span>Monitor medicine expiry</span>
+          </div>
+
+          <i class="bi bi-chevron-right"></i>
+
+        </a>
+
+
+        <a
+          routerLink="/app/reports/cashier-performance"
+          class="quick-report">
+
+          <div class="quick-icon cashier">
+            <i class="bi bi-person-check"></i>
+          </div>
+
+          <div>
+            <strong>Cashier Performance</strong>
+            <span>Compare cashier performance</span>
+          </div>
+
+          <i class="bi bi-chevron-right"></i>
+
+        </a>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- Recent Sales -->
+  <div class="report-card recent-sales-card">
+
+    <div class="card-header">
+
+      <div>
+        <h3>Recent Sales</h3>
+        <p>Latest sales transactions</p>
+      </div>
+
+      <a routerLink="/app/pos/sales-history">
+        View Sales History
+        <i class="bi bi-arrow-right"></i>
+      </a>
+
+    </div>
+
+
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Invoice</th>
+            <th>Customer</th>
+            <th>Date</th>
+            <th>Payment</th>
+            <th>Amount</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <tr *ngFor="let sale of recentSales">
+
+            <td>
+              <strong class="invoice-number">
+                {{ sale.invoice }}
+              </strong>
+            </td>
+
+            <td>
+              {{ sale.customer }}
+            </td>
+
+            <td>
+              {{ sale.date }}
+            </td>
+
+            <td>
+              <span class="payment-method">
+                {{ sale.payment }}
+              </span>
+            </td>
+
+            <td>
+              <strong>
+                ৳{{ sale.amount | number:'1.0-0' }}
+              </strong>
+            </td>
+
+            <td>
+
+              <span
+                class="status-badge"
+                [class.paid]="sale.status === 'Paid'"
+                [class.pending]="sale.status === 'Pending'">
+
+                <span class="status-dot"></span>
+
+                {{ sale.status }}
+
+              </span>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>

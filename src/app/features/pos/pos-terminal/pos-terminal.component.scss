@@ -931,3 +931,26 @@
   font-weight: 600;
   white-space: nowrap;
 }
+
+
+
+/* CART MULTI-ITEM SCROLL FIX */
+.cart-card app-cart-list {
+  display: block;
+  width: 100%;
+  max-height: min(52vh, 480px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.cart-card app-cart-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cart-card app-cart-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 8px;
+}

@@ -7,6 +7,7 @@ export interface SaleCreateItem {
   productId: number;
   batchId: number;
   quantity: number;
+  discountAmount: number;
 }
 
 export interface SaleCreateRequest {
@@ -28,6 +29,7 @@ export interface SaleResponseItem {
   batchNumber: string;
   quantity: number;
   unitPrice: number;
+  discountAmount?: number | null;
   subtotal: number;
 }
 

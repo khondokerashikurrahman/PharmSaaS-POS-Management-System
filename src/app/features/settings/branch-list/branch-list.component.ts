@@ -32,6 +32,7 @@ export class BranchListComponent implements OnInit {
   saving = false;
   editingStoreId: number | null = null;
   togglingStoreId: number | null = null;
+  deletingStoreId: number | null = null;
   showForm = false;
   searchText = '';
   errorMessage = '';
@@ -277,6 +278,54 @@ export class BranchListComponent implements OnInit {
         this.errorMessage = this.readError(
           error,
           'Store status পরিবর্তন করা যায়নি।'
+        );
+      }
+    });
+  }
+
+  archiveStore(store: StoreResponse): void {
+    if (
+      this.deletingStoreId !== null ||
+      this.togglingStoreId !== null ||
+      this.saving
+    ) {
+      return;
+    }
+
+    const tenantId = this.getTenantId();
+
+    if (!tenantId) {
+      this.errorMessage = 'Tenant ID পাওয়া যায়নি। আবার login করো।';
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `“${store.name}” archive করবে? Store Inactive হবে, কিন্তু পুরোনো transaction history রাখা হবে।`
+    );
+
+    if (!confirmed) return;
+
+    this.deletingStoreId = store.id;
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    this.storeApi.delete(tenantId, store.id).subscribe({
+      next: () => {
+        this.deletingStoreId = null;
+
+        if (this.editingStoreId === store.id) {
+          this.cancelForm();
+        }
+
+        this.successMessage =
+          `“${store.name}” archive করা হয়েছে। Store এখন Inactive।`;
+        this.loadStores();
+      },
+      error: error => {
+        this.deletingStoreId = null;
+        this.errorMessage = this.readError(
+          error,
+          'Store archive করা যায়নি। Store usage ও permissions পরীক্ষা করো।'
         );
       }
     });

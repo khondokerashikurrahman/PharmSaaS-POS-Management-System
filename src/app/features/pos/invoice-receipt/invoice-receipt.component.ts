@@ -45,20 +45,49 @@ export class InvoiceReceiptComponent {
     this.closed.emit();
   }
 
- printReceipt(): void {
+  printReceipt(): void {
+    const original = document.querySelector(
+      '.receipt-overlay .receipt-content'
+    ) as HTMLElement | null;
 
-  document.body.classList.add('receipt-printing');
+    if (!original || !this.receipt) {
+      console.error('Invoice content not found; printing was cancelled.');
+      return;
+    }
 
-  setTimeout(() => {
+    document.getElementById('pharmsaas-print-root')?.remove();
 
-    window.print();
+    // Print a detached copy so the application layout and modal scroll
+    // cannot create extra pages or clip the receipt.
+    const printRoot = document.createElement('div');
+    printRoot.id = 'pharmsaas-print-root';
+    printRoot.appendChild(original.cloneNode(true));
+    document.body.appendChild(printRoot);
+    document.body.classList.add('receipt-printing');
 
-    setTimeout(() => {
+    let fallbackTimer: number | undefined;
+
+    const cleanup = (): void => {
+      if (fallbackTimer !== undefined) {
+        window.clearTimeout(fallbackTimer);
+      }
+      window.removeEventListener('afterprint', cleanup);
+      printRoot.remove();
       document.body.classList.remove('receipt-printing');
-    }, 500);
+    };
 
-  }, 100);
+    window.addEventListener('afterprint', cleanup, { once: true });
+    fallbackTimer = window.setTimeout(cleanup, 60000);
 
-  this.printed.emit();
-}
+    window.setTimeout(() => {
+      try {
+        window.print();
+      } catch (error) {
+        cleanup();
+        console.error('Invoice print failed:', error);
+      }
+    }, 150);
+
+    this.printed.emit();
+  }
 }

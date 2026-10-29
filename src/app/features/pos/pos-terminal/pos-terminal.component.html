@@ -204,7 +204,9 @@
 
         <app-cart-list
           [cartItems]="cartItems"
-          (cartItemsChange)="onCartUpdated($event)">
+          (increase)="increaseQuantity($event)"
+          (decrease)="decreaseQuantity($event)"
+          (remove)="removeFromCart($event)">
         </app-cart-list>
 
       </div>

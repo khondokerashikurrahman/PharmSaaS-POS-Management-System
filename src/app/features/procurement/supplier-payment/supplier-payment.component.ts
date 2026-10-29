@@ -1,179 +1,164 @@
-
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { SupplierApiService, SupplierResponse } from '../../../core/services/supplier-api.service';
+import {
+  SupplierPaymentApiService,
+  SupplierPaymentRequest,
+  SupplierPaymentResponse
+} from '../../../core/services/supplier-payment-api.service';
 
-interface SupplierPayment {
+type PaymentMethod = 'Cash' | 'Bank Transfer' | 'Card' | 'Mobile Banking';
+type PaymentStatus = 'Paid' | 'Cancelled';
+
+interface SupplierPaymentRow {
   id: string;
+  supplierId: number;
   supplier: string;
   date: string;
   reference: string;
-  paymentMethod: 'Cash' | 'Bank Transfer' | 'Card' | 'Mobile Banking';
+  paymentMethod: PaymentMethod;
   amount: number;
-  status: 'Paid' | 'Pending' | 'Cancelled';
+  status: PaymentStatus;
   note: string;
 }
 
 @Component({
   selector: 'app-supplier-payment',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule
-  ],
+  imports: [CommonModule, FormsModule],
   templateUrl: './supplier-payment.component.html',
   styleUrl: './supplier-payment.component.scss'
 })
-export class SupplierPaymentComponent {
-
+export class SupplierPaymentComponent implements OnInit {
   searchTerm = '';
   selectedStatus = 'All';
-
   showPaymentForm = false;
-
-  selectedSupplier = '';
-  paymentDate = '2026-09-13';
-  paymentMethod: SupplierPayment['paymentMethod'] = 'Cash';
+  selectedSupplier: number | '' = '';
+  paymentDate = this.todayLocal();
+  paymentMethod: PaymentMethod = 'Cash';
   amount = 0;
   reference = '';
   note = '';
-
-  suppliers = [
-    'Square Pharmaceuticals',
-    'Beximco Pharmaceuticals',
-    'Incepta Pharmaceuticals',
-    'Renata Limited',
-    'ACI Limited',
-    'Healthcare Pharmaceuticals'
-  ];
-
-  payments: SupplierPayment[] = [
-    {
-      id: 'PAY-2026-018',
-      supplier: 'Square Pharmaceuticals',
-      date: '11 Sep 2026',
-      reference: 'TRX-SP-45821',
-      paymentMethod: 'Bank Transfer',
-      amount: 20000,
-      status: 'Paid',
-      note: 'Partial payment against PO-2026-001'
-    },
-    {
-      id: 'PAY-2026-017',
-      supplier: 'Beximco Pharmaceuticals',
-      date: '10 Sep 2026',
-      reference: 'TRX-BEX-78142',
-      paymentMethod: 'Mobile Banking',
-      amount: 15000,
-      status: 'Paid',
-      note: 'Supplier account settlement'
-    },
-    {
-      id: 'PAY-2026-016',
-      supplier: 'Incepta Pharmaceuticals',
-      date: '09 Sep 2026',
-      reference: 'TRX-INC-32514',
-      paymentMethod: 'Bank Transfer',
-      amount: 30000,
-      status: 'Paid',
-      note: 'Payment against GRN-2026-003'
-    },
-    {
-      id: 'PAY-2026-015',
-      supplier: 'Renata Limited',
-      date: '08 Sep 2026',
-      reference: 'TRX-REN-91452',
-      paymentMethod: 'Cash',
-      amount: 12000,
-      status: 'Pending',
-      note: 'Payment awaiting approval'
-    },
-    {
-      id: 'PAY-2026-014',
-      supplier: 'ACI Limited',
-      date: '07 Sep 2026',
-      reference: 'TRX-ACI-65231',
-      paymentMethod: 'Bank Transfer',
-      amount: 25000,
-      status: 'Paid',
-      note: 'Purchase settlement'
-    },
-    {
-      id: 'PAY-2026-013',
-      supplier: 'Healthcare Pharmaceuticals',
-      date: '06 Sep 2026',
-      reference: 'TRX-HCP-18452',
-      paymentMethod: 'Card',
-      amount: 8500,
-      status: 'Cancelled',
-      note: 'Duplicate payment cancelled'
-    }
-  ];
+  suppliers: SupplierResponse[] = [];
+  payments: SupplierPaymentRow[] = [];
+  loading = false;
+  saving = false;
+  errorMessage = '';
+  successMessage = '';
+  private databaseIds: Record<string, number> = {};
 
   constructor(
-    private router: Router
+    private readonly router: Router,
+    private readonly supplierApi: SupplierApiService,
+    private readonly paymentApi: SupplierPaymentApiService
   ) {}
 
-  get filteredPayments(): SupplierPayment[] {
+  ngOnInit(): void {
+    const tenantId = this.getTenantId();
+    if (!tenantId) {
+      this.errorMessage = 'Tenant ID পাওয়া যায়নি। Tenant account দিয়ে আবার login করুন।';
+      return;
+    }
+
+    this.loadSuppliers(tenantId);
+    this.loadPayments(tenantId);
+  }
+
+  private todayLocal(): string {
+    const d = new Date();
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+      .toISOString().slice(0, 10);
+  }
+
+  private getTenantId(): number {
+    for (const key of ['tenantId', 'tenant_id']) {
+      const id = Number(localStorage.getItem(key) || 0);
+      if (Number.isSafeInteger(id) && id > 0) return id;
+    }
+    try {
+      const user = JSON.parse(localStorage.getItem('pharm_user') || '{}');
+      for (const candidate of [user.tenantId, user.tenant?.id, user.currentTenantId]) {
+        const id = Number(candidate || 0);
+        if (Number.isSafeInteger(id) && id > 0) return id;
+      }
+    } catch {}
+    return 0;
+  }
+
+  private loadSuppliers(tenantId: number): void {
+    this.supplierApi.list(tenantId).subscribe({
+      next: rows => {
+        this.suppliers = (rows || []).filter(
+          supplier => String(supplier.status || '').toUpperCase() === 'ACTIVE'
+        );
+      },
+      error: err => {
+        this.errorMessage = err?.error?.message || 'Supplier list load করা যায়নি।';
+      }
+    });
+  }
+
+  private loadPayments(tenantId: number): void {
+    this.loading = true;
+    this.paymentApi.list(tenantId).subscribe({
+      next: rows => {
+        this.payments = (rows || []).map(row => this.toRow(row));
+        this.loading = false;
+        this.errorMessage = '';
+      },
+      error: err => {
+        this.payments = [];
+        this.loading = false;
+        this.errorMessage = err?.error?.message ||
+          'Payment records load করা যায়নি। Backend চালু আছে কি না এবং permission যাচাই করুন।';
+      }
+    });
+  }
+
+  private toRow(row: SupplierPaymentResponse): SupplierPaymentRow {
+    this.databaseIds[row.paymentNumber] = Number(row.id);
+    return {
+      id: row.paymentNumber,
+      supplierId: Number(row.supplierId),
+      supplier: row.supplierName,
+      date: row.paymentDate,
+      reference: row.referenceNumber || '—',
+      paymentMethod: row.paymentMethod,
+      amount: Number(row.amount || 0),
+      status: String(row.status).toUpperCase() === 'CANCELLED' ? 'Cancelled' : 'Paid',
+      note: row.notes || ''
+    };
+  }
+
+  get filteredPayments(): SupplierPaymentRow[] {
     const search = this.searchTerm.trim().toLowerCase();
-
     return this.payments.filter(payment => {
-
-      const matchesSearch =
-        !search ||
+      const matchesSearch = !search ||
         payment.id.toLowerCase().includes(search) ||
         payment.supplier.toLowerCase().includes(search) ||
         payment.reference.toLowerCase().includes(search) ||
         payment.paymentMethod.toLowerCase().includes(search);
-
-      const matchesStatus =
-        this.selectedStatus === 'All' ||
+      const matchesStatus = this.selectedStatus === 'All' ||
         payment.status === this.selectedStatus;
-
       return matchesSearch && matchesStatus;
     });
   }
 
-  get totalPayments(): number {
-    return this.payments.length;
-  }
-
+  get totalPayments(): number { return this.payments.length; }
   get paidPayments(): number {
-    return this.payments.filter(
-      payment => payment.status === 'Paid'
-    ).length;
+    return this.payments.filter(p => p.status === 'Paid').length;
   }
-
-  get pendingPayments(): number {
-    return this.payments.filter(
-      payment => payment.status === 'Pending'
-    ).length;
-  }
-
+  get pendingPayments(): number { return 0; }
   get cancelledPayments(): number {
-    return this.payments.filter(
-      payment => payment.status === 'Cancelled'
-    ).length;
+    return this.payments.filter(p => p.status === 'Cancelled').length;
   }
-
   get totalPaidAmount(): number {
-    return this.payments
-      .filter(payment => payment.status === 'Paid')
-      .reduce(
-        (total, payment) => total + payment.amount,
-        0
-      );
+    return this.payments.filter(p => p.status === 'Paid')
+      .reduce((sum, p) => sum + p.amount, 0);
   }
-
-  get totalPendingAmount(): number {
-    return this.payments
-      .filter(payment => payment.status === 'Pending')
-      .reduce(
-        (total, payment) => total + payment.amount,
-        0
-      );
-  }
+  get totalPendingAmount(): number { return 0; }
 
   openPaymentForm(): void {
     this.resetForm();
@@ -181,156 +166,127 @@ export class SupplierPaymentComponent {
   }
 
   closePaymentForm(): void {
+    if (this.saving) return;
     this.showPaymentForm = false;
     this.resetForm();
   }
 
   savePayment(): void {
-
+    if (this.saving) return;
+    const tenantId = this.getTenantId();
+    if (!tenantId) {
+      this.errorMessage = 'Tenant ID পাওয়া যায়নি। আবার login করুন।';
+      return;
+    }
     if (!this.selectedSupplier) {
-      alert('Please select a supplier.');
+      this.errorMessage = 'একটি Supplier নির্বাচন করুন।';
       return;
     }
-
-    if (!this.paymentDate) {
-      alert('Please select payment date.');
+    if (!this.paymentDate || this.paymentDate > this.todayLocal()) {
+      this.errorMessage = 'Payment date সঠিকভাবে নির্বাচন করুন।';
       return;
     }
-
-    if (this.amount <= 0) {
-      alert('Please enter a valid payment amount.');
+    if (!Number.isFinite(Number(this.amount)) || Number(this.amount) <= 0) {
+      this.errorMessage = 'Payment amount অবশ্যই শূন্যের বেশি হতে হবে।';
       return;
     }
-
     if (!this.reference.trim()) {
-      alert('Please enter payment reference.');
+      this.errorMessage = 'Payment reference দিন।';
       return;
     }
 
-    const newPayment: SupplierPayment = {
-      id: `PAY-2026-${String(this.payments.length + 19).padStart(3, '0')}`,
-      supplier: this.selectedSupplier,
-      date: this.formatDate(this.paymentDate),
-      reference: this.reference.trim(),
-      paymentMethod: this.paymentMethod,
+    const request: SupplierPaymentRequest = {
+      supplierId: Number(this.selectedSupplier),
+      paymentDate: this.paymentDate,
       amount: Number(this.amount),
-      status: 'Paid',
-      note: this.note.trim() || 'Supplier payment'
+      paymentMethod: this.paymentMethod,
+      referenceNumber: this.reference.trim(),
+      notes: this.note.trim() || undefined
     };
 
-    this.payments.unshift(newPayment);
+    this.saving = true;
+    this.errorMessage = '';
+    this.successMessage = '';
 
-    alert('Supplier payment recorded successfully.');
-
-    this.closePaymentForm();
+    this.paymentApi.create(tenantId, request).subscribe({
+      next: saved => {
+        this.payments.unshift(this.toRow(saved));
+        this.saving = false;
+        this.showPaymentForm = false;
+        this.resetForm();
+        this.successMessage = 'Supplier payment database-এ save হয়েছে।';
+      },
+      error: err => {
+        this.saving = false;
+        this.errorMessage = err?.error?.message ||
+          'Payment save হয়নি। Reference, amount এবং backend logs যাচাই করুন।';
+      }
+    });
   }
 
-  viewPayment(payment: SupplierPayment): void {
+  viewPayment(payment: SupplierPaymentRow): void {
     alert(
       `Payment: ${payment.id}\n` +
       `Supplier: ${payment.supplier}\n` +
+      `Date: ${payment.date}\n` +
       `Amount: ৳${payment.amount.toLocaleString()}\n` +
-      `Method: ${payment.paymentMethod}`
+      `Method: ${payment.paymentMethod}\n` +
+      `Status: ${payment.status}`
     );
   }
 
-  cancelPayment(payment: SupplierPayment): void {
+  cancelPayment(payment: SupplierPaymentRow): void {
+    if (payment.status !== 'Paid') return;
+    if (!confirm(`Cancel payment ${payment.id}? This will exclude it from paid totals.`)) return;
 
-    if (payment.status !== 'Pending') {
-      alert('Only pending payments can be cancelled.');
+    const tenantId = this.getTenantId();
+    const databaseId = this.databaseIds[payment.id];
+    if (!databaseId) {
+      this.errorMessage = 'Payment database ID পাওয়া যায়নি। Payment list reload করুন।';
       return;
     }
 
-    payment.status = 'Cancelled';
-
-    alert(`${payment.id} has been cancelled.`);
+    this.paymentApi.cancel(tenantId, databaseId).subscribe({
+      next: updated => {
+        const index = this.payments.findIndex(p => p.id === payment.id);
+        if (index >= 0) this.payments[index] = this.toRow(updated);
+        this.successMessage = 'Payment cancelled; record সংরক্ষিত আছে।';
+        this.errorMessage = '';
+      },
+      error: err => {
+        this.errorMessage = err?.error?.message || 'Payment cancel করা যায়নি।';
+      }
+    });
   }
 
   backToProcurement(): void {
     this.router.navigate(['/app/procurement']);
   }
 
-  getStatusClass(status: SupplierPayment['status']): string {
-    switch (status) {
-      case 'Paid':
-        return 'status-paid';
-
-      case 'Pending':
-        return 'status-pending';
-
-      case 'Cancelled':
-        return 'status-cancelled';
-
-      default:
-        return '';
-    }
+  getStatusClass(status: PaymentStatus | string): string {
+    return status === 'Paid' ? 'status-paid' : 'status-cancelled';
   }
 
-  getMethodClass(
-    method: SupplierPayment['paymentMethod']
-  ): string {
-
+  getMethodClass(method: PaymentMethod | string): string {
     switch (method) {
-      case 'Cash':
-        return 'method-cash';
-
-      case 'Bank Transfer':
-        return 'method-bank';
-
-      case 'Card':
-        return 'method-card';
-
-      case 'Mobile Banking':
-        return 'method-mobile';
-
-      default:
-        return '';
+      case 'Cash': return 'method-cash';
+      case 'Bank Transfer': return 'method-bank';
+      case 'Card': return 'method-card';
+      case 'Mobile Banking': return 'method-mobile';
+      default: return '';
     }
   }
 
   private resetForm(): void {
     this.selectedSupplier = '';
-    this.paymentDate = '2026-09-13';
+    this.paymentDate = this.todayLocal();
     this.paymentMethod = 'Cash';
     this.amount = 0;
     this.reference = '';
     this.note = '';
   }
 
-  private formatDate(date: string): string {
-
-    const parts = date.split('-');
-
-    if (parts.length !== 3) {
-      return date;
-    }
-
-    const year = parts[0];
-    const month = Number(parts[1]);
-    const day = Number(parts[2]);
-
-    const monthNames = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-
-    return `${day} ${monthNames[month - 1]} ${year}`;
-  }
-
-  trackByPaymentId(
-    index: number,
-    payment: SupplierPayment
-  ): string {
+  trackByPaymentId(index: number, payment: SupplierPaymentRow): string {
     return payment.id;
   }
 }

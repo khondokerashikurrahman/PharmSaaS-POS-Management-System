@@ -72,12 +72,12 @@
                 <i class="bi bi-building"></i>
 
                 <select
-                  [(ngModel)]="supplier"
-                  [disabled]="loadingSuppliers || saving || !suppliers.length"
-                >
-                  <option value="">Select supplier</option>
-                  <option *ngFor="let item of suppliers" [value]="item.name">
-                    {{ item.name }}
+                  [ngModel]="selectedSupplierId"
+                  (ngModelChange)="onSupplierSelected($event)"
+                  [disabled]="loadingSuppliers || saving || !suppliers.length">
+                  <option [ngValue]="null">Select supplier</option>
+                  <option *ngFor="let item of suppliers" [ngValue]="item.id">
+                    {{ item.name }}{{ item.supplierCode ? ' — ' + item.supplierCode : '' }}
                   </option>
                 </select>
               </div>

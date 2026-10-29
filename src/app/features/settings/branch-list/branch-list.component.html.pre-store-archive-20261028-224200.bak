@@ -1,0 +1,226 @@
+<section class="branch-page">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">PHARMACY SETTINGS</p>
+      <h1>Store &amp; Branch Management</h1>
+      <p class="subtitle">
+        Pharmacy branch তৈরি করো এবং প্রতিটি branch-এর active status পরিচালনা করো।
+      </p>
+    </div>
+
+    <button type="button" class="primary-button" (click)="openCreateForm()">
+      <span aria-hidden="true">＋</span> Add Store
+    </button>
+  </header>
+
+  <div class="message error-message" role="alert" *ngIf="errorMessage">
+    <span>{{ errorMessage }}</span>
+    <button type="button" class="message-action" (click)="loadStores()">Retry</button>
+  </div>
+
+  <div class="message success-message" role="status" *ngIf="successMessage">
+    {{ successMessage }}
+  </div>
+
+  <div class="summary-grid">
+    <article class="summary-card">
+      <span class="summary-label">Total Stores</span>
+      <strong>{{ stores.length }}</strong>
+    </article>
+    <article class="summary-card">
+      <span class="summary-label">Active Stores</span>
+      <strong>{{ activeCount }}</strong>
+    </article>
+    <article class="summary-card">
+      <span class="summary-label">Inactive Stores</span>
+      <strong>{{ inactiveCount }}</strong>
+    </article>
+  </div>
+
+  <section class="form-panel" *ngIf="showForm">
+    <div class="panel-heading">
+      <div>
+        <h2>{{ editingStoreId === null ? 'Create New Store' : 'Edit Store' }}</h2>
+        <p>Store-এর তথ্য দাও। Code একই pharmacy-তে unique হতে হবে।</p>
+      </div>
+      <button type="button" class="close-button" (click)="cancelForm()" aria-label="Close form">
+        ×
+      </button>
+    </div>
+
+    <form #storeForm="ngForm" (ngSubmit)="saveStore()">
+      <div class="form-grid">
+        <label class="field">
+          <span>Store Code <b>*</b></span>
+          <input
+            type="text"
+            name="storeCode"
+            [(ngModel)]="form.storeCode"
+            maxlength="30"
+            placeholder="যেমন: MAIN-01"
+            required />
+        </label>
+
+        <label class="field">
+          <span>Store Name <b>*</b></span>
+          <input
+            type="text"
+            name="name"
+            [(ngModel)]="form.name"
+            maxlength="150"
+            placeholder="যেমন: Main Pharmacy"
+            required />
+        </label>
+
+        <label class="field">
+          <span>Phone</span>
+          <input type="tel" name="phone" [(ngModel)]="form.phone" maxlength="30" />
+        </label>
+
+        <label class="field">
+          <span>Email</span>
+          <input type="email" name="email" [(ngModel)]="form.email" maxlength="255" />
+        </label>
+
+        <label class="field">
+          <span>City</span>
+          <input type="text" name="city" [(ngModel)]="form.city" maxlength="100" />
+        </label>
+
+        <label class="field">
+          <span>District</span>
+          <input type="text" name="district" [(ngModel)]="form.district" maxlength="100" />
+        </label>
+
+        <label class="field field-wide">
+          <span>Address</span>
+          <textarea
+            name="address"
+            [(ngModel)]="form.address"
+            rows="2"
+            maxlength="500"
+            placeholder="Store-এর ঠিকানা"></textarea>
+        </label>
+
+        <label class="field">
+          <span>Status</span>
+          <select name="status" [(ngModel)]="form.status" required>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="secondary-button" (click)="cancelForm()" [disabled]="saving">
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="primary-button"
+          [disabled]="saving || storeForm.invalid">
+          {{ saving ? 'Saving…' : editingStoreId === null ? 'Create Store' : 'Save Changes' }}
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <section class="stores-panel">
+    <div class="panel-heading list-heading">
+      <div>
+        <h2>Your Stores</h2>
+        <p>POS-এ শুধু Active Store নির্বাচন করা যাবে।</p>
+      </div>
+      <label class="search-box">
+        <span aria-hidden="true">⌕</span>
+        <input
+          type="search"
+          name="storeSearch"
+          [(ngModel)]="searchText"
+          placeholder="Search stores..." />
+      </label>
+    </div>
+
+    <div class="loading-state" *ngIf="loading">
+      <span class="loading-spinner"></span>
+      Store list লোড হচ্ছে…
+    </div>
+
+    <div class="empty-state" *ngIf="!loading && stores.length === 0 && !errorMessage">
+      <div class="empty-symbol" aria-hidden="true">⌂</div>
+      <h3>এখনো কোনো Store তৈরি করা হয়নি</h3>
+      <p>POS Sale চালু করতে প্রথমে একটি Active Store তৈরি করো।</p>
+      <button type="button" class="primary-button" (click)="openCreateForm()">
+        Create First Store
+      </button>
+    </div>
+
+    <div class="empty-state" *ngIf="!loading && stores.length > 0 && filteredStores.length === 0">
+      <h3>কোনো Store মেলেনি</h3>
+      <p>অন্য নাম বা Store Code দিয়ে Search করো।</p>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!loading && filteredStores.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>Store</th>
+            <th>Contact</th>
+            <th>Location</th>
+            <th>Status</th>
+            <th class="actions-heading">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let store of filteredStores">
+            <td>
+              <div class="store-name">{{ store.name }}</div>
+              <div class="store-code">{{ store.storeCode }}</div>
+            </td>
+            <td>
+              <div>{{ store.phone || '—' }}</div>
+              <div class="muted-text">{{ store.email || '' }}</div>
+            </td>
+            <td>
+              <div>{{ store.city || '—' }}<span *ngIf="store.district">, {{ store.district }}</span></div>
+              <div class="muted-text">{{ store.address || '' }}</div>
+            </td>
+            <td>
+              <span
+                class="status-pill"
+                [class.status-active]="store.status.toLowerCase() === 'active'"
+                [class.status-inactive]="store.status.toLowerCase() !== 'active'">
+                {{ store.status || 'Unknown' }}
+              </span>
+            </td>
+            <td>
+              <div class="row-actions">
+                <button
+                  type="button"
+                  class="small-button edit-button"
+                  (click)="editStore(store)"
+                  [disabled]="togglingStoreId !== null || saving">
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  class="small-button"
+                  [class.activate-button]="store.status.toLowerCase() !== 'active'"
+                  [class.deactivate-button]="store.status.toLowerCase() === 'active'"
+                  (click)="toggleStatus(store)"
+                  [disabled]="togglingStoreId === store.id || saving">
+                  {{ togglingStoreId === store.id ? 'Saving…' :
+                    store.status.toLowerCase() === 'active' ? 'Deactivate' : 'Activate' }}
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <p class="page-note">
+    Store create/edit/status পরিবর্তন করতে Tenant Owner বা Pharmacy Admin permission প্রয়োজন।
+  </p>
+</section>

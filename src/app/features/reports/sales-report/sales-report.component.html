@@ -1,5 +1,15 @@
 <div class="report-page">
 
+  <div class="report-status report-status-loading" *ngIf="loading" role="status" aria-live="polite">
+    <span class="report-status-spinner" aria-hidden="true"></span>
+    <span>Loading sales and refund records from your pharmacy...</span>
+  </div>
+
+  <div class="report-status report-status-error" *ngIf="loadError" role="alert">
+    <span>{{ loadError }}</span>
+    <button type="button" (click)="refreshReport()">Try again</button>
+  </div>
+
   <!-- ===================================================== -->
   <!-- PAGE HEADER -->
   <!-- ===================================================== -->
@@ -25,6 +35,7 @@
     <button
       type="button"
       class="refresh-btn"
+      [disabled]="loading"
       (click)="refreshReport()"
     >
       <i class="bi bi-arrow-clockwise"></i>

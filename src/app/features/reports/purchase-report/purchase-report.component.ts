@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PurchaseOrderApiService } from '../../../core/services/purchase-order-api.service';
 
+import { GrnApiService, GrnResponse } from '../../../core/services/grn-api.service';
 interface PurchaseOrder {
   id?: string | number;
 
@@ -56,13 +57,14 @@ type DateRange =
 export class PurchaseReportComponent implements OnInit {
 
   purchases: PurchaseOrder[] = [];
+  goodsReceivedNotes: GrnResponse[] = [];
 
   selectedRange: DateRange = 'all';
 
   fromDate = '';
   toDate = '';
 
-  constructor(private purchaseOrderApi: PurchaseOrderApiService) {}
+  constructor(private purchaseOrderApi: PurchaseOrderApiService, private grnApi: GrnApiService) {}
 
   // =========================
   // LIFECYCLE
@@ -95,6 +97,18 @@ export class PurchaseReportComponent implements OnInit {
       alert('Tenant ID পাওয়া যায়নি। আবার login করুন।');
       return;
     }
+
+    this.grnApi.list(tenantId).subscribe({
+      next: notes => {
+        this.goodsReceivedNotes = (notes || []).filter(
+          note => String(note.status || '').toUpperCase() === 'RECEIVED'
+        );
+      },
+      error: error => {
+        console.error('Failed to load received goods report:', error);
+        this.goodsReceivedNotes = [];
+      }
+    });
 
     this.purchaseOrderApi.list(tenantId).subscribe({
       next: orders => {
@@ -293,6 +307,85 @@ export class PurchaseReportComponent implements OnInit {
   // =========================
   // ORDER TIMESTAMP
   // =========================
+
+  // =========================
+  // GOODS RECEIVED (GRN)
+  // =========================
+
+  get filteredGrns(): GrnResponse[] {
+    return this.goodsReceivedNotes.filter(grn =>
+      this.isReceivedDateInSelectedRange(grn.receivedDate)
+    );
+  }
+
+  get totalReceivedNotes(): number {
+    return this.filteredGrns.length;
+  }
+
+  get totalReceivedQuantity(): number {
+    return this.filteredGrns.reduce(
+      (total, grn) => total + this.getGrnItemQuantity(grn), 0
+    );
+  }
+
+  get totalReceivedValue(): number {
+    return this.filteredGrns.reduce(
+      (total, grn) => total + this.getGrnValue(grn), 0
+    );
+  }
+
+  getGrnItemQuantity(grn: GrnResponse): number {
+    return (grn.items || []).reduce(
+      (total, item) => total + (Number(item.quantity) || 0), 0
+    );
+  }
+
+  getGrnValue(grn: GrnResponse): number {
+    return (grn.items || []).reduce(
+      (total, item) => total + (Number(item.lineTotal) || 0), 0
+    );
+  }
+
+  private isReceivedDateInSelectedRange(value: string | null | undefined): boolean {
+    if (!value) return false;
+    if (this.selectedRange === 'all') return true;
+
+    // Backend receivedDate is a LocalDate in YYYY-MM-DD format.
+    const receivedDate = new Date(`${value}T12:00:00`);
+    if (Number.isNaN(receivedDate.getTime())) return false;
+
+    if (this.selectedRange === 'custom') {
+      return !!this.fromDate && !!this.toDate &&
+        this.fromDate <= value && value <= this.toDate;
+    }
+
+    const now = new Date();
+
+    if (this.selectedRange === 'today') {
+      return receivedDate.getFullYear() === now.getFullYear() &&
+        receivedDate.getMonth() === now.getMonth() &&
+        receivedDate.getDate() === now.getDate();
+    }
+
+    if (this.selectedRange === 'month') {
+      return receivedDate.getFullYear() === now.getFullYear() &&
+        receivedDate.getMonth() === now.getMonth();
+    }
+
+    if (this.selectedRange === 'week') {
+      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
+
+      const end = new Date(start);
+      end.setDate(end.getDate() + 6);
+      end.setHours(23, 59, 59, 999);
+
+      return receivedDate.getTime() >= start.getTime() &&
+        receivedDate.getTime() <= end.getTime();
+    }
+
+    return true;
+  }
 
   private getOrderTimestamp(
     order: PurchaseOrder

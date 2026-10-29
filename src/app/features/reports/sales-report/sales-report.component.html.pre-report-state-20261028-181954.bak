@@ -1,0 +1,741 @@
+<div class="report-page">
+
+  <!-- ===================================================== -->
+  <!-- PAGE HEADER -->
+  <!-- ===================================================== -->
+
+  <div class="page-header">
+
+    <div class="header-content">
+
+      <div class="breadcrumb">
+        <span>Reports</span>
+        <i class="bi bi-chevron-right"></i>
+        <span>Sales Report</span>
+      </div>
+
+      <h1>Sales Report</h1>
+
+      <p>
+        Analyze sales performance, transactions and payment activity.
+      </p>
+
+    </div>
+
+    <button
+      type="button"
+      class="refresh-btn"
+      (click)="refreshReport()"
+    >
+      <i class="bi bi-arrow-clockwise"></i>
+      Refresh
+    </button>
+
+  </div>
+
+
+  <!-- ===================================================== -->
+  <!-- DATE FILTER -->
+  <!-- ===================================================== -->
+
+  <section class="filter-card">
+
+    <div class="filter-header">
+
+      <div>
+        <h3>
+          <i class="bi bi-calendar3"></i>
+          Sales Period
+        </h3>
+
+        <span class="period-label">
+          {{ selectedRangeLabel }}
+        </span>
+      </div>
+
+    </div>
+
+
+    <div class="filter-body">
+
+      <!-- QUICK FILTERS -->
+
+      <div class="quick-filters">
+
+        <button
+          type="button"
+          [class.active]="selectedRange === 'today'"
+          (click)="selectRange('today')"
+        >
+          Today
+        </button>
+
+        <button
+          type="button"
+          [class.active]="selectedRange === 'week'"
+          (click)="selectRange('week')"
+        >
+          This Week
+        </button>
+
+        <button
+          type="button"
+          [class.active]="selectedRange === 'month'"
+          (click)="selectRange('month')"
+        >
+          This Month
+        </button>
+
+        <button
+          type="button"
+          [class.active]="selectedRange === 'all'"
+          (click)="selectRange('all')"
+        >
+          All Time
+        </button>
+
+      </div>
+
+
+      <!-- CUSTOM DATE -->
+
+      <div class="custom-date">
+
+        <div class="date-field">
+
+          <label for="fromDate">
+            From Date
+          </label>
+
+          <input
+            id="fromDate"
+            type="date"
+            [(ngModel)]="fromDate"
+          />
+
+        </div>
+
+
+        <div class="date-separator">
+          <i class="bi bi-arrow-right"></i>
+        </div>
+
+
+        <div class="date-field">
+
+          <label for="toDate">
+            To Date
+          </label>
+
+          <input
+            id="toDate"
+            type="date"
+            [(ngModel)]="toDate"
+          />
+
+        </div>
+
+
+        <button
+          type="button"
+          class="apply-btn"
+          (click)="applyCustomDate()"
+        >
+          <i class="bi bi-funnel"></i>
+          Apply
+        </button>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ===================================================== -->
+  <!-- MAIN STATISTICS -->
+  <!-- ===================================================== -->
+
+  <section class="stats-grid">
+
+    <!-- REVENUE -->
+
+    <div class="stat-card revenue">
+
+      <div class="stat-icon">
+        <i class="bi bi-currency-exchange"></i>
+      </div>
+
+      <div class="stat-content">
+
+        <span class="stat-label">
+          Total Revenue
+        </span>
+
+        <h2>
+          ৳{{ totalRevenue | number:'1.2-2' }}
+        </h2>
+
+        <small>
+          From completed sales
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <!-- TRANSACTIONS -->
+
+    <div class="stat-card transactions">
+
+      <div class="stat-icon">
+        <i class="bi bi-receipt"></i>
+      </div>
+
+      <div class="stat-content">
+
+        <span class="stat-label">
+          Transactions
+        </span>
+
+        <h2>
+          {{ totalTransactions | number }}
+        </h2>
+
+        <small>
+          Completed transactions
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <!-- ITEMS -->
+
+    <div class="stat-card items">
+
+      <div class="stat-icon">
+        <i class="bi bi-box-seam"></i>
+      </div>
+
+      <div class="stat-content">
+
+        <span class="stat-label">
+          Items Sold
+        </span>
+
+        <h2>
+          {{ totalItemsSold | number }}
+        </h2>
+
+        <small>
+          Total quantity sold
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <!-- REFUND -->
+
+    <div class="stat-card refund">
+
+      <div class="stat-icon">
+        <i class="bi bi-arrow-counterclockwise"></i>
+      </div>
+
+      <div class="stat-content">
+
+        <span class="stat-label">
+          Refunded
+        </span>
+
+        <h2>
+          ৳{{ refundedAmount | number:'1.2-2' }}
+        </h2>
+
+        <small>
+          {{ refundedTransactions }} refunded transaction{{ refundedTransactions === 1 ? '' : 's' }}
+        </small>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ===================================================== -->
+  <!-- SECONDARY SUMMARY -->
+  <!-- ===================================================== -->
+
+  <section class="summary-grid">
+
+    <div class="summary-card">
+
+      <div class="summary-icon">
+        <i class="bi bi-graph-up-arrow"></i>
+      </div>
+
+      <div>
+
+        <span>
+          Average Sale
+        </span>
+
+        <strong>
+          ৳{{ averageSale | number:'1.2-2' }}
+        </strong>
+
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon">
+        <i class="bi bi-arrow-return-left"></i>
+      </div>
+
+      <div>
+
+        <span>
+          Refund Transactions
+        </span>
+
+        <strong>
+          {{ refundedTransactions }}
+        </strong>
+
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon">
+        <i class="bi bi-percent"></i>
+      </div>
+
+      <div>
+
+        <span>
+          Refund Rate
+        </span>
+
+        <strong>
+          {{ refundRate | number:'1.1-1' }}%
+        </strong>
+
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon">
+        <i class="bi bi-list-check"></i>
+      </div>
+
+      <div>
+
+        <span>
+          Filtered Records
+        </span>
+
+        <strong>
+          {{ filteredSales.length }}
+        </strong>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ===================================================== -->
+  <!-- PAYMENT SUMMARY -->
+  <!-- ===================================================== -->
+
+  <section class="content-card">
+
+    <div class="section-header">
+
+      <div>
+        <h2>
+          Payment Summary
+        </h2>
+
+        <p>
+          Revenue breakdown by payment method
+        </p>
+      </div>
+
+      <span class="record-count">
+        {{ totalTransactions }} completed
+      </span>
+
+    </div>
+
+
+    <div class="payment-grid">
+
+      <!-- CASH -->
+
+      <div class="payment-card">
+
+        <div class="payment-top">
+
+          <div class="payment-info">
+
+            <div class="payment-icon cash">
+              <i class="bi bi-cash-stack"></i>
+            </div>
+
+            <div>
+              <strong>Cash</strong>
+
+              <span>
+                {{ cashTransactions }} transactions
+              </span>
+            </div>
+
+          </div>
+
+          <strong class="payment-amount">
+            ৳{{ cashSales | number:'1.2-2' }}
+          </strong>
+
+        </div>
+
+
+        <div class="progress-track">
+
+          <div
+            class="progress-bar cash-bar"
+            [style.width.%]="getPaymentPercentage(cashSales)"
+          ></div>
+
+        </div>
+
+
+        <div class="payment-footer">
+          {{ getPaymentPercentage(cashSales) | number:'1.1-1' }}%
+        </div>
+
+      </div>
+
+
+      <!-- CARD -->
+
+      <div class="payment-card">
+
+        <div class="payment-top">
+
+          <div class="payment-info">
+
+            <div class="payment-icon card">
+              <i class="bi bi-credit-card"></i>
+            </div>
+
+            <div>
+              <strong>Card</strong>
+
+              <span>
+                {{ cardTransactions }} transactions
+              </span>
+            </div>
+
+          </div>
+
+          <strong class="payment-amount">
+            ৳{{ cardSales | number:'1.2-2' }}
+          </strong>
+
+        </div>
+
+
+        <div class="progress-track">
+
+          <div
+            class="progress-bar card-bar"
+            [style.width.%]="getPaymentPercentage(cardSales)"
+          ></div>
+
+        </div>
+
+
+        <div class="payment-footer">
+          {{ getPaymentPercentage(cardSales) | number:'1.1-1' }}%
+        </div>
+
+      </div>
+
+
+      <!-- MOBILE -->
+
+      <div class="payment-card">
+
+        <div class="payment-top">
+
+          <div class="payment-info">
+
+            <div class="payment-icon mobile">
+              <i class="bi bi-phone"></i>
+            </div>
+
+            <div>
+              <strong>Mobile</strong>
+
+              <span>
+                {{ mobileTransactions }} transactions
+              </span>
+            </div>
+
+          </div>
+
+          <strong class="payment-amount">
+            ৳{{ mobileSales | number:'1.2-2' }}
+          </strong>
+
+        </div>
+
+
+        <div class="progress-track">
+
+          <div
+            class="progress-bar mobile-bar"
+            [style.width.%]="getPaymentPercentage(mobileSales)"
+          ></div>
+
+        </div>
+
+
+        <div class="payment-footer">
+          {{ getPaymentPercentage(mobileSales) | number:'1.1-1' }}%
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ===================================================== -->
+  <!-- SALES TRANSACTIONS -->
+  <!-- ===================================================== -->
+
+  <section class="content-card transactions-card">
+
+    <div class="section-header">
+
+      <div>
+        <h2>
+          Sales Transactions
+        </h2>
+
+        <p>
+          Detailed list of sales for the selected period
+        </p>
+      </div>
+
+      <span class="record-count">
+        {{ filteredSales.length }} records
+      </span>
+
+    </div>
+
+
+    <!-- TABLE -->
+
+    <div
+      class="table-wrapper"
+      *ngIf="filteredSales.length > 0"
+    >
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>Invoice</th>
+
+            <th>Date</th>
+
+            <th>Customer</th>
+
+            <th>Items</th>
+
+            <th>Payment</th>
+
+            <th>Total</th>
+
+            <th>Status</th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="
+              let sale of filteredSales;
+              trackBy: trackByInvoice
+            "
+          >
+
+            <td>
+
+              <span class="invoice-number">
+                {{ sale.invoice }}
+              </span>
+
+            </td>
+
+
+            <td>
+
+              <div class="date-cell">
+
+                <strong>
+                  {{ sale.date | date:'dd MMM yyyy' }}
+                </strong>
+
+                <span>
+                  {{ sale.date | date:'hh:mm a' }}
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <td>
+
+              <div class="customer-cell">
+
+                <div class="customer-avatar">
+
+                  {{ sale.customer
+                    ? sale.customer.charAt(0).toUpperCase()
+                    : 'W'
+                  }}
+
+                </div>
+
+                <span>
+                  {{ sale.customer || 'Walk-in Customer' }}
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <td>
+
+              <span class="items-count">
+                {{ sale.items }}
+              </span>
+
+            </td>
+
+
+            <td>
+
+              <span
+                class="payment-badge"
+                [ngClass]="getPaymentClass(sale.payment)"
+              >
+
+                <i
+                  class="bi"
+                  [ngClass]="{
+                    'bi-cash-stack': sale.payment === 'Cash',
+                    'bi-credit-card': sale.payment === 'Card',
+                    'bi-phone': sale.payment === 'Mobile'
+                  }"
+                ></i>
+
+                {{ sale.payment }}
+
+              </span>
+
+            </td>
+
+
+            <td>
+
+              <strong class="total-amount">
+                ৳{{ sale.total | number:'1.2-2' }}
+              </strong>
+
+            </td>
+
+
+            <td>
+
+              <span
+                class="status-badge"
+                [ngClass]="getStatusClass(sale.status)"
+              >
+
+                <i
+                  class="bi"
+                  [ngClass]="{
+                    'bi-check-circle-fill': sale.status === 'Completed',
+                    'bi-arrow-counterclockwise': sale.status === 'Refunded'
+                  }"
+                ></i>
+
+                {{ sale.status }}
+
+              </span>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    <!-- EMPTY STATE -->
+
+    <div
+      class="empty-state"
+      *ngIf="filteredSales.length === 0"
+    >
+
+      <div class="empty-icon">
+        <i class="bi bi-receipt"></i>
+      </div>
+
+      <h3>
+        No Sales Found
+      </h3>
+
+      <p>
+        There are no sales transactions for
+        <strong>{{ selectedRangeLabel }}</strong>.
+      </p>
+
+    </div>
+
+  </section>
+
+</div>

@@ -263,6 +263,131 @@
 
 
   <!-- =====================================================
+       GOODS EXPIRY MONITOR
+  ====================================================== -->
+
+  <section class="table-card">
+
+    <div class="filter-header">
+      <div>
+        <h3>Batch Expiry Monitoring</h3>
+        <span>Expired stock and batches expiring within the next 60 days</span>
+      </div>
+
+      <button
+        type="button"
+        class="btn btn-secondary"
+        (click)="refresh()"
+        [disabled]="loading || batchLoading">
+        <i class="bi bi-arrow-clockwise"></i>
+        Refresh
+      </button>
+    </div>
+
+    <div class="secondary-summary">
+      <div class="secondary-item">
+        <span>Expired Batches</span>
+        <strong>{{ expiredBatches.length | number }}</strong>
+        <small>{{ expiredBatchQuantity | number }} units</small>
+        <strong>{{ formatCurrency(expiredBatchValue) }}</strong>
+      </div>
+
+      <div class="secondary-divider"></div>
+
+      <div class="secondary-item">
+        <span>Expiring Within 60 Days</span>
+        <strong>{{ expiringSoonBatches.length | number }}</strong>
+        <small>{{ expiringSoonQuantity | number }} units</small>
+        <strong>{{ formatCurrency(expiringSoonValue) }}</strong>
+      </div>
+    </div>
+
+    <div class="report-note" *ngIf="batchLoadError">
+      <i class="bi bi-exclamation-triangle"></i>
+      <span>
+        Batch expiry information could not be loaded. Your main stock report
+        is still available. Refresh to try loading expiry information again.
+      </span>
+    </div>
+
+    <div class="empty-state" *ngIf="batchLoading">
+      <p>Loading batch expiry information...</p>
+    </div>
+
+    <div
+      class="table-wrapper"
+      *ngIf="!batchLoading && !batchLoadError && monitoredExpiryBatches.length">
+
+      <table>
+        <thead>
+          <tr>
+            <th>MEDICINE</th>
+            <th>BATCH NUMBER</th>
+            <th>EXPIRY DATE</th>
+            <th class="text-right">QTY</th>
+            <th class="text-right">PURCHASE PRICE</th>
+            <th class="text-right">STOCK VALUE</th>
+            <th>STATUS</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let batch of monitoredExpiryBatches">
+            <td>
+              <strong>{{ getBatchMedicineName(batch) }}</strong>
+            </td>
+
+            <td>{{ batch.batchNumber || '—' }}</td>
+
+            <td>{{ batch.expiryDate | date:'dd MMM yyyy' }}</td>
+
+            <td class="text-right">
+              {{ batch.quantity | number }}
+            </td>
+
+            <td class="text-right">
+              {{ formatCurrency(batch.purchasePrice) }}
+            </td>
+
+            <td class="text-right">
+              <strong class="stock-value">
+                {{ formatCurrency((batch.quantity || 0) * (batch.purchasePrice || 0)) }}
+              </strong>
+            </td>
+
+            <td>
+              <span
+                class="status-badge"
+                [ngClass]="getBatchExpiryStatusClass(batch)">
+                <span class="status-dot"></span>
+                {{ getBatchExpiryStatus(batch) }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div
+      class="empty-state"
+      *ngIf="!batchLoading && !batchLoadError && !monitoredExpiryBatches.length">
+
+      <div class="empty-icon">
+        <i class="bi bi-calendar-check"></i>
+      </div>
+
+      <h3>No Expired or Soon-to-Expire Batches</h3>
+
+      <p>
+        No positive-quantity batches are expired or due to expire within
+        the next 60 days.
+      </p>
+    </div>
+
+  </section>
+
+
+  <!-- =====================================================
        FILTERS
   ====================================================== -->
 

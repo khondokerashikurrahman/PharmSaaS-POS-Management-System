@@ -176,8 +176,13 @@ export class MedicineFormComponent implements OnInit {
     this.loadDosageForms();
     this.loadCompanyNames();
     this.loadGenericNames();
+    const productRoute = (
+      this.route.snapshot.routeConfig?.path || ''
+    ).startsWith('inventory/products');
+
     this.isProductMode =
-      this.route.snapshot.queryParamMap.get('mode') === 'product';
+      this.route.snapshot.queryParamMap.get('mode') === 'product'
+      || productRoute;
     this.loadCategories(this.medicine.productType);
 
     const id = this.route.snapshot.paramMap.get('id');

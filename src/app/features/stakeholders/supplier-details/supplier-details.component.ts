@@ -56,7 +56,7 @@ export class SupplierDetailsComponent implements OnInit {
       next: supplier => {
         this.supplier = supplier;
         this.loadingSupplier = false;
-        this.loadPurchaseOrders(tenantId, supplier.name);
+        this.loadPurchaseOrders(tenantId, supplier);
       },
       error: err => {
         this.loadingSupplier = false;
@@ -72,18 +72,22 @@ export class SupplierDetailsComponent implements OnInit {
     return Number.isSafeInteger(id) && id > 0 ? id : 0;
   }
 
-  private loadPurchaseOrders(tenantId: number, supplierName: string): void {
+  private loadPurchaseOrders(tenantId: number, supplier: SupplierResponse): void {
     this.loadingOrders = true;
     this.ordersError = '';
 
     this.purchaseOrderApi.list(tenantId).subscribe({
       next: orders => {
-        const normalizedName = (supplierName || '').trim().toLowerCase();
+        const normalizedName = (supplier.name || '').trim().toLowerCase();
 
         this.orders = (orders || [])
-          .filter(order =>
-            (order.supplierName || '').trim().toLowerCase() === normalizedName
-          )
+          .filter(order => {
+            if (order.supplierId != null) {
+              return Number(order.supplierId) === Number(supplier.id);
+            }
+            // Backward compatibility for Purchase Orders created before supplier_id.
+            return (order.supplierName || '').trim().toLowerCase() === normalizedName;
+          })
           .sort((a, b) =>
             String(b.orderDate || '').localeCompare(String(a.orderDate || ''))
           );

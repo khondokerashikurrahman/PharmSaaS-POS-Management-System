@@ -63,6 +63,7 @@
           <input
             type="checkbox"
             [checked]="item.selected"
+            [disabled]="processing || item.quantity <= 0"
             (change)="toggleItem(item)"
           />
 
@@ -81,7 +82,8 @@
           </span>
 
           <small>
-            Sold: {{ item.quantity }}
+            Sold: {{ item.soldQuantity }}
+            • Remaining: {{ item.quantity }}
             × ৳{{ item.price | number:'1.2-2' }}
           </small>
 
@@ -92,6 +94,7 @@
 
           <button
             type="button"
+            [disabled]="processing || item.returnQuantity <= 0"
             (click)="decreaseQuantity(item)">
 
             −
@@ -104,6 +107,7 @@
 
           <button
             type="button"
+            [disabled]="processing || item.returnQuantity >= item.quantity"
             (click)="increaseQuantity(item)">
 
             +
@@ -115,7 +119,7 @@
 
         <div class="item-total">
 
-          ৳{{ (item.returnQuantity * item.price) | number:'1.2-2' }}
+          ৳{{ estimateLineRefund(item) | number:'1.2-2' }}
 
         </div>
 
@@ -165,12 +169,17 @@
       <div class="refund-box">
 
         <span>
-          Refund Amount
+          Estimated Refund
         </span>
 
         <strong>
           ৳{{ refundAmount | number:'1.2-2' }}
         </strong>
+
+        <small class="refund-note">
+          Final refund is calculated by the server and may differ slightly
+          because of discount and tax allocation.
+        </small>
 
       </div>
 

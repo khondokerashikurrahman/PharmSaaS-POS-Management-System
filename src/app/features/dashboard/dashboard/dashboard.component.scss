@@ -907,3 +907,36 @@ tr:last-child td {
   }
 
 }
+
+/* Live API feedback */
+.dashboard-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 20px;
+  padding: 14px 16px;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  background: #fff7f7;
+  color: #991b1b;
+  font-size: 0.9rem;
+}
+
+.dashboard-error button {
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 14px;
+  background: #991b1b;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .dashboard-error {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

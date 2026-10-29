@@ -215,17 +215,11 @@ export class ProductListComponent implements OnInit {
   }
 
   addProduct(): void {
-    this.router.navigate(
-      ['/app/inventory/medicines/new'],
-      { queryParams: { mode: 'product' } }
-    );
+    this.router.navigate(['/app/inventory/products/new']);
   }
 
   editProduct(product: Product): void {
-    this.router.navigate(
-      ['/app/inventory/medicines', product.id, 'edit'],
-      { queryParams: { mode: 'product' } }
-    );
+    this.router.navigate(['/app/inventory/products', product.id, 'edit']);
   }
 
   viewProduct(product: Product): void {

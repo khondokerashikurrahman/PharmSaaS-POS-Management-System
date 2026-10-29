@@ -27,6 +27,7 @@ interface PurchaseItem {
 })
 export class PurchaseOrderFormComponent implements OnInit {
   supplier = '';
+  selectedSupplierId: number | null = null;
   orderDate = new Date().toISOString().slice(0, 10);
   expectedDate = '';
   paymentTerms = 'Cash';
@@ -108,6 +109,13 @@ export class PurchaseOrderFormComponent implements OnInit {
     });
   }
 
+  onSupplierSelected(value: number | string | null): void {
+    const id = value === null || value === '' ? 0 : Number(value);
+    const selected = this.suppliers.find(item => Number(item.id) === id);
+    this.selectedSupplierId = selected ? Number(selected.id) : null;
+    this.supplier = selected?.name || '';
+  }
+
   onMedicineSelected(
     item: PurchaseItem,
     value: number | string | null
@@ -178,8 +186,8 @@ export class PurchaseOrderFormComponent implements OnInit {
   }
 
   private buildRequest(): PurchaseOrderRequest | null {
-    if (!this.supplier) {
-      this.showError('Please select a supplier.');
+    if (!this.supplier || !this.selectedSupplierId) {
+      this.showError('Please select an active supplier.');
       return null;
     }
 
@@ -214,6 +222,7 @@ export class PurchaseOrderFormComponent implements OnInit {
 
     return {
       supplierName: this.supplier,
+      supplierId: this.selectedSupplierId,
       orderDate: this.orderDate,
       expectedDeliveryDate: this.expectedDate || undefined,
       discount: 0,

@@ -30,10 +30,65 @@ export class ReturnsReportComponent implements OnInit {
     this.refreshReport();
   }
 
+  private resolveTenantId(): number {
+    const validId = (value: unknown): number => {
+      const id = Number(value);
+      return Number.isInteger(id) && id > 0 ? id : 0;
+    };
+
+    for (const key of ['tenantId', 'tenant_id']) {
+      const id = validId(localStorage.getItem(key));
+      if (id) return id;
+    }
+
+    for (const key of ['pharm_user', 'currentTenant', 'tenant']) {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+
+      const rawId = validId(raw);
+      if (rawId) return rawId;
+
+      try {
+        const data = JSON.parse(raw) as {
+          id?: number | string;
+          tenantId?: number | string;
+          tenant_id?: number | string;
+          selectedTenantId?: number | string;
+          activeTenantId?: number | string;
+          tenant?: { id?: number | string } | null;
+          currentTenant?: { id?: number | string } | null;
+        };
+
+        const candidates: unknown[] = [
+          data.tenantId,
+          data.tenant_id,
+          data.selectedTenantId,
+          data.activeTenantId,
+          data.tenant?.id,
+          data.currentTenant?.id
+        ];
+
+        if (key === 'currentTenant' || key === 'tenant') {
+          candidates.unshift(data.id);
+        }
+
+        for (const candidate of candidates) {
+          const id = validId(candidate);
+          if (id) return id;
+        }
+      } catch {
+        // Ignore invalid JSON and check the next supported key.
+      }
+    }
+
+    return 0;
+  }
+
   refreshReport(): void {
-    const tenantId = Number(localStorage.getItem('tenantId'));
+    const tenantId = this.resolveTenantId();
 
     if (!Number.isInteger(tenantId) || tenantId <= 0) {
+      this.loading = false;
       this.returns = [];
       this.errorMessage =
         'Tenant information is missing. Please log in and select your pharmacy again.';
@@ -164,6 +219,16 @@ export class ReturnsReportComponent implements OnInit {
     if (label === 'quarantined') return 'status-quarantined';
     if (label === 'restocked') return 'status-restocked';
     return 'status-mixed';
+  }
+
+  formatReturnStatus(value: string | null | undefined): string {
+    if (!value || !String(value).trim()) return 'Not recorded';
+
+    return String(value)
+      .trim()
+      .toLowerCase()
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, char => char.toUpperCase());
   }
 
   formatItems(record: SaleReturnResponse): string {

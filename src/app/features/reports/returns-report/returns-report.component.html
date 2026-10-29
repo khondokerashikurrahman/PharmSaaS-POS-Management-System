@@ -125,6 +125,7 @@
             <th>Returned Items</th>
             <th>Refund Amount</th>
             <th>Stock Disposition</th>
+            <th>Return Status</th>
           </tr>
         </thead>
         <tbody>
@@ -148,6 +149,11 @@
             <td>
               <span class="status-pill" [ngClass]="getStockClass(record)">
                 {{ getStockLabel(record) }}
+              </span>
+            </td>
+            <td>
+              <span class="status-pill">
+                {{ formatReturnStatus(record.status) }}
               </span>
             </td>
           </tr>

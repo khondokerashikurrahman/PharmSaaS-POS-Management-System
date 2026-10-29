@@ -48,3 +48,416 @@
   flex-wrap: wrap;
   gap: .4rem;
 }
+
+
+
+/* PharmSaaS Dosage page design refresh */
+.dosage-page {
+  display: block;
+  min-width: 0;
+  max-width: 1600px;
+  margin-inline: auto;
+  padding: clamp(16px, 2.4vw, 30px);
+  color: #19263c;
+  box-sizing: border-box;
+}
+
+.dosage-page *,
+.dosage-page *::before,
+.dosage-page *::after {
+  box-sizing: border-box;
+}
+
+.dosage-page .page-header,
+.dosage-page header.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.dosage-page .breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 10px;
+  color: #8491a6;
+  font-size: 12px;
+}
+
+.dosage-page h1 {
+  margin: 0 0 8px;
+  color: #17243b;
+  font-size: clamp(24px, 2.8vw, 31px);
+  line-height: 1.25;
+  font-weight: 800;
+  letter-spacing: -.65px;
+}
+
+.dosage-page .page-header p {
+  max-width: 680px;
+  margin: 0;
+  color: #748299;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.dosage-page .form-card,
+.dosage-page .editor-card,
+.dosage-page .content-card,
+.dosage-page .list-card,
+.dosage-page .master-card,
+.dosage-page .table-card {
+  min-width: 0;
+  border: 1px solid #e4eaf2;
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 5px 20px rgba(23, 36, 59, .045);
+}
+
+.dosage-page .card-header,
+.dosage-page .card-heading,
+.dosage-page .list-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 13px;
+  padding: 19px 22px;
+  border-bottom: 1px solid #edf1f6;
+}
+
+.dosage-page .card-header h2,
+.dosage-page .card-heading h2,
+.dosage-page .list-header h2 {
+  margin: 0 0 5px;
+  color: #1b2941;
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 800;
+}
+
+.dosage-page .card-header p,
+.dosage-page .card-heading p,
+.dosage-page .list-header p {
+  margin: 0;
+  color: #8390a5;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.dosage-page form {
+  min-width: 0;
+}
+
+.dosage-page .form-body,
+.dosage-page .card-body,
+.dosage-page .form-content {
+  padding: 22px;
+}
+
+.dosage-page .form-grid,
+.dosage-page .form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.dosage-page .form-group,
+.dosage-page .field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  margin-bottom: 17px;
+}
+
+.dosage-page .form-group label,
+.dosage-page .field label {
+  color: #394861;
+  font-size: 12px;
+  line-height: 1.5;
+  font-weight: 750;
+}
+
+.dosage-page input:not([type="checkbox"]):not([type="radio"]),
+.dosage-page select,
+.dosage-page textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 43px;
+  padding: 10px 12px;
+  border: 1px solid #dbe3ee;
+  border-radius: 9px;
+  outline: none;
+  background: #fbfcff;
+  color: #233149;
+  font: inherit;
+  font-size: 13px;
+  transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
+}
+
+.dosage-page textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.dosage-page input:focus,
+.dosage-page select:focus,
+.dosage-page textarea:focus {
+  border-color: #8279ed;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(99, 88, 220, .11);
+}
+
+.dosage-page .filter-bar,
+.dosage-page .toolbar,
+.dosage-page .search-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 17px 21px;
+}
+
+.dosage-page .search-box,
+.dosage-page .search-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 230px;
+  min-width: 0;
+  min-height: 43px;
+  padding: 0 12px;
+  border: 1px solid #dce3ed;
+  border-radius: 9px;
+  background: #fbfcff;
+}
+
+.dosage-page .search-box > i,
+.dosage-page .search-control > i {
+  color: #8d9ab0;
+}
+
+.dosage-page .search-box input,
+.dosage-page .search-control input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.dosage-page .table-wrapper,
+.dosage-page .table-wrap,
+.dosage-page .table-responsive {
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.dosage-page table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.dosage-page thead {
+  background: #f7f9fd;
+}
+
+.dosage-page th {
+  padding: 13px 16px;
+  border-top: 1px solid #edf1f6;
+  border-bottom: 1px solid #e7edf4;
+  color: #78869c;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .45px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.dosage-page td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #edf1f6;
+  color: #40506a;
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+.dosage-page tbody tr {
+  transition: background .13s ease;
+}
+
+.dosage-page tbody tr:hover {
+  background: #fafbff;
+}
+
+.dosage-page tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.dosage-page .primary-btn,
+.dosage-page .add-btn,
+.dosage-page .btn-primary,
+.dosage-page button[type="submit"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 41px;
+  padding: 10px 14px;
+  border: 1px solid #4338ca;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #5b52ef, #4338ca);
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.dosage-page .primary-btn:hover:not(:disabled),
+.dosage-page .add-btn:hover:not(:disabled),
+.dosage-page .btn-primary:hover:not(:disabled),
+.dosage-page button[type="submit"]:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(79, 70, 229, .2);
+}
+
+.dosage-page .secondary-btn,
+.dosage-page .refresh-btn,
+.dosage-page .btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 39px;
+  padding: 9px 12px;
+  border: 1px solid #dce4ee;
+  border-radius: 9px;
+  background: #fff;
+  color: #485972;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dosage-page button:disabled {
+  opacity: .58;
+  cursor: not-allowed;
+}
+
+.dosage-page .success-message,
+.dosage-page .error-message,
+.dosage-page .notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 12px 18px;
+  padding: 12px 14px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.dosage-page .success-message {
+  border-color: #b7e8d0;
+  background: #effaf4;
+  color: #167348;
+}
+
+.dosage-page .error-message {
+  border-color: #f5caca;
+  background: #fff2f2;
+  color: #b4232b;
+}
+
+.dosage-page .empty-state,
+.dosage-page .no-data {
+  padding: 39px 20px;
+  color: #8390a5;
+  text-align: center;
+}
+
+.dosage-page .empty-state h3 {
+  margin: 9px 0 6px;
+  color: #2b3a52;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.dosage-page .empty-state p {
+  margin: 0 auto 15px;
+  max-width: 430px;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.dosage-page .table-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 13px 20px;
+  border-top: 1px solid #edf1f6;
+  background: #fbfcff;
+  color: #8390a5;
+  font-size: 11px;
+}
+
+@media (max-width: 720px) {
+  .dosage-page {
+    padding: 16px 12px;
+  }
+
+  .dosage-page .page-header {
+    align-items: flex-start;
+  }
+
+  .dosage-page .form-grid,
+  .dosage-page .form-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dosage-page .card-header,
+  .dosage-page .card-heading,
+  .dosage-page .list-header {
+    padding: 16px;
+  }
+
+  .dosage-page .form-body,
+  .dosage-page .card-body {
+    padding: 17px;
+  }
+
+  .dosage-page .filter-bar,
+  .dosage-page .toolbar,
+  .dosage-page .search-filters {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 14px;
+  }
+
+  .dosage-page th,
+  .dosage-page td {
+    padding: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dosage-page *,
+  .dosage-page *::before,
+  .dosage-page *::after {
+    transition-duration: .01ms !important;
+  }
+}

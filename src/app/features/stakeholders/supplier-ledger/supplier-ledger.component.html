@@ -1,4 +1,11 @@
 <div class="ledger-page">
+  <div *ngIf="errorMessage" class="supplier-ledger-live-error" role="alert">
+    {{ errorMessage }}
+  </div>
+  <div *ngIf="loading" role="status">
+    Loading live supplier ledger...
+  </div>
+
 
   <!-- HEADER -->
   <div class="page-header">

@@ -29,7 +29,7 @@ export interface PurchaseOrder {
 
   orderNumber: string;
 
-  supplierId: string;
+  supplierId?: string | number | null;
 
   branchId?: string;
 

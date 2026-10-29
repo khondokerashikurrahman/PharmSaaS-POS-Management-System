@@ -10,7 +10,9 @@ export interface ReturnSaleItem {
   sku: string;
   batchNumber: string;
   quantity: number;
+  soldQuantity: number;
   price: number;
+  lineSubtotal: number;
   returnQuantity: number;
   selected: boolean;
 }
@@ -64,19 +66,30 @@ export class ReturnSaleComponent {
       return;
     }
 
-    this.returnItems = this.sale.saleItems.map(
-      (item: any) => ({
+    this.returnItems = this.sale.saleItems.map((item: any) => {
+      const soldQuantity = Math.max(Number(item.quantity || 0), 0);
+      const remainingQuantity = Math.max(
+        0,
+        Number(item.remainingQuantity ?? soldQuantity)
+      );
+
+      return {
         id: item.id,
         batchId: String(item.batchId ?? ''),
         name: item.name,
         sku: item.sku,
         batchNumber: item.batchNumber,
-        quantity: item.quantity,
-        price: item.price,
+        quantity: Math.min(remainingQuantity, soldQuantity),
+        soldQuantity,
+        price: Number(item.price || 0),
+        lineSubtotal: Number(
+          item.subtotal ??
+          (soldQuantity * Number(item.price || 0))
+        ),
         returnQuantity: 0,
         selected: false
-      })
-    );
+      };
+    });
   }
 
   get selectedItems(): ReturnSaleItem[] {
@@ -85,12 +98,35 @@ export class ReturnSaleComponent {
     );
   }
 
-  get refundAmount(): number {
-    return this.selectedItems.reduce(
-      (total, item) =>
-        total + (item.returnQuantity * item.price),
+  estimateLineRefund(item: ReturnSaleItem): number {
+    if (item.returnQuantity <= 0) {
+      return 0;
+    }
+
+    const baseTotal = this.returnItems.reduce(
+      (sum, row) => sum + Math.max(Number(row.lineSubtotal || 0), 0),
       0
     );
+    const saleTotal = Math.max(Number(this.sale?.total || 0), 0);
+    const sold = Math.max(Number(item.soldQuantity || 0), 1);
+
+    if (baseTotal <= 0 || saleTotal <= 0) {
+      return Math.round(item.returnQuantity * item.price * 100) / 100;
+    }
+
+    const lineBase = Math.max(Number(item.lineSubtotal || 0), 0);
+    const estimate = (saleTotal * lineBase / baseTotal)
+      * item.returnQuantity / sold;
+
+    return Math.round((estimate + Number.EPSILON) * 100) / 100;
+  }
+
+  get refundAmount(): number {
+    const total = this.selectedItems.reduce(
+      (sum, item) => sum + this.estimateLineRefund(item),
+      0
+    );
+    return Math.round((total + Number.EPSILON) * 100) / 100;
   }
 
   increaseQuantity(item: ReturnSaleItem): void {

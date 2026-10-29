@@ -209,16 +209,36 @@ export class PosTerminalComponent implements OnInit {
         this.activeStores = (Array.isArray(stores) ? stores : [])
           .filter(store => String(store.status || '').toLowerCase() === 'active');
 
-        if (
-          this.selectedStoreId !== null &&
-          !this.activeStores.some(store => store.id === this.selectedStoreId)
-        ) {
-          this.selectedStoreId = null;
-        }
+        // Remember a store per tenant. If none is saved, select a
+        // Main/Default store, falling back to the first active store.
+        // The operator can still change the store from the dropdown.
+        const storePreferenceKey = `pharm_pos_store_id_${tenantId}`;
+        const savedStoreId = Number(
+          localStorage.getItem(storePreferenceKey) || 0
+        );
 
-        // Avoid asking the operator to choose when only one active store exists.
-        if (this.activeStores.length === 1) {
-          this.selectedStoreId = this.activeStores[0].id;
+        const savedStore = this.activeStores.find(
+          store => store.id === savedStoreId
+        );
+
+        const defaultStore = this.activeStores.find(store => {
+          const label = `${store.name || ''} ${store.storeCode || ''}`;
+          return /\\b(main|default)\\b/i.test(label);
+        });
+
+        const chosenStore =
+          savedStore ||
+          defaultStore ||
+          this.activeStores[0] ||
+          null;
+
+        this.selectedStoreId = chosenStore ? chosenStore.id : null;
+
+        if (this.selectedStoreId !== null) {
+          localStorage.setItem(
+            storePreferenceKey,
+            String(this.selectedStoreId)
+          );
         }
 
         this.loadingStores = false;
@@ -235,8 +255,21 @@ export class PosTerminalComponent implements OnInit {
 
   onStoreChange(value: string): void {
     const id = Number(value);
+    const validStore = this.activeStores.find(store => store.id === id);
+
     this.selectedStoreId =
-      value && Number.isSafeInteger(id) && id > 0 ? id : null;
+      value && Number.isSafeInteger(id) && id > 0 && validStore
+        ? id
+        : null;
+
+    const tenantId = this.currentTenantId;
+
+    if (tenantId > 0 && this.selectedStoreId !== null) {
+      localStorage.setItem(
+        `pharm_pos_store_id_${tenantId}`,
+        String(this.selectedStoreId)
+      );
+    }
   }
 
 
@@ -1307,19 +1340,11 @@ export class PosTerminalComponent implements OnInit {
       return;
     }
 
-    // The backend currently supports order-level discounts only.
-    if (this.cartItems.some(item => Number(item.discount || 0) > 0)) {
-      alert(
-        'One or more cart items have an item-level discount. ' +
-        'Please remove those discounts before checkout; backend support is being added.'
-      );
-      return;
-    }
-
     const items = this.cartItems.map(item => ({
       productId: Number(item.productId),
       batchId: Number(item.batchId),
-      quantity: Number(item.quantity)
+      quantity: Number(item.quantity),
+      discountAmount: Number(item.discount || 0)
     }));
 
     if (items.some(item =>

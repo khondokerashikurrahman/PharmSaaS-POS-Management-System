@@ -383,6 +383,22 @@ export const routes: Routes = [
             .then(m => m.CompanyDetailsComponent)
       },
       {
+        path: 'inventory/products/new',
+        data: { roles: ['TENANT_ADMIN', 'MANAGER', 'STORE_KEEPER'] },
+        canActivate: [roleGuard],
+        loadComponent: () =>
+          import('./features/inventory/medicine-form/medicine-form.component')
+            .then(m => m.MedicineFormComponent)
+      },
+      {
+        path: 'inventory/products/:id/edit',
+        data: { roles: ['TENANT_ADMIN', 'MANAGER', 'STORE_KEEPER'] },
+        canActivate: [roleGuard],
+        loadComponent: () =>
+          import('./features/inventory/medicine-form/medicine-form.component')
+            .then(m => m.MedicineFormComponent)
+      },
+      {
         path: 'inventory/products',
         data: { roles: ['TENANT_ADMIN', 'MANAGER', 'STORE_KEEPER'] },
         canActivate: [roleGuard],

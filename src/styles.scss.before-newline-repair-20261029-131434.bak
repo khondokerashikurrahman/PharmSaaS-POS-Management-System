@@ -1,0 +1,325 @@
+@media print {
+
+  body.receipt-printing * {
+    visibility: hidden !important;
+  }
+
+  body.receipt-printing
+  app-invoice-receipt,
+  body.receipt-printing
+  app-invoice-receipt * {
+    visibility: visible !important;
+  }
+
+  body.receipt-printing
+  .receipt-overlay {
+    position: static !important;
+    inset: auto !important;
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+  }
+
+  body.receipt-printing
+  .receipt-modal {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+
+  body.receipt-printing
+  .receipt-header,
+  body.receipt-printing
+  .receipt-actions {
+    display: none !important;
+  }
+
+  body.receipt-printing
+  .receipt-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 10mm !important;
+    box-sizing: border-box !important;
+  }
+
+  @page {
+    margin: 10mm;
+  }
+}/* You can add global styles to this file, and also import other style files */
+
+
+
+/* PHARMSAAS RECEIPT PRINT FIX */
+@media print {
+  body.receipt-printing * {
+    visibility: hidden !important;
+  }
+
+  body.receipt-printing .receipt-overlay,
+  body.receipt-printing .receipt-overlay *,
+  body.receipt-printing .receipt-modal,
+  body.receipt-printing .receipt-content,
+  body.receipt-printing .receipt-content * {
+    visibility: visible !important;
+  }
+
+  body.receipt-printing .receipt-overlay {
+    position: static !important;
+    inset: auto !important;
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+
+  body.receipt-printing .receipt-modal {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+  }
+
+  body.receipt-printing .receipt-header,
+  body.receipt-printing .receipt-actions,
+  body.receipt-printing .receipt-modal .close-btn {
+    display: none !important;
+  }
+
+  body.receipt-printing .receipt-content {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    color: #111 !important;
+    font-family: Arial, sans-serif !important;
+    font-size: 9px !important;
+  }
+
+  body.receipt-printing .business-info {
+    padding-bottom: 7px !important;
+  }
+
+  body.receipt-printing .business-info h1 {
+    font-size: 17px !important;
+  }
+
+  body.receipt-printing .business-info p {
+    font-size: 9px !important;
+  }
+
+  body.receipt-printing .invoice-info {
+    gap: 6px 12px !important;
+    padding: 8px 0 !important;
+  }
+
+  body.receipt-printing .invoice-info span,
+  body.receipt-printing .invoice-info strong {
+    font-size: 8px !important;
+  }
+
+  body.receipt-printing .items-section {
+    overflow: visible !important;
+    border-radius: 0 !important;
+  }
+
+  body.receipt-printing .items-header,
+  body.receipt-printing .item-row {
+    grid-template-columns: minmax(0, 2fr) 32px 62px 68px !important;
+    gap: 5px !important;
+    padding: 5px 6px !important;
+  }
+
+  body.receipt-printing .items-header,
+  body.receipt-printing .item-row,
+  body.receipt-printing .item-name strong {
+    font-size: 8px !important;
+  }
+
+  body.receipt-printing .item-name small {
+    font-size: 7px !important;
+  }
+
+  body.receipt-printing .item-row {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  body.receipt-printing .receipt-summary {
+    margin-top: 8px !important;
+    padding: 7px 9px !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  body.receipt-printing .summary-row {
+    padding: 2px 0 !important;
+    font-size: 9px !important;
+  }
+
+  body.receipt-printing .summary-total strong {
+    font-size: 13px !important;
+  }
+
+  body.receipt-printing .payment-summary {
+    margin-top: 7px !important;
+    gap: 6px !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  body.receipt-printing .payment-summary div {
+    padding: 5px !important;
+  }
+
+  body.receipt-printing .payment-summary span {
+    font-size: 7px !important;
+  }
+
+  body.receipt-printing .payment-summary strong {
+    font-size: 8px !important;
+  }
+
+  body.receipt-printing .receipt-footer {
+    margin-top: 8px !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  body.receipt-printing .receipt-content,
+  body.receipt-printing .receipt-content * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+\n
+/* PHARMSAAS ISOLATED INVOICE PRINT FIX */
+#pharmsaas-print-root {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+
+  html,
+  body.receipt-printing {
+    width: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+
+  body.receipt-printing > app-root {
+    display: none !important;
+  }
+
+  body.receipt-printing #pharmsaas-print-root {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: #fff !important;
+    color: #111 !important;
+    visibility: visible !important;
+  }
+
+  body.receipt-printing #pharmsaas-print-root,
+  body.receipt-printing #pharmsaas-print-root * {
+    visibility: visible !important;
+    box-sizing: border-box !important;
+  }
+
+  body.receipt-printing #pharmsaas-print-root .receipt-content {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: #fff !important;
+    color: #111 !important;
+    font-family: Arial, sans-serif !important;
+  }
+
+  body.receipt-printing #pharmsaas-print-root .business-info {
+    padding-bottom: 6px !important;
+  }
+
+  body.receipt-printing #pharmsaas-print-root .business-info h1 {
+    font-size: 17px !important;
+  }
+
+  body.receipt-printing #pharmsaas-print-root .invoice-info {
+    gap: 5px 12px !important;
+    padding: 7px 0 !important;
+  }
+
+  body.receipt-printing #pharmsaas-print-root .items-section {
+    overflow: visible !important;
+  }
+
+  body.receipt-printing #pharmsaas-print-root .items-header,
+  body.receipt-printing #pharmsaas-print-root .item-row {
+    grid-template-columns: minmax(0, 2fr) 32px 62px 68px !important;
+    gap: 5px !important;
+    padding: 5px 6px !important;
+  }
+
+  body.receipt-printing #pharmsaas-print-root .item-row {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  body.receipt-printing #pharmsaas-print-root .receipt-summary {
+    margin-top: 8px !important;
+    padding: 7px 9px !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  body.receipt-printing #pharmsaas-print-root .payment-summary,
+  body.receipt-printing #pharmsaas-print-root .receipt-footer {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}
+\n

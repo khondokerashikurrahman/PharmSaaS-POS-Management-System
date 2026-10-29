@@ -1,125 +1,168 @@
 <div class="category-page">
-  <header class="page-header">
-    <div>
+  <header class="category-hero">
+    <div class="hero-copy">
       <div class="breadcrumb">
         <span>Inventory</span>
         <i class="bi bi-chevron-right"></i>
-        <span>Categories</span>
+        <span>Product setup</span>
+        <i class="bi bi-chevron-right"></i>
+        <span class="current">Categories</span>
       </div>
-      <h1>Product Categories</h1>
-      <p>Manage categories separately for each Product Type.</p>
+      <div class="title-row">
+        <span class="hero-icon"><i class="bi bi-tags"></i></span>
+        <div>
+          <h1>Product Categories</h1>
+          <p>Keep your catalogue organized with reusable, type-specific categories.</p>
+        </div>
+      </div>
+    </div>
+    <div class="hero-actions">
+      <button type="button" class="btn-secondary" (click)="loadCategories()" [disabled]="loading">
+        <i class="bi bi-arrow-clockwise" [class.spin]="loading"></i>
+        Refresh
+      </button>
+      <button type="button" class="btn-primary" (click)="openAddCategory()">
+        <i class="bi bi-plus-lg"></i>
+        Add Category
+      </button>
     </div>
   </header>
 
-  <section class="category-layout">
-    <div class="category-card editor-card">
-      <div class="card-heading">
-        <div class="icon-box"><i class="bi bi-tags"></i></div>
-        <div>
-          <h2>{{ editingId === null ? 'Add Category' : 'Edit Category' }}</h2>
-          <p>Create reusable categories for your product catalogue.</p>
-        </div>
+  <div class="notice success" *ngIf="successMessage" role="status">
+    <i class="bi bi-check-circle-fill"></i><span>{{ successMessage }}</span>
+    <button type="button" aria-label="Dismiss success message" (click)="successMessage = ''"><i class="bi bi-x-lg"></i></button>
+  </div>
+  <div class="notice error" *ngIf="errorMessage" role="alert">
+    <i class="bi bi-exclamation-circle-fill"></i><span>{{ errorMessage }}</span>
+    <button type="button" aria-label="Dismiss error message" (click)="errorMessage = ''"><i class="bi bi-x-lg"></i></button>
+  </div>
+
+  <section class="category-stats">
+    <article class="stat-card">
+      <span class="stat-icon violet"><i class="bi bi-collection"></i></span>
+      <div><span class="stat-label">Active categories shown</span><strong>{{ categories.length }}</strong></div>
+    </article>
+    <article class="stat-card">
+      <span class="stat-icon blue"><i class="bi bi-box-seam"></i></span>
+      <div><span class="stat-label">Selected product type</span><strong class="stat-type">{{ getProductTypeLabel(selectedProductType) }}</strong></div>
+    </article>
+    <article class="stat-card">
+      <span class="stat-icon green"><i class="bi bi-search"></i></span>
+      <div><span class="stat-label">Matching categories</span><strong>{{ filteredCategories.length }}</strong></div>
+    </article>
+  </section>
+
+  <section class="editor-panel" *ngIf="showEditor">
+    <div class="editor-heading">
+      <span class="editor-icon"><i class="bi" [ngClass]="editingId === null ? 'bi-plus-square' : 'bi-pencil-square'"></i></span>
+      <div>
+        <h2>{{ editingId === null ? 'Create a category' : 'Edit category' }}</h2>
+        <p>{{ editingId === null ? 'Add a category to organize your products.' : 'Update the category name or product type.' }}</p>
       </div>
-
-      <form (ngSubmit)="saveCategory()" #categoryForm="ngForm">
-        <div class="form-group">
-          <label for="productType">Product Type</label>
-          <select id="productType" name="productType"
-                  [(ngModel)]="selectedProductType"
-                  (ngModelChange)="onProductTypeChange()" required>
-            <option *ngFor="let type of productTypes" [value]="type">
-              {{ getProductTypeLabel(type) }}
-            </option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="categoryName">Category Name</label>
-          <input id="categoryName" name="categoryName"
-                 type="text" [(ngModel)]="categoryName"
-                 maxlength="100" required
-                 placeholder="e.g. Pain Relief" />
-        </div>
-
-        <div class="form-actions">
-          <button class="primary-btn" type="submit" [disabled]="saving">
-            <i class="bi bi-check2-circle"></i>
-            {{ saving ? 'Saving...' : (editingId === null ? 'Add Category' : 'Update Category') }}
-          </button>
-          <button *ngIf="editingId !== null"
-                  class="secondary-btn" type="button" (click)="cancelEdit()">
-            Cancel
-          </button>
-        </div>
-      </form>
-
-      <p class="hint">
-        <i class="bi bi-info-circle"></i>
-        Category names must be unique within the same Product Type.
-      </p>
+      <button class="icon-button close-editor" type="button" aria-label="Close form" (click)="cancelEdit()"><i class="bi bi-x-lg"></i></button>
     </div>
 
-    <div class="category-card list-card">
-      <div class="list-header">
-        <div>
-          <h2>{{ getProductTypeLabel(selectedProductType) }} Categories</h2>
-          <p>{{ categories.length }} active categories</p>
-        </div>
-        <button type="button" class="refresh-btn"
-                (click)="loadCategories()" [disabled]="loading">
-          <i class="bi bi-arrow-clockwise"></i> Refresh
+    <form (ngSubmit)="saveCategory()" class="category-form">
+      <div class="field">
+        <label for="editorProductType">Product type <span>*</span></label>
+        <select id="editorProductType" name="editorProductType"
+                [(ngModel)]="selectedProductType" (ngModelChange)="onProductTypeChange()" required>
+          <option *ngFor="let type of productTypes" [value]="type">{{ getProductTypeLabel(type) }}</option>
+        </select>
+        <small>Categories are filtered by product type.</small>
+      </div>
+      <div class="field category-name-field">
+        <label for="categoryName">Category name <span>*</span></label>
+        <input id="categoryName" name="categoryName" type="text"
+               [(ngModel)]="categoryName" maxlength="100" required
+               placeholder="e.g. Pain Relief" autocomplete="off" />
+        <small>Use a clear name that staff can find quickly.</small>
+      </div>
+      <div class="editor-actions">
+        <button class="btn-primary" type="submit" [disabled]="saving">
+          <i class="bi" [ngClass]="saving ? 'bi-arrow-repeat spin' : 'bi-check2-circle'"></i>
+          {{ saving ? 'Saving...' : (editingId === null ? 'Create category' : 'Save changes') }}
         </button>
+        <button class="btn-secondary" type="button" (click)="cancelEdit()" [disabled]="saving">Cancel</button>
       </div>
+    </form>
+  </section>
 
-      <div *ngIf="successMessage" class="success-message">
-        <i class="bi bi-check-circle"></i> {{ successMessage }}
+  <section class="category-content">
+    <div class="content-heading">
+      <div>
+        <h2>Category directory</h2>
+        <p>Search, edit or archive categories for the selected product type.</p>
       </div>
-      <div *ngIf="errorMessage" class="error-message">
-        <i class="bi bi-exclamation-circle"></i> {{ errorMessage }}
-      </div>
+      <span class="result-count">{{ filteredCategories.length }} results</span>
+    </div>
 
-      <div *ngIf="loading" class="empty-state">
-        <i class="bi bi-arrow-repeat"></i>
-        <p>Loading categories...</p>
+    <div class="toolbar">
+      <div class="search-control">
+        <i class="bi bi-search"></i>
+        <input type="search" [(ngModel)]="searchTerm"
+               aria-label="Search categories"
+               placeholder="Search by category name or product type..." />
+        <button *ngIf="searchTerm" type="button" aria-label="Clear search" (click)="searchTerm = ''"><i class="bi bi-x-circle"></i></button>
       </div>
-
-      <div class="category-table-wrap" *ngIf="!loading">
-        <table>
-          <thead>
-            <tr>
-              <th>Category Name</th>
-              <th>Product Type</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let category of categories; trackBy: trackById">
-              <td><strong>{{ category.name }}</strong></td>
-              <td>
-                <span class="type-badge">
-                  {{ getProductTypeLabel(category.productType) }}
-                </span>
-              </td>
-              <td>
-                <div class="row-actions">
-                  <button type="button" title="Edit category"
-                          (click)="editCategory(category)">
-                    <i class="bi bi-pencil"></i>
-                  </button>
-                  <button type="button" class="archive-btn"
-                          title="Archive category"
-                          (click)="archiveCategory(category)">
-                    <i class="bi bi-archive"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-            <tr *ngIf="!errorMessage && categories.length === 0">
-              <td colspan="3" class="no-data">No active categories found.</td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="type-filter">
+        <label for="categoryTypeFilter">Product type</label>
+        <select id="categoryTypeFilter" [(ngModel)]="selectedProductType" (ngModelChange)="onProductTypeChange()">
+          <option *ngFor="let type of productTypes" [value]="type">{{ getProductTypeLabel(type) }}</option>
+        </select>
       </div>
     </div>
+
+    <div class="loading-panel" *ngIf="loading">
+      <i class="bi bi-arrow-repeat spin"></i>
+      <strong>Loading categories...</strong>
+      <span>Fetching the latest categories for this product type.</span>
+    </div>
+
+    <div class="table-wrap" *ngIf="!loading">
+      <table>
+        <thead>
+          <tr><th>Category</th><th>Product type</th><th>Status</th><th class="actions-heading">Actions</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let category of filteredCategories; trackBy: trackById">
+            <td>
+              <div class="category-name">
+                <span class="category-row-icon"><i class="bi bi-tag"></i></span>
+                <div><strong>{{ category.name }}</strong><small>Reusable catalogue category</small></div>
+              </div>
+            </td>
+            <td><span class="type-badge">{{ getProductTypeLabel(category.productType) }}</span></td>
+            <td><span class="active-badge"><span></span> Active</span></td>
+            <td>
+              <div class="row-actions">
+                <button type="button" class="row-action edit" title="Edit category" aria-label="Edit category" (click)="editCategory(category)">
+                  <i class="bi bi-pencil"></i><span>Edit</span>
+                </button>
+                <button type="button" class="row-action archive" title="Archive category" aria-label="Archive category" (click)="archiveCategory(category)">
+                  <i class="bi bi-archive"></i><span>Archive</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="!errorMessage && filteredCategories.length === 0">
+            <td colspan="4">
+              <div class="empty-state">
+                <span class="empty-icon"><i class="bi bi-tags"></i></span>
+                <h3>{{ searchTerm ? 'No matching categories' : 'No categories yet' }}</h3>
+                <p>{{ searchTerm ? 'Try a different keyword or clear the search.' : 'Create your first category to organize this product type.' }}</p>
+                <button *ngIf="!searchTerm" type="button" class="btn-primary" (click)="openAddCategory()"><i class="bi bi-plus-lg"></i> Create first category</button>
+                <button *ngIf="searchTerm" type="button" class="btn-secondary" (click)="searchTerm = ''">Clear search</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <footer class="table-footer" *ngIf="!loading">
+      <span>Showing <strong>{{ filteredCategories.length }}</strong> of <strong>{{ categories.length }}</strong> categories</span>
+      <span><i class="bi bi-shield-check"></i> Tenant-specific catalogue</span>
+    </footer>
   </section>
 </div>

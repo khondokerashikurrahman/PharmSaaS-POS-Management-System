@@ -21,6 +21,7 @@ export interface PurchaseOrderRequest {
   tax?: number;
   notes?: string;
   items: PurchaseOrderItemRequest[];
+  supplierId?: number;
 }
 
 export interface PurchaseOrderItemResponse {
@@ -54,6 +55,7 @@ export interface PurchaseOrderResponse {
   createdAt?: string;
   updatedAt?: string;
   items: PurchaseOrderItemResponse[];
+  supplierId?: number | null;
 }
 
 @Injectable({ providedIn: 'root' })

@@ -23,6 +23,8 @@ interface PosSaleItem {
   quantity: number;
   price: number;
   subtotal: number;
+  returnedQuantity: number;
+  remainingQuantity: number;
 }
 
 interface PosSale {
@@ -73,6 +75,7 @@ export class SalesHistoryComponent implements OnInit {
 
   private pendingRefundRequestKey: string | null = null;
   private pendingRefundSignature = '';
+  returnHistoryLoaded = false;
 
   constructor(private saleApiService: SaleApiService) {}
 
@@ -85,6 +88,7 @@ export class SalesHistoryComponent implements OnInit {
   // =========================
 
   loadSales(): void {
+    this.returnHistoryLoaded = false;
     let tenantId = Number(localStorage.getItem('tenantId'));
 
     if (!Number.isSafeInteger(tenantId) || tenantId <= 0) {
@@ -148,7 +152,9 @@ export class SalesHistoryComponent implements OnInit {
               batchNumber: item.batchNumber || 'N/A',
               quantity: Number(item.quantity || 0),
               price: Number(item.unitPrice || 0),
-              subtotal: Number(item.subtotal || 0)
+              subtotal: Number(item.subtotal || 0),
+              returnedQuantity: 0,
+              remainingQuantity: Number(item.quantity || 0)
             })),
             payment,
             subtotal: Number(sale.subtotal || 0),
@@ -159,6 +165,51 @@ export class SalesHistoryComponent implements OnInit {
             change: Number(sale.changeAmount || 0),
             status
           };
+        });
+
+        // Calculate the remaining returnable quantity from saved return records.
+        this.saleApiService.listReturns(tenantId).subscribe({
+          next: returns => {
+            const returnedBySaleBatch = new Map<string, number>();
+
+            for (const refund of returns || []) {
+              for (const item of refund.items || []) {
+                const key = `${refund.saleId}:${item.batchId}`;
+                returnedBySaleBatch.set(
+                  key,
+                  (returnedBySaleBatch.get(key) || 0) +
+                    Number(item.quantity || 0)
+                );
+              }
+            }
+
+            this.sales = this.sales.map(sale => ({
+              ...sale,
+              saleItems: sale.saleItems.map(item => {
+                const key = `${sale.id}:${item.batchId}`;
+                const sold = Math.max(Number(item.quantity || 0), 0);
+                const returned = Math.min(
+                  sold,
+                  returnedBySaleBatch.get(key) || 0
+                );
+
+                return {
+                  ...item,
+                  returnedQuantity: returned,
+                  remainingQuantity: Math.max(sold - returned, 0)
+                };
+              })
+            }));
+
+            this.returnHistoryLoaded = true;
+          },
+          error: error => {
+            console.error('Could not verify return history:', error);
+            this.returnHistoryLoaded = false;
+            alert(
+              'Return history could not be verified. Refresh Sales History before returning products.'
+            );
+          }
         });
       },
       error: error => {
@@ -339,6 +390,11 @@ export class SalesHistoryComponent implements OnInit {
   // =========================
 
   refundSale(sale: PosSale): void {
+    if (!this.returnHistoryLoaded) {
+      alert('Return history is loading or unavailable. Refresh Sales History and try again.');
+      return;
+    }
+
     if (sale.status === 'Refunded') {
       alert('This sale has already been fully refunded.');
       return;
