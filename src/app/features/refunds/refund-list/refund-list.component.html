@@ -1,0 +1,198 @@
+<div class="refund-page">
+  <div class="page-header">
+    <div>
+      <h2>Refund Management</h2>
+      <p>Review, create and process customer refunds.</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-light" type="button" (click)="refresh()" [disabled]="loading">
+        <i class="bi bi-arrow-clockwise"></i> Refresh
+      </button>
+      <button class="btn btn-primary" type="button" (click)="openCreateForm()">
+        <i class="bi bi-plus-lg"></i> Create Refund
+      </button>
+    </div>
+  </div>
+
+  <div class="alert alert-success" *ngIf="successMessage">{{ successMessage }}</div>
+  <div class="alert alert-danger" *ngIf="loadError">{{ loadError }}</div>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <span>Pending Refunds</span>
+      <strong>{{ pendingCount }}</strong>
+      <small>৳ {{ formatAmount(totalPendingAmount) }} awaiting processing</small>
+    </div>
+    <div class="summary-card">
+      <span>Completed</span>
+      <strong>{{ completedCount }}</strong>
+      <small>Recorded as completed</small>
+    </div>
+    <div class="summary-card">
+      <span>Failed</span>
+      <strong>{{ failedCount }}</strong>
+      <small>Require review</small>
+    </div>
+  </div>
+
+  <section class="form-card" *ngIf="showCreateForm">
+    <div class="section-heading">
+      <div>
+        <h3>Create Refund</h3>
+        <p>Select a previously recorded sale return.</p>
+      </div>
+      <button type="button" class="close-btn" (click)="closeCreateForm()">×</button>
+    </div>
+
+    <form (ngSubmit)="createRefund()">
+      <div class="form-grid">
+        <label>
+          Sale Return
+          <select
+            name="returnId"
+            [(ngModel)]="selectedReturnId"
+            (ngModelChange)="onReturnSelected()"
+            required>
+            <option [ngValue]="null">Select sale return</option>
+            <option *ngFor="let item of returns" [ngValue]="item.id">
+              {{ item.refundNumber }} · {{ item.invoiceNumber }} · {{ item.customerName }}
+            </option>
+          </select>
+        </label>
+
+        <label>
+          Refund Amount (৳)
+          <input
+            type="number"
+            name="amount"
+            [(ngModel)]="amount"
+            min="0.01"
+            step="0.01"
+            required>
+        </label>
+
+        <label>
+          Payment Method
+          <select name="paymentMethod" [(ngModel)]="paymentMethod" required>
+            <option value="CASH">Cash</option>
+            <option value="CARD">Card</option>
+            <option value="MOBILE_BANKING">Mobile Banking</option>
+            <option value="BANK_TRANSFER">Bank Transfer</option>
+          </select>
+        </label>
+
+        <label>
+          Transaction Reference
+          <input
+            type="text"
+            name="transactionReference"
+            [(ngModel)]="transactionReference"
+            maxlength="150"
+            placeholder="Optional at creation">
+        </label>
+
+        <label class="full-width">
+          Notes
+          <textarea
+            name="notes"
+            [(ngModel)]="notes"
+            maxlength="1000"
+            rows="2"
+            placeholder="Optional notes"></textarea>
+        </label>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-light" (click)="closeCreateForm()">Cancel</button>
+        <button type="submit" class="btn btn-primary" [disabled]="saving">
+          {{ saving ? 'Creating...' : 'Create Refund' }}
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <section class="table-card">
+    <div class="table-toolbar">
+      <div>
+        <h3>Refund Records</h3>
+        <p>Refunds are recorded against sale returns.</p>
+      </div>
+      <div class="filters">
+        <input
+          type="search"
+          [(ngModel)]="searchTerm"
+          placeholder="Search refund / return..."
+          aria-label="Search refunds">
+        <select [(ngModel)]="selectedStatus" aria-label="Filter refund status">
+          <option value="ALL">All Status</option>
+          <option value="PENDING">Pending</option>
+          <option value="COMPLETED">Completed</option>
+          <option value="FAILED">Failed</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="loading-state" *ngIf="loading">Loading refund records...</div>
+
+    <div class="table-responsive" *ngIf="!loading">
+      <table>
+        <thead>
+          <tr>
+            <th>Refund No.</th>
+            <th>Return ID</th>
+            <th>Amount</th>
+            <th>Payment Method</th>
+            <th>Transaction Ref.</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Processed</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let refund of filteredRefunds">
+            <td class="reference">{{ refund.refundNumber }}</td>
+            <td>#{{ refund.saleReturnId }}</td>
+            <td class="amount">৳ {{ formatAmount(refund.amount) }}</td>
+            <td>{{ refund.paymentMethod.replace('_', ' ') }}</td>
+            <td>{{ refund.transactionReference || '—' }}</td>
+            <td>
+              <span class="status" [ngClass]="statusClass(refund.status)">
+                {{ refund.status }}
+              </span>
+            </td>
+            <td>{{ formatDate(refund.createdAt) }}</td>
+            <td>{{ formatDate(refund.processedAt) }}</td>
+            <td>
+              <div class="action-buttons" *ngIf="refund.status === 'PENDING'">
+                <button
+                  type="button"
+                  class="btn btn-complete"
+                  (click)="completeRefund(refund)"
+                  [disabled]="saving">
+                  Complete
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-fail"
+                  (click)="failRefund(refund)"
+                  [disabled]="saving">
+                  Fail
+                </button>
+              </div>
+              <span class="muted" *ngIf="refund.status !== 'PENDING'">No actions</span>
+            </td>
+          </tr>
+          <tr *ngIf="filteredRefunds.length === 0">
+            <td colspan="9" class="empty-state">No refund records found.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <p class="disclaimer">
+    Completing a refund records its status in PharmSaaS. It does not initiate an actual
+    bank, card or mobile payment transfer.
+  </p>
+</div>

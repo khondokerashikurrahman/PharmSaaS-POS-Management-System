@@ -19,7 +19,17 @@ import {
 })
 export class PublicLayoutComponent {
 
+  isMobileMenuOpen = false;
+
   constructor(private router: Router) {}
+
+  toggleMobileMenu(): void {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
+
+  closeMobileMenu(): void {
+    this.isMobileMenuOpen = false;
+  }
 
   goToFeatures(): void {
 

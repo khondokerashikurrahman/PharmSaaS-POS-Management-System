@@ -2,13 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { SalesmanApiService, SalesmanRequest } from '../../../core/services/salesman-api.service';
 
-interface Salesman {
+interface SalesmanForm {
   id: string;
   name: string;
   phone: string;
   email: string;
-  company: string;
+  address: string;
   territory: string;
   commission: number;
   status: 'Active' | 'Inactive';
@@ -22,29 +23,22 @@ interface Salesman {
   styleUrl: './sales-man-form.component.scss'
 })
 export class SalesManFormComponent implements OnInit {
-
   isEditMode = false;
   salesmanId = '';
+  loading = false;
+  saving = false;
+  errorMessage = '';
 
-  salesman: Salesman = {
+  salesman: SalesmanForm = {
     id: '',
     name: '',
     phone: '',
     email: '',
-    company: '',
+    address: '',
     territory: '',
-    commission: 3,
+    commission: 0,
     status: 'Active'
   };
-
-  companies: string[] = [
-    'Square Pharmaceuticals Ltd.',
-    'Beximco Pharmaceuticals Ltd.',
-    'Renata Limited',
-    'ACME Laboratories Ltd.',
-    'Incepta Pharmaceuticals Ltd.',
-    'Aristopharma Ltd.'
-  ];
 
   territories: string[] = [
     'Dhaka North',
@@ -59,7 +53,8 @@ export class SalesManFormComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private salesmanApi: SalesmanApiService
   ) {}
 
   ngOnInit(): void {
@@ -69,138 +64,98 @@ export class SalesManFormComponent implements OnInit {
     if (this.isEditMode) {
       this.loadSalesman();
     } else {
-      this.salesman.id = this.generateSalesmanId();
+      this.salesman.id = 'SM-' + Date.now().toString().slice(-6);
     }
-  }
-
-  generateSalesmanId(): string {
-    return 'SM-' + String(Date.now()).slice(-3);
   }
 
   loadSalesman(): void {
-
-    const demoSalesmen: Record<string, Salesman> = {
-
-      'SM-001': {
-        id: 'SM-001',
-        name: 'Rahim Ahmed',
-        phone: '+880 1712-345678',
-        email: 'rahim@pharmsaas.com',
-        company: 'Square Pharmaceuticals Ltd.',
-        territory: 'Dhaka North',
-        commission: 3.5,
-        status: 'Active'
-      },
-
-      'SM-002': {
-        id: 'SM-002',
-        name: 'Karim Hasan',
-        phone: '+880 1812-456789',
-        email: 'karim@pharmsaas.com',
-        company: 'Beximco Pharmaceuticals Ltd.',
-        territory: 'Dhaka South',
-        commission: 4,
-        status: 'Active'
-      },
-
-      'SM-003': {
-        id: 'SM-003',
-        name: 'Sakib Khan',
-        phone: '+880 1912-567890',
-        email: 'sakib@pharmsaas.com',
-        company: 'Renata Limited',
-        territory: 'Mirpur',
-        commission: 3,
-        status: 'Active'
-      },
-
-      'SM-004': {
-        id: 'SM-004',
-        name: 'Tanvir Hasan',
-        phone: '+880 1612-678901',
-        email: 'tanvir@pharmsaas.com',
-        company: 'ACME Laboratories Ltd.',
-        territory: 'Uttara',
-        commission: 3.5,
-        status: 'Inactive'
-      },
-
-      'SM-005': {
-        id: 'SM-005',
-        name: 'Nayeem Islam',
-        phone: '+880 1512-789012',
-        email: 'nayeem@pharmsaas.com',
-        company: 'Incepta Pharmaceuticals Ltd.',
-        territory: 'Gulshan',
-        commission: 4,
-        status: 'Active'
-      },
-
-      'SM-006': {
-        id: 'SM-006',
-        name: 'Fahim Rahman',
-        phone: '+880 1812-890123',
-        email: 'fahim@pharmsaas.com',
-        company: 'Aristopharma Ltd.',
-        territory: 'Mohammadpur',
-        commission: 3,
-        status: 'Inactive'
-      }
-    };
-
-    const existingSalesman = demoSalesmen[this.salesmanId];
-
-    if (existingSalesman) {
-      this.salesman = { ...existingSalesman };
-    } else {
-      alert('Salesman not found.');
-      this.goBack();
+    const id = Number(this.salesmanId);
+    if (!Number.isInteger(id) || id <= 0) {
+      this.errorMessage = 'Invalid salesman ID.';
+      return;
     }
+
+    this.loading = true;
+    this.salesmanApi.get(id).subscribe({
+      next: (item) => {
+        this.salesman = {
+          id: item.employeeId,
+          name: item.name || '',
+          phone: item.phone || '',
+          email: item.email || '',
+          address: item.address || '',
+          territory: item.territory || '',
+          commission: Number(item.commissionRate || 0),
+          status: item.status
+        };
+        this.loading = false;
+      },
+      error: (error) => {
+        this.errorMessage = error?.error?.message ||
+          error?.error?.detail ||
+          'Unable to load salesman details.';
+        this.loading = false;
+      }
+    });
   }
 
   saveSalesman(): void {
+    this.errorMessage = '';
 
     if (!this.salesman.name.trim()) {
-      alert('Please enter salesman name.');
+      this.errorMessage = 'Please enter salesman name.';
+      return;
+    }
+
+    if (!this.salesman.id.trim()) {
+      this.errorMessage = 'Please enter salesman employee ID.';
       return;
     }
 
     if (!this.salesman.phone.trim()) {
-      alert('Please enter phone number.');
-      return;
-    }
-
-    if (!this.salesman.email.trim()) {
-      alert('Please enter email address.');
-      return;
-    }
-
-    if (!this.salesman.company) {
-      alert('Please select company.');
-      return;
-    }
-
-    if (!this.salesman.territory) {
-      alert('Please select territory.');
+      this.errorMessage = 'Please enter phone number.';
       return;
     }
 
     if (
-      this.salesman.commission === null ||
-      this.salesman.commission === undefined ||
-      this.salesman.commission < 0
+      !Number.isFinite(this.salesman.commission) ||
+      this.salesman.commission < 0 ||
+      this.salesman.commission > 100 ||
+      !Number.isInteger(this.salesman.commission * 100)
     ) {
-      alert('Please enter a valid commission.');
+      this.errorMessage = 'Commission must be between 0 and 100, up to two decimal places.';
       return;
     }
 
-    if (this.isEditMode) {
-      alert('Salesman updated successfully.');
-    } else {
-      alert('Salesman added successfully.');
-    }
+    const request: SalesmanRequest = {
+      employeeId: this.salesman.id.trim(),
+      name: this.salesman.name.trim(),
+      phone: this.salesman.phone.trim(),
+      email: this.salesman.email.trim(),
+      address: this.salesman.address.trim(),
+      territory: this.salesman.territory.trim(),
+      commissionRate: Number(this.salesman.commission),
+      status: this.salesman.status
+    };
 
-    this.router.navigate(['/app/inventory/salesmen']);
+    this.saving = true;
+
+    const operation = this.isEditMode
+      ? this.salesmanApi.update(Number(this.salesmanId), request)
+      : this.salesmanApi.create(request);
+
+    operation.subscribe({
+      next: () => {
+        this.saving = false;
+        this.router.navigate(['/app/inventory/salesmen']);
+      },
+      error: (error) => {
+        this.saving = false;
+        this.errorMessage = error?.error?.message ||
+          error?.error?.detail ||
+          'Unable to save salesman. Please check the information and try again.';
+      }
+    });
   }
 
   cancel(): void {

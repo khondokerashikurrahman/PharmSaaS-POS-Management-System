@@ -60,7 +60,7 @@
           </div>
 
           <a
-            routerLink="/register"
+            routerLink="/register" [queryParams]="{ plan: 'Basic' }"
             class="plan-button secondary-button"
           >
             Get Started
@@ -134,6 +134,7 @@
 
           <a
             routerLink="/register"
+            [queryParams]="{ plan: 'Standard' }"
             class="plan-button primary-button"
           >
             Get Started
@@ -203,6 +204,7 @@
 
           <a
             routerLink="/register"
+            [queryParams]="{ plan: 'Premium' }"
             class="plan-button secondary-button"
           >
             Get Started

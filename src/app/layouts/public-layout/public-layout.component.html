@@ -6,7 +6,7 @@
     <div class="navbar-container">
 
       <!-- LOGO -->
-      <a routerLink="/" class="brand">
+      <a (click)="closeMobileMenu()" routerLink="/" class="brand">
         <div class="brand-icon">
           <i class="bi bi-capsule"></i>
         </div>
@@ -17,29 +17,51 @@
         </div>
       </a>
 
+      <button
+        type="button"
+        class="mobile-menu-toggle"
+        aria-label="Toggle navigation menu"
+        [attr.aria-expanded]="isMobileMenuOpen"
+        (click)="toggleMobileMenu()">
+        <i [class]="isMobileMenuOpen ? 'bi bi-x-lg' : 'bi bi-list'"></i>
+      </button>
+
       <!-- NAVIGATION -->
-      <nav class="nav-menu">
+      <nav class="nav-menu" [class.mobile-open]="isMobileMenuOpen">
 
         <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
           Home
         </a>
 
         <!-- Features → Landing page section -->
-        <a routerLink="/features" routerLinkActive="active">
+        <a (click)="closeMobileMenu()" routerLink="/features" routerLinkActive="active">
           Features
         </a>
 
-        <a routerLink="/pricing" routerLinkActive="active">
+        <a (click)="closeMobileMenu()" routerLink="/why-pharmsaas" routerLinkActive="active">
+          Why PharmSaaS
+        </a>
+
+        <a (click)="closeMobileMenu()" routerLink="/pricing" routerLinkActive="active">
           Pricing
         </a>
 
-        <a routerLink="/about" routerLinkActive="active">
+        <a (click)="closeMobileMenu()" routerLink="/about" routerLinkActive="active">
           About
         </a>
 
-        <a routerLink="/contact" routerLinkActive="active">
+        <a (click)="closeMobileMenu()" routerLink="/contact" routerLinkActive="active">
           Contact
         </a>
+
+        <div class="mobile-nav-actions">
+          <a routerLink="/login" (click)="closeMobileMenu()" class="login-btn">
+            Login
+          </a>
+          <a routerLink="/register" (click)="closeMobileMenu()" class="get-started-btn">
+            Get Started
+          </a>
+        </div>
 
       </nav>
 
@@ -112,6 +134,10 @@
         Features
       </a>
 
+      <a routerLink="/why-pharmsaas" routerLinkActive="active">
+        Why PharmSaaS
+      </a>
+
       <a routerLink="/pricing" routerLinkActive="active">
         Pricing Plans
       </a>
@@ -168,7 +194,7 @@
         Pricing
       </a>
 
-      <a href="#contact">
+      <a routerLink="/contact">
         Contact
       </a>
 
@@ -207,12 +233,12 @@
 
     <div class="footer-bottom-links">
 
-      <a href="#">
-        Privacy Policy
+      <a routerLink="/about">
+        About PharmSaaS
       </a>
 
-      <a href="#">
-        Terms & Conditions
+      <a routerLink="/contact">
+        Contact & Support
       </a>
 
     </div>

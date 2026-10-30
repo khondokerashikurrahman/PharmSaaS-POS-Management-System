@@ -2,81 +2,115 @@
 
   <div class="success-card">
 
-    <!-- SUCCESS ICON -->
     <div class="success-icon">
-      <i class="bi bi-check-lg"></i>
+      <i
+        class="bi"
+        [ngClass]="payment?.registrationCompleted ? 'bi-check-lg' : 'bi-shield-check'"
+      ></i>
     </div>
 
-    <!-- CONTENT -->
     <span class="success-badge">
-      Payment Successful
+      {{ payment?.registrationCompleted ? 'Payment Verified' :
+         payment?.status === 'REVIEW_REQUIRED' ? 'Under Review' :
+         loading ? 'Verifying Payment' : 'Payment Status' }}
     </span>
 
     <h1>
-      Your Subscription Is Active!
+      {{ payment?.registrationCompleted
+          ? 'Registration Submitted!'
+          : payment?.status === 'REVIEW_REQUIRED'
+            ? 'Payment Under Review'
+            : loading
+              ? 'Please Wait'
+              : 'Payment Update' }}
     </h1>
 
-    <p class="success-message">
-      Congratulations! Your PharmSaaS subscription has been
-      successfully created. You can now sign in and start
-      managing your pharmacy.
-    </p>
+    <p class="success-message">{{ message }}</p>
 
-    <!-- ORDER INFO -->
-    <div class="subscription-info">
+    <div class="subscription-info" *ngIf="payment">
 
       <div class="info-item">
         <span>Plan</span>
-        <strong>Standard</strong>
+        <strong>{{ payment.planName || 'Subscription' }}</strong>
       </div>
 
       <div class="info-item">
-        <span>Billing</span>
-        <strong>৳1,999 / month</strong>
+        <span>Amount</span>
+        <strong>
+          {{ payment.currency }} {{ payment.amount | number:'1.2-2' }}
+        </strong>
       </div>
 
       <div class="info-item">
-        <span>Status</span>
-        <strong class="active-status">
-          <i class="bi bi-check-circle-fill"></i>
-          Active
+        <span>Payment Status</span>
+        <strong>{{ payment.status }}</strong>
+      </div>
+
+      <div class="info-item">
+        <span>Registration</span>
+        <strong>
+          {{ payment.registrationCompleted ? 'Submitted - Pending Approval' : 'Not Completed' }}
         </strong>
       </div>
 
     </div>
 
-    <!-- NEXT STEP -->
-    <div class="next-step">
-
+    <div class="next-step" *ngIf="payment?.registrationCompleted">
       <div class="step-icon">
         <i class="bi bi-shield-check"></i>
       </div>
-
       <div>
         <strong>What's next?</strong>
-
         <p>
-          Sign in to your account and start using
-          PharmSaaS pharmacy management tools.
+          Your payment has been verified and your pharmacy registration
+          has been submitted. The administrator must approve your pharmacy
+          before you can start using the system.
         </p>
       </div>
-
     </div>
 
-    <!-- ACTION -->
+    <div class="next-step" *ngIf="payment?.status === 'REVIEW_REQUIRED'">
+      <div class="step-icon">
+        <i class="bi bi-clock-history"></i>
+      </div>
+      <div>
+        <strong>Additional review required</strong>
+        <p>
+          Your payment has been received but requires manual review.
+          Your pharmacy account has not been activated.
+        </p>
+      </div>
+    </div>
+
+    <div class="next-step" *ngIf="loading">
+      <div class="step-icon">
+        <i class="bi bi-arrow-repeat"></i>
+      </div>
+      <div>
+        <strong>Verification in progress</strong>
+        <p>Please keep this page open while we check the payment status.</p>
+      </div>
+    </div>
+
     <a
+      *ngIf="payment?.registrationCompleted"
       routerLink="/login"
-      class="login-btn">
+      class="login-btn"
+    >
       Continue to Login
       <i class="bi bi-arrow-right"></i>
     </a>
 
     <a
+      *ngIf="!payment?.registrationCompleted"
       routerLink="/"
-      class="back-home">
+      class="login-btn"
+    >
       Back to Homepage
+      <i class="bi bi-arrow-right"></i>
     </a>
 
-  </div>
+    <a routerLink="/" class="back-home">Back to Homepage</a>
 
+  </div>
 </div>

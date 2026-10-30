@@ -145,32 +145,19 @@
 
       <div class="form-grid">
 
-        <!-- COMPANY -->
+        <!-- ADDRESS -->
         <div class="form-group">
-          <label>
-            Pharmaceutical Company
-            <span>*</span>
-          </label>
-
+          <label>Address</label>
           <div class="input-wrapper">
-            <i class="bi bi-building"></i>
-
-            <select
-              name="company"
-              [(ngModel)]="salesman.company"
-            >
-              <option value="">Select company</option>
-
-              <option
-                *ngFor="let company of companies"
-                [value]="company"
-              >
-                {{ company }}
-              </option>
-            </select>
+            <i class="bi bi-geo-alt"></i>
+            <input
+              type="text"
+              name="address"
+              [(ngModel)]="salesman.address"
+              placeholder="Enter address"
+            />
           </div>
         </div>
-
 
         <!-- TERRITORY -->
         <div class="form-group">

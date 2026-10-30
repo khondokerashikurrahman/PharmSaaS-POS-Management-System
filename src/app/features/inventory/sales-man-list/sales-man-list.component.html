@@ -129,17 +129,9 @@
       </div>
 
       <div class="card-content">
-
-        <span>Total Sales</span>
-
-        <strong>
-          ৳{{ totalSales | number:'1.0-0' }}
-        </strong>
-
-        <small>
-          Representative sales
-        </small>
-
+        <span>Sales Volume</span>
+        <strong>—</strong>
+        <small>Sales report integration pending</small>
       </div>
 
     </div>
@@ -243,9 +235,7 @@
 
         <tbody>
 
-          <tr
-            *ngFor="let salesman of filteredSalesmen"
-          >
+          <tr *ngFor="let salesman of filteredSalesmen">
 
             <!-- SALESMAN -->
 
@@ -264,7 +254,7 @@
                   </strong>
 
                   <span>
-                    {{ salesman.id }}
+                    {{ salesman.employeeId }}
                   </span>
 
                 </div>
@@ -278,9 +268,7 @@
 
             <td>
 
-              <span class="company">
-                {{ salesman.company }}
-              </span>
+              <span class="company">—</span>
 
             </td>
 
@@ -316,7 +304,7 @@
             <td>
 
               <span class="commission">
-                {{ salesman.commission }}%
+                {{ salesman.commissionRate }}%
               </span>
 
             </td>
@@ -326,9 +314,7 @@
 
             <td>
 
-              <strong class="sales-value">
-                ৳{{ salesman.totalSales | number:'1.0-0' }}
-              </strong>
+              <strong class="sales-value">—</strong>
 
             </td>
 
@@ -393,6 +379,10 @@
 
           </tr>
 
+
+          <tr *ngIf="loading"><td colspan="8" class="empty-state">Loading salesmen...</td></tr>
+
+          <tr *ngIf="errorMessage"><td colspan="8" class="empty-state">{{ errorMessage }}</td></tr>
 
           <!-- EMPTY STATE -->
 

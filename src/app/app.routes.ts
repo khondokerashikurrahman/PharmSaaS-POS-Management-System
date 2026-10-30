@@ -26,8 +26,14 @@ export const routes: Routes = [
       {
         path: 'features',
         loadComponent: () =>
-          import('./features/public/pages/landing/landing.component')
-            .then(m => m.LandingComponent)
+          import('./features/public/pages/features/features.component')
+            .then(m => m.FeaturesComponent)
+      },
+      {
+        path: 'why-pharmsaas',
+        loadComponent: () =>
+          import('./features/public/pages/why-pharmsaas/why-pharmsaas.component')
+            .then(m => m.WhyPharmSaaSComponent)
       },
       {
         path: 'pricing',
@@ -281,6 +287,14 @@ export const routes: Routes = [
       // =====================================================
       // INVENTORY - STOCK
       // =====================================================
+      {
+        path: 'refunds',
+        data: { roles: ['TENANT_ADMIN', 'MANAGER'] },
+        canActivate: [roleGuard],
+        loadComponent: () =>
+          import('./features/refunds/refund-list/refund-list.component')
+            .then(m => m.RefundListComponent)
+      },
       {
         path: 'inventory/returned-stock',
         data: { roles: ['TENANT_ADMIN', 'MANAGER', 'STORE_KEEPER'] },

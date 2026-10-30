@@ -158,6 +158,11 @@ export class PermissionService {
       return managers.includes(role);
     }
 
+    // REFUNDS: only tenant owner, pharmacy admin and manager.
+    if (this.within(path, '/app/refunds')) {
+      return managers.includes(role);
+    }
+
     // POS: Cashier has POS access, Store Keeper does not.
     if (this.within(path, '/app/pos')) {
       return [
@@ -315,6 +320,7 @@ export class PermissionService {
       const viewPaths: Record<string, string> = {
         DASHBOARD: '/app/dashboard',
         POS: '/app/pos',
+        REFUNDS: '/app/refunds',
         MEDICINES: '/app/inventory/medicines',
         PRODUCTS: '/app/inventory/products',
         CATEGORIES: '/app/inventory/categories',
@@ -384,6 +390,9 @@ export class PermissionService {
         if (action === 'DELETE') {
           return admins.includes(role);
         }
+        return managers.includes(role);
+
+      case 'REFUNDS':
         return managers.includes(role);
 
       case 'POS':

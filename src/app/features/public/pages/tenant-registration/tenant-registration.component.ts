@@ -1,17 +1,26 @@
-
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { environment } from '../../../../../environments/environment';
 
 interface RegistrationResponse {
-  tenantId: number;
-  tenantCode: string;
-  ownerUserId: number;
+  registrationReference: string;
   pharmacyName: string;
-  email: string;
+  planCode: string;
+  planName: string;
+  amount: number;
+  currency: string;
+  durationDays: number;
+  status: string;
+  expiresAt: string;
+  message: string;
+}
+
+interface EmailVerificationResponse {
+  success: boolean;
+  emailVerified: boolean;
   status: string;
   message: string;
 }
@@ -23,11 +32,15 @@ interface RegistrationResponse {
   templateUrl: './tenant-registration.component.html',
   styleUrl: './tenant-registration.component.scss'
 })
-export class TenantRegistrationComponent {
+export class TenantRegistrationComponent implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   selectedPlan = 'Standard';
+  registrationReference = '';
+  otp = '';
+  otpStep = false;
 
   pharmacyName = '';
   ownerName = '';
@@ -39,8 +52,23 @@ export class TenantRegistrationComponent {
   termsAccepted = false;
 
   loading = false;
+  sendingOtp = false;
+  verifyingOtp = false;
   errorMessage = '';
   successMessage = '';
+
+  ngOnInit(): void {
+    this.route.queryParamMap.subscribe(params => {
+      const plan = (params.get('plan') || 'Standard').toLowerCase();
+      const plans: Record<string, string> = {
+        basic: 'Basic',
+        standard: 'Standard',
+        premium: 'Premium'
+      };
+
+      this.selectedPlan = plans[plan] || 'Standard';
+    });
+  }
 
   register(): void {
     this.errorMessage = '';
@@ -79,48 +107,123 @@ export class TenantRegistrationComponent {
       phone: this.phone.trim(),
       email: this.email.trim().toLowerCase(),
       address: this.address.trim(),
-      password: this.password
+      password: this.password,
+      planCode: this.selectedPlan.toUpperCase()
     };
 
-    this.http
-      .post<RegistrationResponse>(
-        `${environment.apiUrl}/public/registration`,
-        payload
-      )
-      .subscribe({
-        next: (response) => {
-          this.loading = false;
+    this.http.post<RegistrationResponse>(
+      `${environment.apiUrl}/public/subscription/registration`,
+      payload
+    ).subscribe({
+      next: response => {
+        this.registrationReference = response.registrationReference;
+        this.sendVerificationCode();
+      },
+      error: (error: HttpErrorResponse) => {
+        this.loading = false;
+        this.errorMessage = this.getErrorMessage(
+          error,
+          'Registration failed. Please try again.'
+        );
+      }
+    });
+  }
+
+  private sendVerificationCode(): void {
+    this.sendingOtp = true;
+    this.errorMessage = '';
+
+    this.http.post<EmailVerificationResponse>(
+      `${environment.apiUrl}/public/subscription/registration/${encodeURIComponent(this.registrationReference)}/send-verification`,
+      {}
+    ).subscribe({
+      next: response => {
+        this.loading = false;
+        this.sendingOtp = false;
+
+        if (response.success && !response.emailVerified) {
+          this.otpStep = true;
           this.successMessage = response.message;
-
-          // Pass the newly created tenant to the checkout page.
-          void this.router.navigate(['/checkout'], {
-            queryParams: {
-              tenantId: response.tenantId,
-              plan: this.selectedPlan
-            }
-          });
-        },
-        error: (error: HttpErrorResponse) => {
-          this.loading = false;
-
-          if (error.status === 409) {
-            this.errorMessage =
-              'This email is already registered. Please log in instead.';
-          } else if (error.status === 400) {
-            this.errorMessage =
-              error.error?.detail ||
-              error.error?.message ||
-              'Please check your registration details.';
-          } else if (error.status === 0) {
-            this.errorMessage =
-              'Cannot connect to the backend. Please check the server.';
-          } else {
-            this.errorMessage =
-              error.error?.detail ||
-              error.error?.message ||
-              'Registration failed. Please try again.';
-          }
+        } else if (response.emailVerified) {
+          this.goToCheckout();
+        } else {
+          this.errorMessage = response.message;
         }
-      });
+      },
+      error: (error: HttpErrorResponse) => {
+        this.loading = false;
+        this.sendingOtp = false;
+        this.errorMessage = this.getErrorMessage(
+          error,
+          'Could not send the verification code.'
+        );
+      }
+    });
+  }
+
+  verifyEmail(): void {
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    if (!/^[0-9]{6}$/.test(this.otp)) {
+      this.errorMessage = 'Please enter the 6-digit verification code.';
+      return;
+    }
+
+    this.verifyingOtp = true;
+
+    this.http.post<EmailVerificationResponse>(
+      `${environment.apiUrl}/public/subscription/registration/${encodeURIComponent(this.registrationReference)}/verify-email`,
+      { otp: this.otp }
+    ).subscribe({
+      next: response => {
+        this.verifyingOtp = false;
+
+        if (response.success && response.emailVerified) {
+          this.successMessage = response.message;
+          this.goToCheckout();
+        } else {
+          this.errorMessage = response.message;
+        }
+      },
+      error: (error: HttpErrorResponse) => {
+        this.verifyingOtp = false;
+        this.errorMessage = this.getErrorMessage(
+          error,
+          'Email verification failed. Please try again.'
+        );
+      }
+    });
+  }
+
+  resendOtp(): void {
+    if (!this.registrationReference || this.sendingOtp || this.verifyingOtp) {
+      return;
+    }
+
+    this.sendVerificationCode();
+  }
+
+  private goToCheckout(): void {
+    void this.router.navigate(['/checkout'], {
+      queryParams: {
+        registrationReference: this.registrationReference,
+        plan: this.selectedPlan
+      }
+    });
+  }
+
+  private getErrorMessage(
+    error: HttpErrorResponse,
+    fallback: string
+  ): string {
+    if (error.status === 0) {
+      return 'Cannot connect to the backend. Please check the server.';
+    }
+
+    return error.error?.detail ||
+      error.error?.message ||
+      error.error?.title ||
+      fallback;
   }
 }
