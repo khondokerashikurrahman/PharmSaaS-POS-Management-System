@@ -68,12 +68,12 @@
           <button
             type="button"
             class="pay-button"
-            [disabled]="loading || !registrationReference"
+            [disabled]="loading || loadingPlan || !registrationReference || !selectedPlan"
             (click)="startPayment()"
           >
             <ng-container *ngIf="!loading; else loadingTemplate">
               Continue to Secure Payment
-              <span>৳{{ monthlyPrice | number }} / month</span>
+              <span>{{ currency === 'BDT' ? '৳' : currency }}{{ monthlyPrice | number }} / month</span>
               <i class="bi bi-arrow-right"></i>
             </ng-container>
 
@@ -94,7 +94,7 @@
 
           <div class="summary-header">
             <h2>Order Summary</h2>
-            <span class="summary-status">Monthly</span>
+            <span class="summary-status">{{ durationDays }} days</span>
           </div>
 
           <div class="selected-plan">
@@ -103,7 +103,7 @@
             </div>
             <div>
               <span>Selected Plan</span>
-              <h3>{{ selectedPlan }}</h3>
+              <h3>{{ selectedPlan || 'Loading plan...' }}</h3>
             </div>
           </div>
 
@@ -121,7 +121,7 @@
           <div class="price-breakdown">
             <div>
               <span>Plan Price</span>
-              <strong>৳{{ monthlyPrice | number }}</strong>
+              <strong>{{ currency === 'BDT' ? '৳' : currency }}{{ monthlyPrice | number }}</strong>
             </div>
 
             <div>
@@ -137,8 +137,8 @@
             <div class="total">
               <span>Total</span>
               <strong>
-                ৳{{ monthlyPrice | number }}
-                <small>/ month</small>
+                {{ currency === 'BDT' ? '৳' : currency }}{{ monthlyPrice | number }}
+                <small>/ {{ durationDays }} days</small>
               </strong>
             </div>
           </div>

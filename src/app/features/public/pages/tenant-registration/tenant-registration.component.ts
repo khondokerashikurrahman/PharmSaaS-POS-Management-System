@@ -5,6 +5,16 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { environment } from '../../../../../environments/environment';
 
+interface SubscriptionPlan {
+  id: number;
+  code: string;
+  name: string;
+  description: string;
+  price: number;
+  currency: string;
+  durationDays: number;
+}
+
 interface RegistrationResponse {
   registrationReference: string;
   pharmacyName: string;
@@ -37,7 +47,10 @@ export class TenantRegistrationComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
-  selectedPlan = 'Standard';
+  plans: SubscriptionPlan[] = [];
+  selectedPlan = '';
+  loadingPlans = false;
+  planError = '';
   registrationReference = '';
   otp = '';
   otpStep = false;
@@ -58,21 +71,72 @@ export class TenantRegistrationComponent implements OnInit {
   successMessage = '';
 
   ngOnInit(): void {
-    this.route.queryParamMap.subscribe(params => {
-      const plan = (params.get('plan') || 'Standard').toLowerCase();
-      const plans: Record<string, string> = {
-        basic: 'Basic',
-        standard: 'Standard',
-        premium: 'Premium'
-      };
+    let requestedPlan = '';
 
-      this.selectedPlan = plans[plan] || 'Standard';
+    this.route.queryParamMap.subscribe(params => {
+      requestedPlan = (params.get('plan') || '').trim().toUpperCase();
+      if (this.plans.length) {
+        this.applyRequestedPlan(requestedPlan);
+      }
     });
+
+    this.loadingPlans = true;
+
+    this.http.get<SubscriptionPlan[]>(
+      `${environment.apiUrl}/public/subscription-plans`
+    ).subscribe({
+      next: plans => {
+        this.plans = plans || [];
+        this.loadingPlans = false;
+        this.applyRequestedPlan(requestedPlan);
+
+        if (!this.plans.length) {
+          this.planError = 'No subscription plans are currently available.';
+        }
+      },
+      error: () => {
+        this.loadingPlans = false;
+        this.planError = 'Could not load subscription plans. Please refresh the page.';
+      }
+    });
+  }
+
+  private applyRequestedPlan(code: string): void {
+    if (!code) {
+      return;
+    }
+
+    const matchingPlan = this.plans.find(
+      plan => plan.code.toUpperCase() === code
+    );
+
+    if (matchingPlan) {
+      this.selectedPlan = matchingPlan.code;
+    }
+  }
+
+  selectPlan(code: string): void {
+    this.selectedPlan = code;
+    this.errorMessage = '';
+  }
+
+  get selectedPlanDetails(): SubscriptionPlan | undefined {
+    return this.plans.find(plan => plan.code === this.selectedPlan);
   }
 
   register(): void {
     this.errorMessage = '';
     this.successMessage = '';
+
+    if (!this.selectedPlan || !this.plans.some(plan => plan.code === this.selectedPlan)) {
+      this.errorMessage = 'Please select a subscription plan.';
+      return;
+    }
+
+    if (this.loadingPlans) {
+      this.errorMessage = 'Please wait while subscription plans are loading.';
+      return;
+    }
 
     if (
       !this.pharmacyName.trim() ||
@@ -108,7 +172,7 @@ export class TenantRegistrationComponent implements OnInit {
       email: this.email.trim().toLowerCase(),
       address: this.address.trim(),
       password: this.password,
-      planCode: this.selectedPlan.toUpperCase()
+      planCode: this.selectedPlan
     };
 
     this.http.post<RegistrationResponse>(

@@ -1,0 +1,156 @@
+<div class="checkout-page">
+
+  <header class="checkout-header">
+    <div class="header-inner">
+      <a routerLink="/" class="brand">
+        <span class="brand-icon">
+          <i class="bi bi-capsule"></i>
+        </span>
+        <span>Pharm<span>SaaS</span></span>
+      </a>
+
+      <div class="secure-checkout">
+        <i class="bi bi-shield-check"></i>
+        Secure Checkout
+      </div>
+    </div>
+  </header>
+
+  <main class="checkout-main">
+    <div class="checkout-container">
+
+      <div class="checkout-title">
+        <span class="step-label">STEP 2 OF 2</span>
+        <h1>Complete Your Subscription</h1>
+        <p>Review your plan and continue to our secure payment gateway.</p>
+      </div>
+
+      <div class="checkout-grid">
+
+        <div class="payment-card">
+
+          <div class="card-header">
+            <div>
+              <h2>Secure Payment</h2>
+              <p>Choose your preferred payment method on the payment gateway.</p>
+            </div>
+            <i class="bi bi-credit-card"></i>
+          </div>
+
+          <div class="demo-notice">
+            <i class="bi bi-shield-lock"></i>
+            <div>
+              <strong>SSLCommerz Hosted Checkout</strong>
+              <p>
+                You will be redirected to SSLCommerz to pay securely using
+                supported cards and mobile banking services. PharmSaaS does
+                not collect or store your card details.
+              </p>
+            </div>
+          </div>
+
+          <div class="security-note">
+            <i class="bi bi-shield-check"></i>
+            <span>
+              Your payment is verified directly with the payment gateway
+              before your registration is completed.
+            </span>
+          </div>
+
+          <div *ngIf="errorMessage" class="demo-notice">
+            <i class="bi bi-exclamation-triangle"></i>
+            <div>
+              <strong>Payment could not be started</strong>
+              <p>{{ errorMessage }}</p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="pay-button"
+            [disabled]="loading || !registrationReference"
+            (click)="startPayment()"
+          >
+            <ng-container *ngIf="!loading; else loadingTemplate">
+              Continue to Secure Payment
+              <span>৳{{ monthlyPrice | number }} / month</span>
+              <i class="bi bi-arrow-right"></i>
+            </ng-container>
+
+            <ng-template #loadingTemplate>
+              <i class="bi bi-arrow-repeat"></i>
+              Connecting to payment gateway...
+            </ng-template>
+          </button>
+
+          <a routerLink="/register" class="back-link">
+            <i class="bi bi-arrow-left"></i>
+            Back to Registration
+          </a>
+
+        </div>
+
+        <aside class="summary-card">
+
+          <div class="summary-header">
+            <h2>Order Summary</h2>
+            <span class="summary-status">Monthly</span>
+          </div>
+
+          <div class="selected-plan">
+            <div class="plan-icon">
+              <i class="bi bi-stars"></i>
+            </div>
+            <div>
+              <span>Selected Plan</span>
+              <h3>{{ selectedPlan }}</h3>
+            </div>
+          </div>
+
+          <div class="summary-features">
+            <h4>Plan includes</h4>
+
+            <div><i class="bi bi-check-circle-fill"></i> POS & Sales Management</div>
+            <div><i class="bi bi-check-circle-fill"></i> Inventory & Batch Tracking</div>
+            <div><i class="bi bi-check-circle-fill"></i> Procurement Management</div>
+            <div><i class="bi bi-check-circle-fill"></i> Advanced Reports</div>
+            <div><i class="bi bi-check-circle-fill"></i> Multi-Branch Management</div>
+            <div><i class="bi bi-check-circle-fill"></i> Staff & Role Management</div>
+          </div>
+
+          <div class="price-breakdown">
+            <div>
+              <span>Plan Price</span>
+              <strong>৳{{ monthlyPrice | number }}</strong>
+            </div>
+
+            <div>
+              <span>Setup Fee</span>
+              <strong class="free">Free</strong>
+            </div>
+
+            <div>
+              <span>Tax</span>
+              <strong>Included</strong>
+            </div>
+
+            <div class="total">
+              <span>Total</span>
+              <strong>
+                ৳{{ monthlyPrice | number }}
+                <small>/ month</small>
+              </strong>
+            </div>
+          </div>
+
+          <div class="summary-footer">
+            <i class="bi bi-arrow-repeat"></i>
+            <span>You can upgrade or change your plan anytime.</span>
+          </div>
+
+        </aside>
+
+      </div>
+    </div>
+  </main>
+</div>

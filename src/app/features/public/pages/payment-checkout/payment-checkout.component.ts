@@ -1,7 +1,19 @@
 import { Component, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../../environments/environment';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ApiService } from '../../../../core/services/api.service';
+
+interface SubscriptionPlan {
+  id: number;
+  code: string;
+  name: string;
+  description: string;
+  price: number;
+  currency: string;
+  durationDays: number;
+}
 
 interface PaymentInitiationResponse {
   transactionReference: string;
@@ -20,15 +32,19 @@ interface PaymentInitiationResponse {
 })
 export class PaymentCheckoutComponent implements OnInit {
 
-  selectedPlan = 'Standard';
-  monthlyPrice = 1999;
+  selectedPlan = '';
+  monthlyPrice = 0;
+  currency = 'BDT';
+  durationDays = 30;
   registrationReference = '';
+  loadingPlan = true;
 
   loading = false;
   errorMessage = '';
 
   constructor(
     private api: ApiService,
+    private http: HttpClient,
     private route: ActivatedRoute,
     private router: Router
   ) {}
@@ -36,29 +52,45 @@ export class PaymentCheckoutComponent implements OnInit {
   ngOnInit(): void {
     this.route.queryParamMap.subscribe(params => {
       this.registrationReference = params.get('registrationReference') || '';
-      const plan = params.get('plan');
+      const planCode = (params.get('plan') || '').trim().toUpperCase();
 
-      if (plan) {
-        this.selectedPlan = plan;
-      }
-
-      const prices: Record<string, number> = {
-        BASIC: 999,
-        STANDARD: 1999,
-        PREMIUM: 3999
-      };
-
-      this.monthlyPrice =
-        prices[this.selectedPlan.toUpperCase()] ?? 1999;
-
-      if (!this.registrationReference) {
+      if (!this.registrationReference || !planCode) {
         this.router.navigate(['/register']);
+        return;
       }
+
+      this.loadingPlan = true;
+
+      this.http.get<SubscriptionPlan[]>(
+        `${environment.apiUrl}/public/subscription-plans`
+      ).subscribe({
+        next: plans => {
+          const plan = (plans || []).find(
+            item => item.code.toUpperCase() === planCode
+          );
+
+          this.loadingPlan = false;
+
+          if (!plan) {
+            this.errorMessage = 'The selected subscription plan is unavailable. Please register again and select an available plan.';
+            return;
+          }
+
+          this.selectedPlan = plan.name;
+          this.monthlyPrice = plan.price;
+          this.currency = plan.currency;
+          this.durationDays = plan.durationDays;
+        },
+        error: () => {
+          this.loadingPlan = false;
+          this.errorMessage = 'Could not load subscription plan details. Please try again.';
+        }
+      });
     });
   }
 
   startPayment(): void {
-    if (!this.registrationReference || this.loading) {
+    if (!this.registrationReference || !this.selectedPlan || this.loading || this.loadingPlan) {
       return;
     }
 
@@ -77,6 +109,7 @@ export class PaymentCheckoutComponent implements OnInit {
         }
 
         this.monthlyPrice = response.amount;
+        this.currency = response.currency;
         window.location.href = response.gatewayUrl;
       },
       error: error => {

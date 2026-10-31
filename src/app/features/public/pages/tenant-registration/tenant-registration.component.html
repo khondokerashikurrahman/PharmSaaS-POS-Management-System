@@ -177,18 +177,48 @@
         <div class="section-heading">
           <span class="section-icon"><i class="bi bi-box-seam"></i></span>
           <div>
-            <h2>Selected Plan</h2>
-            <p>Your selected subscription plan.</p>
+            <h2>Choose Your Subscription Plan <span class="required">*</span></h2>
+            <p>Select a plan before creating your pharmacy account.</p>
           </div>
         </div>
 
-        <div class="selected-plan">
-          <div class="plan-info">
-            <span class="plan-label">Current Plan</span>
-            <strong>{{ selectedPlan }}</strong>
-          </div>
-          <i class="bi bi-check-circle-fill plan-check"></i>
+        <div *ngIf="loadingPlans" class="plan-loading">
+          <i class="bi bi-arrow-repeat spinning"></i> Loading subscription plans...
         </div>
+
+        <div *ngIf="planError" class="field-error" role="alert">
+          {{ planError }}
+        </div>
+
+        <div class="plan-options" *ngIf="!loadingPlans && plans.length">
+          <label
+            class="plan-option"
+            *ngFor="let plan of plans"
+            [class.selected]="selectedPlan === plan.code"
+          >
+            <input
+              type="radio"
+              name="selectedPlan"
+              [value]="plan.code"
+              [(ngModel)]="selectedPlan"
+              required
+            />
+            <span class="plan-option-content">
+              <strong>{{ plan.name }}</strong>
+              <span class="plan-description">{{ plan.description }}</span>
+              <span class="plan-price">
+                {{ plan.currency === 'BDT' ? '৳' : plan.currency }}
+                {{ plan.price | number:'1.0-2' }}
+                <small>/ {{ plan.durationDays }} days</small>
+              </span>
+            </span>
+            <i class="bi bi-check-circle-fill plan-check"></i>
+          </label>
+        </div>
+
+        <small class="field-error" *ngIf="!selectedPlan && !loadingPlans && plans.length">
+          Please select one subscription plan.
+        </small>
       </section>
 
       <div class="terms-section">
