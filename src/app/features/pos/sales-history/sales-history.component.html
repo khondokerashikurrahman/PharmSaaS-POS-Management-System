@@ -331,6 +331,22 @@
               <button
                 type="button"
                 class="view-btn"
+                (click)="downloadInvoice(sale)"
+                [disabled]="downloadingInvoiceId !== null">
+
+                <i
+                  class="bi"
+                  [class.bi-download]="downloadingInvoiceId !== sale.id"
+                  [class.bi-hourglass-split]="downloadingInvoiceId === sale.id">
+                </i>
+
+                {{ downloadingInvoiceId === sale.id ? 'Downloading...' : 'Download PDF' }}
+
+              </button>
+
+              <button
+                type="button"
+                class="view-btn"
                 (click)="refundSale(sale)"
                 [disabled]="sale.status === 'Refunded'">
 

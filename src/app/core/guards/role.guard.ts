@@ -1,3 +1,4 @@
+
 import { inject } from '@angular/core';
 import {
   CanActivateFn,
@@ -7,13 +8,11 @@ import {
 
 import { AuthService } from '../services/auth.service';
 import { PermissionService } from '../services/permission.service';
-import { UserRole } from '../models/user.model';
 
 export const roleGuard: CanActivateFn = (
   route,
   state
 ): boolean | UrlTree => {
-
   const authService = inject(AuthService);
   const permissionService = inject(PermissionService);
   const router = inject(Router);
@@ -25,9 +24,9 @@ export const roleGuard: CanActivateFn = (
   }
 
   const currentRole = authService.getRole();
+  const membershipRole = authService.getMembershipRole();
   const path = state.url.split(/[?#]/)[0];
 
-  // The tenant guard separately controls Super Admin preview.
   if (path === '/app' || path.startsWith('/app/')) {
     if (currentRole === 'SUPER_ADMIN') {
       return true;
@@ -39,7 +38,13 @@ export const roleGuard: CanActivateFn = (
 
     if (authService.isTenantUser()) {
       return router.createUrlTree(['/app/dashboard'], {
-        queryParams: { denied: 'role' }
+        queryParams: {
+          denied: 'role',
+          deniedPath: path,
+          currentRole: currentRole || 'NULL',
+          membershipRole: membershipRole || 'NULL',
+          tenantId: authService.getTenantId() || 'NULL'
+        }
       });
     }
 
@@ -47,7 +52,7 @@ export const roleGuard: CanActivateFn = (
   }
 
   const allowedRoles = route.data?.['roles'] as
-    UserRole[] | undefined;
+    string[] | undefined;
 
   if (!allowedRoles || allowedRoles.length === 0) {
     return true;
@@ -63,7 +68,13 @@ export const roleGuard: CanActivateFn = (
 
   if (authService.isTenantUser()) {
     return router.createUrlTree(['/app/dashboard'], {
-      queryParams: { denied: 'role' }
+      queryParams: {
+        denied: 'role',
+        deniedPath: path,
+        currentRole: currentRole || 'NULL',
+        membershipRole: membershipRole || 'NULL',
+        tenantId: authService.getTenantId() || 'NULL'
+      }
     });
   }
 

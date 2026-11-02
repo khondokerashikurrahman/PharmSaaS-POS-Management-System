@@ -21,7 +21,7 @@
       <button
         class="btn btn-light"
         type="button"
-        (click)="resetSettings()">
+        (click)="resetSettings()" [disabled]="resetting || loading || saving">
 
         <i class="bi bi-arrow-counterclockwise"></i>
         Reset
@@ -30,7 +30,7 @@
       <button
         class="btn btn-primary"
         type="button"
-        (click)="saveSettings()">
+        (click)="saveSettings()" [disabled]="saving || loading || resetting">
 
         <i class="bi bi-check2-circle"></i>
         Save Changes
@@ -39,6 +39,20 @@
 
   </div>
 
+
+  <div class="settings-feedback" *ngIf="loading">
+    Loading platform settings...
+  </div>
+
+  <div class="settings-feedback success" *ngIf="successMessage">
+    {{ successMessage }}
+  </div>
+
+  <div class="settings-feedback error" *ngIf="errorMessage">
+    {{ errorMessage }}
+    <button type="button" class="btn btn-sm btn-outline-secondary ms-2"
+      (click)="loadSettings()">Retry</button>
+  </div>
 
   <!-- SETTINGS CONTENT -->
   <div class="settings-layout">
@@ -665,7 +679,7 @@
         <button
           class="btn btn-primary"
           type="button"
-          (click)="saveSettings()">
+          (click)="saveSettings()" [disabled]="saving || loading || resetting">
 
           <i class="bi bi-check2"></i>
           Save Changes

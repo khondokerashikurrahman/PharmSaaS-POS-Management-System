@@ -71,10 +71,7 @@
       <div class="summary-icon red">
         <i class="bi bi-person-x"></i>
       </div>
-      <div>
-        <span>Suspended</span>
-        <h2>{{ suspendedUsers }}</h2>
-      </div>
+
     </div>
   </div>
 
@@ -104,10 +101,7 @@
         [class.active]="selectedFilter === 'Inactive'"
         (click)="filterUsers('Inactive')">Inactive</button>
 
-      <button
-        type="button"
-        [class.active]="selectedFilter === 'Suspended'"
-        (click)="filterUsers('Suspended')">Suspended</button>
+
     </div>
   </div>
 
@@ -139,8 +133,8 @@
           <tr>
             <th>User</th>
             <th>Role</th>
-            <th>Department</th>
-            <th>Last Login</th>
+
+
             <th>Status</th>
             <th>Action</th>
           </tr>
@@ -169,21 +163,15 @@
               </span>
             </td>
 
-            <td>
-              <span class="department">
-                <i class="bi bi-building"></i>
-                {{ user.department }}
-              </span>
-            </td>
 
-            <td>{{ user.lastLogin }}</td>
+
+
 
             <td>
               <span
                 class="status-badge"
                 [class.active]="user.status === 'Active'"
-                [class.inactive]="user.status === 'Inactive'"
-                [class.suspended]="user.status === 'Suspended'">
+                [class.inactive]="user.status === 'Inactive'">
                 <span class="status-dot"></span>
                 {{ user.status }}
               </span>
@@ -202,25 +190,18 @@
                 <button
                   type="button"
                   class="status-btn"
-                  title="Change status"
+                  title="Enable or disable account"
                   (click)="toggleUserStatus(user)">
                   <i class="bi bi-arrow-repeat"></i>
                 </button>
 
-                <button
-                  type="button"
-                  class="suspend-btn"
-                  title="Suspend"
-                  *ngIf="user.status !== 'Suspended'"
-                  (click)="suspendUser(user)">
-                  <i class="bi bi-person-x"></i>
-                </button>
+
               </div>
             </td>
           </tr>
 
           <tr *ngIf="filteredUsers.length === 0">
-            <td colspan="6" class="empty-state">
+            <td colspan="4" class="empty-state">
               <i class="bi bi-people"></i>
               <h3>No users found</h3>
               <p>Try changing your search or filter.</p>

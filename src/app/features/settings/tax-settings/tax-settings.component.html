@@ -1,1 +1,131 @@
-<p>tax-settings works!</p>
+<div class="settings-page">
+  <div class="page-header">
+    <div>
+      <h1>Tax Settings</h1>
+      <p>আপনার Pharmacy-এর VAT বা Tax configuration নির্ধারণ করুন।</p>
+    </div>
+    <div class="header-icon">
+      <i class="bi bi-receipt"></i>
+    </div>
+  </div>
+
+  <div class="settings-content">
+    <div class="loading-state" *ngIf="loading">
+      <i class="bi bi-arrow-repeat"></i>
+      <span>Tax Settings লোড হচ্ছে...</span>
+    </div>
+
+    <div class="alert error" *ngIf="errorMessage">
+      <i class="bi bi-exclamation-circle"></i>
+      {{ errorMessage }}
+    </div>
+
+    <div class="alert success" *ngIf="successMessage">
+      <i class="bi bi-check-circle"></i>
+      {{ successMessage }}
+    </div>
+
+    <ng-container *ngIf="!loading">
+      <section class="settings-card">
+        <div class="section-heading">
+          <div class="section-icon tax-icon">
+            <i class="bi bi-percent"></i>
+          </div>
+          <div>
+            <h2>Tax Configuration</h2>
+            <p>বিক্রয়ের সময় Tax বা VAT কীভাবে হিসাব হবে তা নির্ধারণ করুন।</p>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <strong>Enable Tax</strong>
+            <span>চালু করলে POS-এর প্রতিটি প্রযোজ্য বিক্রয়ে Tax যোগ হবে।</span>
+          </div>
+          <label class="switch">
+            <input
+              type="checkbox"
+              [(ngModel)]="settings.taxEnabled"
+              [disabled]="saving">
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+
+        <ng-container *ngIf="settings.taxEnabled">
+          <div class="form-field">
+            <label for="taxName">Tax Name</label>
+            <input
+              id="taxName"
+              type="text"
+              maxlength="50"
+              [(ngModel)]="settings.taxName"
+              placeholder="যেমন: VAT"
+              [disabled]="saving">
+            <small>Invoice ও POS-এ এই নামটি প্রদর্শিত হবে।</small>
+          </div>
+
+          <div class="form-field">
+            <label for="taxRate">Tax Rate (%)</label>
+            <div class="number-control">
+              <input
+                id="taxRate"
+                type="number"
+                min="0"
+                max="100"
+                step="0.01"
+                [(ngModel)]="settings.taxRate"
+                [disabled]="saving">
+              <span>%</span>
+            </div>
+            <small>Tax rate ০ থেকে ১০০ শতাংশের মধ্যে নির্ধারণ করুন।</small>
+          </div>
+        </ng-container>
+      </section>
+
+      <section class="settings-card preview-card">
+        <div class="section-heading">
+          <div class="section-icon preview-icon">
+            <i class="bi bi-calculator"></i>
+          </div>
+          <div>
+            <h2>Tax Preview</h2>
+            <p>উদাহরণ হিসেবে ৳১,০০০ বিক্রয়ের Tax হিসাব।</p>
+          </div>
+        </div>
+
+        <div class="preview-row">
+          <span>Subtotal</span>
+          <strong>৳1,000.00</strong>
+        </div>
+        <div class="preview-row">
+          <span>{{ settings.taxName || 'Tax' }} ({{ settings.taxEnabled ? (settings.taxRate || 0) : 0 }}%)</span>
+          <strong>৳{{ (settings.taxEnabled ? (1000 * (settings.taxRate || 0) / 100) : 0) | number:'1.2-2' }}</strong>
+        </div>
+        <div class="preview-row total-row">
+          <span>Total</span>
+          <strong>৳{{ (1000 + (settings.taxEnabled ? (1000 * (settings.taxRate || 0) / 100) : 0)) | number:'1.2-2' }}</strong>
+        </div>
+      </section>
+
+      <div class="form-actions">
+        <button
+          type="button"
+          class="reset-btn"
+          (click)="resetSettings()"
+          [disabled]="saving">
+          <i class="bi bi-arrow-counterclockwise"></i>
+          Reset
+        </button>
+
+        <button
+          type="button"
+          class="save-btn"
+          (click)="saveSettings()"
+          [disabled]="saving">
+          <i class="bi" [ngClass]="saving ? 'bi-arrow-repeat' : 'bi-check-lg'"></i>
+          {{ saving ? 'Saving...' : 'Save Settings' }}
+        </button>
+      </div>
+    </ng-container>
+  </div>
+</div>

@@ -57,13 +57,102 @@ export class InvoiceReceiptComponent {
 
     document.getElementById('pharmsaas-print-root')?.remove();
 
-    // Print a detached copy so the application layout and modal scroll
-    // cannot create extra pages or clip the receipt.
     const printRoot = document.createElement('div');
     printRoot.id = 'pharmsaas-print-root';
-    printRoot.appendChild(original.cloneNode(true));
+
+    const content = original.cloneNode(true) as HTMLElement;
+    printRoot.appendChild(content);
+
+    const printStyle = document.createElement('style');
+
+    printStyle.textContent = `
+      #pharmsaas-print-root {
+        position: fixed;
+        left: -100000px;
+        top: 0;
+        width: 194mm;
+        background: #ffffff;
+        box-sizing: border-box;
+      }
+
+      #pharmsaas-print-root,
+      #pharmsaas-print-root * {
+        box-sizing: border-box !important;
+      }
+
+      #pharmsaas-print-root .receipt-content {
+        width: 194mm !important;
+        max-height: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+      }
+
+      @page {
+        size: A4 portrait;
+        margin: 0;
+      }
+
+      @media print {
+        html,
+        body {
+          width: 210mm !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
+
+        body.receipt-printing > *:not(#pharmsaas-print-root) {
+          display: none !important;
+        }
+
+        body.receipt-printing #pharmsaas-print-root {
+          display: block !important;
+          position: absolute !important;
+          top: 8mm !important;
+          left: 8mm !important;
+          width: 194mm !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          background: #ffffff !important;
+          overflow: hidden !important;
+          box-shadow: none !important;
+        }
+
+        #pharmsaas-print-root .receipt-content {
+          width: 194mm !important;
+          max-height: none !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          overflow: visible !important;
+        }
+
+        #pharmsaas-print-root .items-section,
+        #pharmsaas-print-root .item-row,
+        #pharmsaas-print-root .invoice-info,
+        #pharmsaas-print-root .receipt-summary,
+        #pharmsaas-print-root .payment-summary,
+        #pharmsaas-print-root .receipt-footer {
+          break-inside: avoid !important;
+          page-break-inside: avoid !important;
+        }
+      }
+    `;
+
+    printRoot.appendChild(printStyle);
     document.body.appendChild(printRoot);
     document.body.classList.add('receipt-printing');
+
+    // Fit the complete invoice inside one A4 printable page.
+    const availableHeight = (281 * 96) / 25.4;
+    const naturalHeight = Math.ceil(content.getBoundingClientRect().height);
+
+    const scale = naturalHeight > availableHeight
+      ? availableHeight / naturalHeight
+      : 1;
+
+    content.style.transform = `scale(${scale})`;
+    content.style.transformOrigin = 'top left';
+    printRoot.style.height = `${Math.ceil(naturalHeight * scale)}px`;
 
     let fallbackTimer: number | undefined;
 
@@ -71,6 +160,7 @@ export class InvoiceReceiptComponent {
       if (fallbackTimer !== undefined) {
         window.clearTimeout(fallbackTimer);
       }
+
       window.removeEventListener('afterprint', cleanup);
       printRoot.remove();
       document.body.classList.remove('receipt-printing');
@@ -86,7 +176,7 @@ export class InvoiceReceiptComponent {
         cleanup();
         console.error('Invoice print failed:', error);
       }
-    }, 150);
+    }, 250);
 
     this.printed.emit();
   }

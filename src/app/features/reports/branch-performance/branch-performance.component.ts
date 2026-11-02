@@ -81,8 +81,62 @@ export class BranchPerformanceComponent implements OnInit {
     this.loadReport();
   }
 
+  private resolveTenantId(): number {
+    const validId = (value: unknown): number => {
+      const id = Number(value);
+      return Number.isInteger(id) && id > 0 ? id : 0;
+    };
+
+    for (const key of ['tenantId', 'tenant_id']) {
+      const id = validId(localStorage.getItem(key));
+      if (id) return id;
+    }
+
+    for (const key of ['pharm_user', 'currentTenant', 'tenant']) {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+
+      const directId = validId(raw);
+      if (directId) return directId;
+
+      try {
+        const data = JSON.parse(raw) as {
+          id?: number | string;
+          tenantId?: number | string;
+          tenant_id?: number | string;
+          selectedTenantId?: number | string;
+          activeTenantId?: number | string;
+          tenant?: { id?: number | string } | null;
+          currentTenant?: { id?: number | string } | null;
+        };
+
+        const candidates: unknown[] = [
+          data.tenantId,
+          data.tenant_id,
+          data.selectedTenantId,
+          data.activeTenantId,
+          data.tenant?.id,
+          data.currentTenant?.id
+        ];
+
+        if (key === 'currentTenant' || key === 'tenant') {
+          candidates.unshift(data.id);
+        }
+
+        for (const candidate of candidates) {
+          const id = validId(candidate);
+          if (id) return id;
+        }
+      } catch {
+        // Ignore malformed optional storage values.
+      }
+    }
+
+    return 0;
+  }
+
   loadReport(): void {
-    const tenantId = Number(localStorage.getItem('tenantId'));
+    const tenantId = this.resolveTenantId();
 
     if (!Number.isInteger(tenantId) || tenantId <= 0) {
       this.resetReport();
@@ -461,7 +515,8 @@ export class BranchPerformanceComponent implements OnInit {
   exportCSV(): void {
     const headers = [
       'Branch', 'Branch Code', 'Transactions', 'Items Sold',
-      'Total Sales', 'Average Sale', 'Cash', 'Card', 'Mobile', 'Credit'
+      'Total Sales', 'Refund Amount', 'Average Sale',
+      'Cash', 'Card', 'Mobile', 'Credit'
     ];
 
     const rows = this.filteredBranches.map(branch => [
@@ -470,6 +525,7 @@ export class BranchPerformanceComponent implements OnInit {
       branch.transactions,
       branch.itemsSold,
       branch.totalSales.toFixed(2),
+      branch.refundAmount.toFixed(2),
       branch.averageSale.toFixed(2),
       branch.cash.toFixed(2),
       branch.card.toFixed(2),

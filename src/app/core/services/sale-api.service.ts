@@ -12,6 +12,7 @@ export interface SaleCreateItem {
 
 export interface SaleCreateRequest {
   customerName?: string;
+  customerId?: number;
   storeId?: number;
   paymentMethod: 'CASH' | 'CARD' | 'MOBILE';
   discountType: 'amount' | 'percentage';
@@ -37,6 +38,8 @@ export interface SaleResponse {
   id: number;
   invoiceNumber: string;
   customerName: string;
+  customerId?: number | null;
+  customerCode?: string | null;
   paymentMethod: string;
   subtotal: number;
   discount: number;
@@ -137,6 +140,13 @@ export class SaleApiService {
   getSales(tenantId: number): Observable<SaleResponse[]> {
     return this.http.get<SaleResponse[]>(
       `${this.apiUrl}/${tenantId}/sales`
+    );
+  }
+
+  downloadInvoice(tenantId: number, saleId: number): Observable<Blob> {
+    return this.http.get(
+      `${this.apiUrl}/${tenantId}/sales/${saleId}/invoice.pdf`,
+      { responseType: 'blob' }
     );
   }
 }

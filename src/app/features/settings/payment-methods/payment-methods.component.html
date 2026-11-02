@@ -1,1 +1,92 @@
-<p>payment-methods works!</p>
+<div class="payment-page">
+  <header class="page-header">
+    <div>
+      <h1>Payment Methods</h1>
+      <p>আপনার Pharmacy POS-এ কোন কোন মাধ্যমে Payment গ্রহণ করবেন তা নিয়ন্ত্রণ করুন।</p>
+    </div>
+    <div class="header-icon"><i class="bi bi-credit-card"></i></div>
+  </header>
+
+  <div class="alert error" *ngIf="errorMessage">
+    <i class="bi bi-exclamation-circle"></i> {{ errorMessage }}
+  </div>
+  <div class="alert success" *ngIf="successMessage">
+    <i class="bi bi-check-circle"></i> {{ successMessage }}
+  </div>
+
+  <div class="loading-state" *ngIf="loading">
+    <i class="bi bi-arrow-repeat"></i> Payment settings লোড হচ্ছে...
+  </div>
+
+  <ng-container *ngIf="!loading">
+    <section class="summary-card">
+      <div>
+        <span class="summary-label">Enabled payment methods</span>
+        <strong>{{ enabledCount }} / 3</strong>
+      </div>
+      <i class="bi bi-wallet2"></i>
+    </section>
+
+    <section class="methods-card">
+      <div class="section-heading">
+        <h2>Available Payment Methods</h2>
+        <p>যে পদ্ধতিগুলো চালু থাকবে, POS checkout-এ সেগুলো ব্যবহার করা যাবে।</p>
+      </div>
+
+      <div class="method-row">
+        <div class="method-icon cash"><i class="bi bi-cash-stack"></i></div>
+        <div class="method-info">
+          <strong>Cash Payment</strong>
+          <span>নগদ টাকা গ্রহণ করুন।</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" [checked]="settings.cashEnabled"
+            (change)="settings.cashEnabled = !settings.cashEnabled">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="method-row">
+        <div class="method-icon card"><i class="bi bi-credit-card-2-front"></i></div>
+        <div class="method-info">
+          <strong>Card Payment</strong>
+          <span>Debit অথবা Credit Card-এর মাধ্যমে Payment গ্রহণ করুন।</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" [checked]="settings.cardEnabled"
+            (change)="settings.cardEnabled = !settings.cardEnabled">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="method-row">
+        <div class="method-icon mobile"><i class="bi bi-phone"></i></div>
+        <div class="method-info">
+          <strong>Mobile Payment</strong>
+          <span>Mobile Financial Service Payment গ্রহণ করুন।</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" [checked]="settings.mobileEnabled"
+            (change)="settings.mobileEnabled = !settings.mobileEnabled">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </section>
+
+    <div class="info-note">
+      <i class="bi bi-info-circle"></i>
+      এই Settings POS Settings-এর সঙ্গে একই Database record ব্যবহার করে।
+      পরিবর্তন Save করলে POS checkout-এর payment options-ও update হবে।
+    </div>
+
+    <div class="form-actions">
+      <button class="reset-btn" type="button" (click)="loadSettings()" [disabled]="saving">
+        <i class="bi bi-arrow-counterclockwise"></i> Reset
+      </button>
+      <button class="save-btn" type="button" (click)="saveSettings()" [disabled]="saving">
+        <i class="bi" [ngClass]="saving ? 'bi-arrow-repeat' : 'bi-check-lg'"></i>
+        {{ saving ? 'Saving...' : 'Save Payment Methods' }}
+      </button>
+    </div>
+  </ng-container>
+</div>

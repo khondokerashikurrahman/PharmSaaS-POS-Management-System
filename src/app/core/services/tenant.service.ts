@@ -1,10 +1,22 @@
 
 import { Injectable } from '@angular/core';
-import { Observable, map, tap } from 'rxjs';
+import { Observable, map, tap, switchMap, catchError, of } from 'rxjs';
 import { ApiService } from './api.service';
 import { Tenant } from '../models/tenant.model';
 
 export { Tenant } from '../models/tenant.model';
+
+interface BackendSubscription {
+  id: number;
+  tenantId: number;
+  planName: string | null;
+  amount: number | null;
+  currency: string | null;
+  startsAt: string | null;
+  endsAt: string | null;
+  status: string;
+  createdAt: string | null;
+}
 
 interface BackendTenant {
   id: number;
@@ -32,9 +44,32 @@ export class TenantService {
   /**
    * Fetch the real tenant list from the backend.
    */
-  loadTenants(): Observable<Tenant[]> {
-    return this.api.get<BackendTenant[]>('/tenants').pipe(
-      map(rows => rows.map(row => this.mapTenant(row))),
+  loadTenants(includeArchived = false): Observable<Tenant[]> {
+    const endpoint = includeArchived
+      ? '/tenants?includeArchived=true'
+      : '/tenants';
+
+    return this.api.get<BackendTenant[]>(endpoint).pipe(
+      switchMap(rows =>
+        this.api.get<BackendSubscription[]>('/super-admin/subscriptions').pipe(
+          catchError(error => {
+            console.error('Subscription data load failed:', error);
+            return of([]);
+          }),
+          map(subscriptions =>
+            rows.map(row => {
+              const subscription = subscriptions
+                .filter(item => Number(item.tenantId) === Number(row.id))
+                .sort((a, b) =>
+                  new Date(b.createdAt || b.startsAt || 0).getTime() -
+                  new Date(a.createdAt || a.startsAt || 0).getTime()
+                )[0];
+
+              return this.mapTenant(row, subscription);
+            })
+          )
+        )
+      ),
       tap(tenants => {
         this.tenants = tenants;
       })
@@ -116,29 +151,28 @@ createTenant(body: {
   ): Observable<Tenant> {
     const backendId = this.requireNumericId(tenant.id);
 
-    const body = {
-      tenantCode: tenant.tenantCode,
-      name: tenant.name,
-      ownerName: tenant.owner,
-      email: tenant.email,
-      phone: tenant.phone,
-      address: tenant.address,
-      status
-    };
+    const normalized = status.toLowerCase();
 
-    return this.api.put<BackendTenant>(
-      `/tenants/${backendId}`,
-      body
+    const action =
+      normalized === 'suspended' ? 'suspend' :
+      normalized === 'active' ? 'activate' :
+      null;
+
+    if (!action) {
+      throw new Error(`Unsupported tenant status transition: ${status}`);
+    }
+
+    return this.api.post<BackendTenant>(
+      `/tenants/${backendId}/${action}`,
+      {}
     ).pipe(
       map(response => this.mapTenant(response)),
-      tap(updated => {
-        this.replaceCachedTenant(updated);
-      })
+      tap(updated => this.replaceCachedTenant(updated))
     );
   }
 
   /**
-   * Permanently delete a tenant through the backend.
+   * Archive a tenant through the backend. Business history is preserved.
    */
   deleteTenantFromBackend(
     id: string | number
@@ -153,6 +187,21 @@ createTenant(body: {
           tenant => String(tenant.id) !== String(id)
         );
       })
+    );
+  }
+
+  /**
+   * Restore an archived tenant. Backend restores it as Suspended.
+   */
+  restoreTenantFromBackend(id: string | number): Observable<Tenant> {
+    const backendId = this.requireNumericId(id);
+
+    return this.api.post<BackendTenant>(
+      `/tenants/${backendId}/restore`,
+      {}
+    ).pipe(
+      map(response => this.mapTenant(response)),
+      tap(updated => this.replaceCachedTenant(updated))
     );
   }
 
@@ -230,7 +279,7 @@ createTenant(body: {
     return this.tenants.length !== before;
   }
 
-  private mapTenant(row: BackendTenant): Tenant {
+  private mapTenant(row: BackendTenant, subscription?: BackendSubscription): Tenant {
     const createdAt = row.createdAt ?? '';
 
     return {
@@ -241,7 +290,7 @@ createTenant(body: {
       email: row.email ?? '',
       phone: row.phone ?? '',
       address: row.address ?? '',
-      plan: 'Basic',
+      plan: subscription?.planName ?? null,
       status: this.normalizeStatus(row.status),
       registrationDate: createdAt
         ? new Date(createdAt).toLocaleDateString('en-GB', {
@@ -250,11 +299,11 @@ createTenant(body: {
             year: 'numeric'
           })
         : '—',
-      subscriptionStart: '',
-      subscriptionEnd: '',
+      subscriptionStart: subscription?.startsAt ?? '',
+      subscriptionEnd: subscription?.endsAt ?? '',
       branches: 0,
       employees: 0,
-      monthlyBilling: 0,
+      monthlyBilling: subscription?.amount ?? null,
       createdAt: row.createdAt ?? undefined,
       updatedAt: row.updatedAt ?? undefined
     };

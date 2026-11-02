@@ -1,4 +1,11 @@
-<div class="subscription-page">
+<div class="subscription-page">\n
+  <div *ngIf="loading" class="alert alert-info">Loading subscriptions from server...</div>
+  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+  <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
+  <div *ngIf="!loading && !errorMessage && subscriptions.length === 0" class="alert alert-info">
+    No subscriptions found in the database.
+  </div>
+
 
   <!-- PAGE HEADER -->
   <div class="page-header">
@@ -13,7 +20,7 @@
       <h1>Subscription Management</h1>
 
       <p>
-        Manage pharmacy subscriptions, plans and billing cycles.
+        Manage real pharmacy subscriptions, plan duration and expiry.
       </p>
     </div>
 
@@ -53,7 +60,7 @@
       </div>
 
       <div>
-        <span>Trial</span>
+        <span>Pending Approval</span>
         <h2>{{ trialSubscriptions }}</h2>
       </div>
     </div>
@@ -65,7 +72,7 @@
       </div>
 
       <div>
-        <span>Monthly Recurring Revenue</span>
+        <span>Active Subscription Amount</span>
 
         <h2>
           ৳{{ monthlyRecurringRevenue | number:'1.0-0' }}
@@ -108,9 +115,9 @@
       </button>
 
       <button
-        [class.active]="selectedFilter === 'Trial'"
-        (click)="filterSubscriptions('Trial')">
-        Trial
+        [class.active]="selectedFilter === 'Pending Approval'"
+        (click)="filterSubscriptions('Pending Approval')">
+        Pending Approval
       </button>
 
       <button
@@ -154,11 +161,11 @@
 
             <th>Plan</th>
 
-            <th>Billing</th>
+            <th>Duration</th>
 
             <th>Amount</th>
 
-            <th>Next Billing</th>
+            <th>Expiry Date</th>
 
             <th>Status</th>
 
@@ -233,11 +240,11 @@
 
                 <i
                   class="bi"
-                  [class.bi-calendar-month]="subscription.billingCycle === 'Monthly'"
-                  [class.bi-calendar3]="subscription.billingCycle === 'Yearly'"
+                  [class.bi-calendar-month]="subscription.durationDays <= 31"
+                  [class.bi-calendar3]="subscription.durationDays >= 360"
                 ></i>
 
-                {{ subscription.billingCycle }}
+                {{ subscription.durationDays }} days
 
               </span>
 
@@ -248,11 +255,11 @@
             <td>
 
               <strong>
-                ৳{{ subscription.amount | number:'1.0-0' }}
+                {{ subscription.currency }} {{ subscription.amount | number:'1.0-0' }}
               </strong>
 
               <small>
-                / {{ subscription.billingCycle === 'Monthly' ? 'month' : 'year' }}
+                / {{ subscription.durationDays <= 31 ? 'month' : 'year' }}
               </small>
 
             </td>
@@ -312,8 +319,7 @@
 
                 <button
                   *ngIf="
-                    subscription.status === 'Cancelled' ||
-                    subscription.status === 'Expired'
+                    subscription.status === 'Cancelled'
                   "
                   class="activate-btn"
                   title="Activate"

@@ -1,64 +1,54 @@
-
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { GrnApiService, GrnResponse } from '../../../core/services/grn-api.service';
+import { StoreApiService, StoreResponse } from '../../../core/services/store-api.service';
+import {
+  PurchaseReturnApiService,
+  PurchaseReturnResponse
+} from '../../../core/services/purchase-return-api.service';
 
-interface ReturnItem {
-  medicine: string;
-  batch: string;
-  availableQty: number;
+interface ReturnLine {
+  grnItemId: number;
+  medicineName: string;
+  batchNumber: string;
+  receivedQuantity: number;
+  alreadyReturned: number;
+  remainingQuantity: number;
   returnQty: number;
   unitPrice: number;
   reason: string;
-  total: number;
 }
 
 @Component({
   selector: 'app-purchase-return',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule
-  ],
+  imports: [CommonModule, FormsModule],
   templateUrl: './purchase-return.component.html',
   styleUrl: './purchase-return.component.scss'
 })
-export class PurchaseReturnComponent {
+export class PurchaseReturnComponent implements OnInit {
+  tenantId = 0;
+  grns: GrnResponse[] = [];
+  stores: StoreResponse[] = [];
+  returns: PurchaseReturnResponse[] = [];
 
-  purchaseOrder = '';
-  supplier = '';
-  returnDate = '2026-09-13';
-  invoiceNumber = '';
+  selectedGrnId: number | null = null;
+  selectedStoreId: number | null = null;
+  selectedGrn: GrnResponse | null = null;
+
+  returnDate = new Date().toISOString().slice(0, 10);
   returnReason = 'Damaged / Defective';
   notes = '';
 
-  purchaseOrders = [
-    'PO-2026-001',
-    'PO-2026-002',
-    'PO-2026-003',
-    'PO-2026-005'
-  ];
+  lines: ReturnLine[] = [];
+  loading = false;
+  saving = false;
+  errorMessage = '';
+  successMessage = '';
 
-  suppliers = [
-    'Square Pharmaceuticals',
-    'Beximco Pharmaceuticals',
-    'Incepta Pharmaceuticals',
-    'Renata Limited',
-    'ACI Limited',
-    'Healthcare Pharmaceuticals'
-  ];
-
-  medicines = [
-    'Napa 500mg',
-    'Seclo 20mg',
-    'Fexo 120mg',
-    'DPH 10mg',
-    'Napa Extra',
-    'Sergel 20mg'
-  ];
-
-  returnReasons = [
+  readonly returnReasons = [
     'Damaged / Defective',
     'Expired / Near Expiry',
     'Wrong Medicine',
@@ -67,175 +57,279 @@ export class PurchaseReturnComponent {
     'Other'
   ];
 
-  items: ReturnItem[] = [
-    {
-      medicine: '',
-      batch: '',
-      availableQty: 0,
-      returnQty: 0,
-      unitPrice: 0,
-      reason: 'Damaged / Defective',
-      total: 0
-    }
-  ];
-
   constructor(
-    private router: Router
+    private router: Router,
+    private grnApi: GrnApiService,
+    private storeApi: StoreApiService,
+    private returnApi: PurchaseReturnApiService
   ) {}
 
-  onPurchaseOrderChange(): void {
-    if (this.purchaseOrder === 'PO-2026-001') {
-      this.supplier = 'Square Pharmaceuticals';
-      this.items[0].availableQty = 100;
-    } else if (this.purchaseOrder === 'PO-2026-002') {
-      this.supplier = 'Beximco Pharmaceuticals';
-      this.items[0].availableQty = 80;
-    } else if (this.purchaseOrder === 'PO-2026-003') {
-      this.supplier = 'Incepta Pharmaceuticals';
-      this.items[0].availableQty = 120;
-    } else if (this.purchaseOrder === 'PO-2026-005') {
-      this.supplier = 'ACI Limited';
-      this.items[0].availableQty = 60;
-    } else {
-      this.supplier = '';
-      this.items[0].availableQty = 0;
-    }
-
-    this.items.forEach(item => {
-      item.returnQty = 0;
-      this.calculateTotal(item);
-    });
-  }
-
-  addItem(): void {
-    this.items.push({
-      medicine: '',
-      batch: '',
-      availableQty: 0,
-      returnQty: 0,
-      unitPrice: 0,
-      reason: this.returnReason,
-      total: 0
-    });
-  }
-
-  removeItem(index: number): void {
-    if (this.items.length === 1) {
+  ngOnInit(): void {
+    this.tenantId = this.getTenantId();
+    if (!this.tenantId) {
+      this.errorMessage = 'Tenant ID পাওয়া যায়নি। আবার login করুন।';
       return;
     }
-
-    this.items.splice(index, 1);
+    this.loadData();
   }
 
-  calculateTotal(item: ReturnItem): void {
-    item.total =
-      Number(item.returnQty || 0) *
-      Number(item.unitPrice || 0);
+  private getTenantId(): number {
+    const direct = localStorage.getItem('tenantId') ||
+      localStorage.getItem('tenant_id');
+    if (direct && Number(direct) > 0) return Number(direct);
+
+    try {
+      const user = JSON.parse(localStorage.getItem('pharm_user') || '{}');
+      return Number(user.tenantId || user.tenant?.id || user.currentTenantId || 0);
+    } catch {
+      return 0;
+    }
+  }
+
+  loadData(): void {
+    this.loading = true;
+    this.errorMessage = '';
+
+    this.grnApi.list(this.tenantId).subscribe({
+      next: data => {
+        this.grns = (data || []).filter(x =>
+          (x.status || '').toUpperCase() === 'RECEIVED'
+        );
+        this.loading = false;
+      },
+      error: err => {
+        this.loading = false;
+        this.errorMessage = err?.error?.message || 'GRN data load করা যায়নি।';
+      }
+    });
+
+    this.storeApi.getAll(this.tenantId).subscribe({
+      next: data => {
+        this.stores = (data || []).filter(x =>
+          (x.status || '').toUpperCase() === 'ACTIVE'
+        );
+      },
+      error: err => {
+        this.errorMessage = err?.error?.message || 'Store data load করা যায়নি।';
+      }
+    });
+
+    this.loadReturns();
+  }
+
+  loadReturns(): void {
+    this.returnApi.list(this.tenantId).subscribe({
+      next: data => this.returns = data || [],
+      error: err => this.errorMessage =
+        err?.error?.message || 'Purchase Return history load করা যায়নি।'
+    });
+  }
+
+  onGrnChange(): void {
+    this.selectedGrn = this.grns.find(x => x.id === Number(this.selectedGrnId)) || null;
+    this.lines = [];
+
+    if (!this.selectedGrn) return;
+
+    const completedByItem = new Map<number, number>();
+    for (const ret of this.returns) {
+      if (ret.status?.toUpperCase() !== 'COMPLETED') continue;
+      if (ret.grnId !== this.selectedGrn.id) continue;
+
+      for (const item of ret.items || []) {
+        completedByItem.set(
+          item.grnItemId,
+          (completedByItem.get(item.grnItemId) || 0) + Number(item.quantity || 0)
+        );
+      }
+    }
+
+    this.lines = (this.selectedGrn.items || []).map(item => {
+      const received = Number(item.quantity || 0);
+      const alreadyReturned = completedByItem.get(item.id) || 0;
+      return {
+        grnItemId: item.id,
+        medicineName: item.medicineName,
+        batchNumber: item.batchNumber,
+        receivedQuantity: received,
+        alreadyReturned,
+        remainingQuantity: Math.max(0, received - alreadyReturned),
+        returnQty: 0,
+        unitPrice: Number(item.purchasePrice || 0),
+        reason: this.returnReason
+      };
+    }).filter(x => x.remainingQuantity > 0);
+  }
+
+  get supplierName(): string {
+    return this.selectedGrn?.supplierName || '';
   }
 
   get totalItems(): number {
-    return this.items.length;
+    return this.lines.filter(x => x.returnQty > 0).length;
   }
 
   get totalReturnQty(): number {
-    return this.items.reduce(
-      (total, item) =>
-        total + Number(item.returnQty || 0),
-      0
-    );
+    return this.lines.reduce((sum, x) => sum + Number(x.returnQty || 0), 0);
   }
 
   get returnValue(): number {
-    return this.items.reduce(
-      (total, item) =>
-        total + Number(item.total || 0),
-      0
+    return this.lines.reduce(
+      (sum, x) => sum + Number(x.returnQty || 0) * x.unitPrice, 0
     );
-  }
-
-  get taxAdjustment(): number {
-    return this.returnValue * 0.05;
   }
 
   get totalRefund(): number {
-    return this.returnValue + this.taxAdjustment;
+    return this.returnValue;
+  }
+
+  calculateTotal(line: ReturnLine): void {
+    if (line.returnQty < 0) line.returnQty = 0;
+    if (line.returnQty > line.remainingQuantity) {
+      line.returnQty = line.remainingQuantity;
+    }
+  }
+
+  onReturnReasonChange(reason: string): void {
+    this.lines.forEach(item => item.reason = reason);
   }
 
   saveDraft(): void {
-    if (!this.purchaseOrder) {
-      alert('Please select a purchase order.');
-      return;
-    }
-
-    alert('Purchase return saved as draft.');
-    this.router.navigate(['/app/procurement/purchase-return']);
+    this.saveReturn(false);
   }
 
   submitReturn(): void {
-    if (!this.purchaseOrder) {
-      alert('Please select a purchase order.');
+    this.saveReturn(true);
+  }
+
+  private saveReturn(submit: boolean): void {
+    if (!this.selectedGrn || !this.selectedGrnId) {
+      this.errorMessage = 'একটি Received GRN নির্বাচন করুন।';
+      return;
+    }
+    if (!this.selectedStoreId) {
+      this.errorMessage = 'একটি Active Store নির্বাচন করুন।';
+      return;
+    }
+    if (!this.returnDate || this.returnDate > new Date().toISOString().slice(0, 10)) {
+      this.errorMessage = 'সঠিক Return Date নির্বাচন করুন।';
       return;
     }
 
-    if (!this.supplier) {
-      alert('Please select a supplier.');
+    const items = this.lines
+      .filter(x => x.returnQty > 0)
+      .map(x => ({
+        grnItemId: x.grnItemId,
+        quantity: Number(x.returnQty),
+        reason: x.reason
+      }));
+
+    if (!items.length) {
+      this.errorMessage = 'কমপক্ষে একটি item-এর Return Quantity দিতে হবে।';
       return;
     }
 
-    const invalidItem = this.items.some(
-      item =>
-        !item.medicine ||
-        !item.batch ||
-        item.returnQty <= 0 ||
-        item.unitPrice <= 0
-    );
-
-    if (invalidItem) {
-      alert('Please complete all return item information.');
+    if (this.lines.some(x =>
+      x.returnQty < 0 || x.returnQty > x.remainingQuantity
+    )) {
+      this.errorMessage = 'Return quantity remaining received quantity অতিক্রম করতে পারবে না।';
       return;
     }
 
-    const exceedsStock = this.items.some(
-      item => item.returnQty > item.availableQty
-    );
+    this.saving = true;
+    this.errorMessage = '';
+    this.successMessage = '';
 
-    if (exceedsStock) {
-      alert('Return quantity cannot exceed available quantity.');
-      return;
-    }
+    this.returnApi.create(this.tenantId, {
+      grnId: Number(this.selectedGrnId),
+      storeId: Number(this.selectedStoreId),
+      returnDate: this.returnDate,
+      reason: this.returnReason,
+      notes: this.notes,
+      items
+    }).subscribe({
+      next: created => {
+        if (!submit) {
+          this.saving = false;
+          this.successMessage = `Draft ${created.returnNumber} সফলভাবে সংরক্ষিত হয়েছে।`;
+          this.resetForm();
+          this.loadReturns();
+          return;
+        }
 
-    alert('Purchase return submitted successfully.');
-    this.router.navigate(['/app/procurement']);
+        this.returnApi.submit(this.tenantId, created.id).subscribe({
+          next: result => {
+            this.saving = false;
+            this.successMessage = `${result.returnNumber} submit হয়েছে। এখন এটি Pending approval।`;
+            this.resetForm();
+            this.loadReturns();
+          },
+          error: err => {
+            this.saving = false;
+            this.errorMessage =
+              err?.error?.message ||
+              'Draft তৈরি হয়েছে, কিন্তু Submit করা যায়নি। History থেকে Draft submit করুন।';
+            this.loadReturns();
+          }
+        });
+      },
+      error: err => {
+        this.saving = false;
+        this.errorMessage = err?.error?.message || 'Purchase Return সংরক্ষণ করা যায়নি।';
+      }
+    });
+  }
+
+  submitDraft(id: number): void {
+    this.returnApi.submit(this.tenantId, id).subscribe({
+      next: () => {
+        this.successMessage = 'Return submitted successfully.';
+        this.loadReturns();
+      },
+      error: err => this.errorMessage =
+        err?.error?.message || 'Return submit করা যায়নি।'
+    });
+  }
+
+  completeReturn(id: number): void {
+    if (!confirm('এই Return complete করলে selected store-এর stock কমে যাবে। Continue?')) return;
+    this.returnApi.complete(this.tenantId, id).subscribe({
+      next: () => {
+        this.successMessage = 'Purchase Return completed. Stock updated.';
+        this.loadReturns();
+        this.onGrnChange();
+      },
+      error: err => this.errorMessage =
+        err?.error?.message || 'Return complete করা যায়নি।'
+    });
+  }
+
+  cancelReturn(id: number): void {
+    if (!confirm('এই Purchase Return cancel করতে চান?')) return;
+    this.returnApi.cancel(this.tenantId, id).subscribe({
+      next: () => {
+        this.successMessage = 'Purchase Return cancelled.';
+        this.loadReturns();
+      },
+      error: err => this.errorMessage =
+        err?.error?.message || 'Return cancel করা যায়নি।'
+    });
+  }
+
+  private resetForm(): void {
+    this.selectedGrnId = null;
+    this.selectedStoreId = null;
+    this.selectedGrn = null;
+    this.lines = [];
+    this.notes = '';
+    this.returnDate = new Date().toISOString().slice(0, 10);
   }
 
   cancel(): void {
     this.router.navigate(['/app/procurement']);
   }
 
-  getReasonClass(reason: string): string {
-    switch (reason) {
-      case 'Damaged / Defective':
-        return 'reason-danger';
-
-      case 'Expired / Near Expiry':
-        return 'reason-warning';
-
-      case 'Wrong Medicine':
-      case 'Wrong Quantity':
-        return 'reason-info';
-
-      case 'Quality Issue':
-        return 'reason-purple';
-
-      default:
-        return 'reason-default';
-    }
-  }
-
-  trackByMedicine(
-    index: number,
-    item: ReturnItem
-  ): string {
-    return `${item.medicine}-${item.batch}-${index}`;
+  trackByLine(index: number, item: ReturnLine): number {
+    return item.grnItemId;
   }
 }

@@ -552,9 +552,9 @@ a<div class="receive-page">
 
               <div class="quantity-field">
 
-                <label>Damaged Qty</label>
+                <label>Damaged / Missing Qty</label>
 
-                <input type="number" min="0" [max]="item.transferredQty" [(ngModel)]="item.damagedQty"
+                <input type="number" min="0" [max]="item.transferredQty" [ngModel]="item.damagedQty" readonly
                   (ngModelChange)="updateCondition(item)">
 
               </div>

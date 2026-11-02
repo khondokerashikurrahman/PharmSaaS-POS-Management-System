@@ -1,1 +1,148 @@
-<p>pos-settings works!</p>
+<div class="settings-page">
+  <div class="page-header">
+    <div>
+      <h1>POS Settings</h1>
+      <p>আপনার Pharmacy POS-এর বিক্রয় ও পেমেন্টের নিয়ম নিয়ন্ত্রণ করুন।</p>
+    </div>
+    <div class="header-icon">
+      <i class="bi bi-sliders"></i>
+    </div>
+  </div>
+
+  <div class="settings-content">
+    <div class="loading-state" *ngIf="loading">
+      <i class="bi bi-arrow-repeat"></i>
+      <span>Settings লোড হচ্ছে...</span>
+    </div>
+
+    <div class="alert error" *ngIf="errorMessage">
+      <i class="bi bi-exclamation-circle"></i>
+      {{ errorMessage }}
+    </div>
+
+    <div class="alert success" *ngIf="successMessage">
+      <i class="bi bi-check-circle"></i>
+      {{ successMessage }}
+    </div>
+
+    <ng-container *ngIf="!loading">
+      <section class="settings-card">
+        <div class="section-heading">
+          <div class="section-icon discount-icon">
+            <i class="bi bi-tag"></i>
+          </div>
+          <div>
+            <h2>Discount Settings</h2>
+            <p>বিক্রয়ের সময় Discount ব্যবহারের নিয়ম নির্ধারণ করুন।</p>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <strong>Enable Discount</strong>
+            <span>POS থেকে পণ্যের মোট মূল্যে Discount দেওয়া যাবে।</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" [(ngModel)]="settings.discountEnabled">
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-row" *ngIf="settings.discountEnabled">
+          <div class="setting-info">
+            <strong>Maximum Discount (%)</strong>
+            <span>সর্বোচ্চ কত শতাংশ Discount দেওয়া যাবে।</span>
+          </div>
+          <div class="number-control">
+            <input
+              type="number"
+              min="0"
+              max="100"
+              step="0.5"
+              [(ngModel)]="settings.maximumDiscountPercentage">
+            <span>%</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="settings-card">
+        <div class="section-heading">
+          <div class="section-icon customer-icon">
+            <i class="bi bi-person-check"></i>
+          </div>
+          <div>
+            <h2>Customer Settings</h2>
+            <p>প্রতিটি বিক্রয়ের জন্য Customer নির্বাচন বাধ্যতামূলক করুন।</p>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <strong>Require Customer</strong>
+            <span>চালু থাকলে Customer ছাড়া Sale সম্পন্ন করা যাবে না।</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" [(ngModel)]="settings.customerRequired">
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+      </section>
+
+      <section class="settings-card">
+        <div class="section-heading">
+          <div class="section-icon payment-icon">
+            <i class="bi bi-credit-card"></i>
+          </div>
+          <div>
+            <h2>Payment Methods</h2>
+            <p>POS-এ কোন কোন Payment Method ব্যবহার করা যাবে নির্বাচন করুন।</p>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <strong>Cash Payment</strong>
+            <span>নগদ টাকা গ্রহণের ব্যবস্থা।</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" [(ngModel)]="settings.cashEnabled">
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <strong>Card Payment</strong>
+            <span>Debit অথবা Credit Card Payment।</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" [(ngModel)]="settings.cardEnabled">
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <strong>Mobile Payment</strong>
+            <span>Mobile Financial Service Payment।</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" [(ngModel)]="settings.mobileEnabled">
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+      </section>
+
+      <div class="form-actions">
+        <button type="button" class="reset-btn" (click)="resetSettings()" [disabled]="saving">
+          <i class="bi bi-arrow-counterclockwise"></i>
+          Reset
+        </button>
+        <button type="button" class="save-btn" (click)="saveSettings()" [disabled]="saving">
+          <i class="bi" [ngClass]="saving ? 'bi-arrow-repeat' : 'bi-check-lg'"></i>
+          {{ saving ? 'Saving...' : 'Save Settings' }}
+        </button>
+      </div>
+    </ng-container>
+  </div>
+</div>

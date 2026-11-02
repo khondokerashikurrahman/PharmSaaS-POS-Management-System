@@ -147,6 +147,12 @@ export const routes: Routes = [
             .then(m => m.SubscriptionListComponent)
       },
       {
+        path: 'manual-payments',
+        loadComponent: () =>
+          import('./features/super-admin/manual-payments/manual-payments.component')
+            .then(m => m.ManualPaymentsComponent)
+      },
+      {
         path: 'billing-transactions',
         loadComponent: () =>
           import('./features/super-admin/billing-transactions/billing-transactions.component')

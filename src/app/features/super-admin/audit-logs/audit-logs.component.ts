@@ -1,6 +1,21 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ApiService } from '../../../core/services/api.service';
+
+interface BackendAuditLog {
+  id: number;
+  actorId: number | null;
+  actorName: string;
+  action: string;
+  module: string;
+  targetType: string | null;
+  targetId: string | null;
+  description: string;
+  ipAddress: string | null;
+  status: string;
+  createdAt: string;
+}
 
 interface AuditLog {
   id: string;
@@ -11,145 +26,58 @@ interface AuditLog {
   description: string;
   ipAddress: string;
   date: string;
-  status: 'Success' | 'Warning' | 'Failed';
+  status: string;
 }
 
 @Component({
   selector: 'app-audit-logs',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule
-  ],
+  imports: [CommonModule, FormsModule],
   templateUrl: './audit-logs.component.html',
   styleUrl: './audit-logs.component.scss'
 })
 export class AuditLogsComponent implements OnInit {
-
   logs: AuditLog[] = [];
   filteredLogs: AuditLog[] = [];
-
   searchText = '';
   selectedFilter = 'All';
+  loading = false;
+  errorMessage = '';
+
+  constructor(private api: ApiService) {}
 
   ngOnInit(): void {
     this.loadLogs();
-    this.filteredLogs = [...this.logs];
   }
 
   loadLogs(): void {
+    this.loading = true;
+    this.errorMessage = '';
 
-    this.logs = [
-
-      {
-        id: 'AUD-1001',
-        userId: 'USR-001',
-        userName: 'Md. Ashikur Rahman',
-        action: 'Tenant Approved',
-        module: 'Tenant Management',
-        description: 'Approved Care Pharmacy tenant registration.',
-        ipAddress: '103.45.12.101',
-        date: '2026-09-11 09:20 AM',
-        status: 'Success'
+    this.api.get<BackendAuditLog[]>('/super-admin/audit-logs').subscribe({
+      next: (items) => {
+        this.logs = (items || []).map(item => ({
+          id: `AUD-${item.id}`,
+          userId: item.actorId !== null ? `USR-${item.actorId}` : 'Unknown',
+          userName: item.actorName || 'Unknown User',
+          action: item.action,
+          module: item.module,
+          description: item.description,
+          ipAddress: item.ipAddress || 'Not captured',
+          date: item.createdAt || '',
+          status: item.status || 'Unknown'
+        }));
+        this.applyFilters();
+        this.loading = false;
       },
-
-      {
-        id: 'AUD-1002',
-        userId: 'USR-002',
-        userName: 'Rahim Ahmed',
-        action: 'Plan Updated',
-        module: 'Plan Manager',
-        description: 'Updated Standard subscription plan pricing.',
-        ipAddress: '103.45.12.102',
-        date: '2026-09-11 08:55 AM',
-        status: 'Success'
-      },
-
-      {
-        id: 'AUD-1003',
-        userId: 'USR-003',
-        userName: 'Nusrat Jahan',
-        action: 'Support Ticket Updated',
-        module: 'Support',
-        description: 'Updated customer support ticket status.',
-        ipAddress: '103.45.12.103',
-        date: '2026-09-10 05:35 PM',
-        status: 'Success'
-      },
-
-      {
-        id: 'AUD-1004',
-        userId: 'USR-004',
-        userName: 'Tanvir Hasan',
-        action: 'Refund Processed',
-        module: 'Billing',
-        description: 'Processed refund for Green Valley Medicine.',
-        ipAddress: '103.45.12.104',
-        date: '2026-09-10 04:10 PM',
-        status: 'Success'
-      },
-
-      {
-        id: 'AUD-1005',
-        userId: 'USR-005',
-        userName: 'Sadia Islam',
-        action: 'Login Failed',
-        module: 'Authentication',
-        description: 'Multiple unsuccessful login attempts detected.',
-        ipAddress: '103.45.12.105',
-        date: '2026-09-10 02:45 PM',
-        status: 'Warning'
-      },
-
-      {
-        id: 'AUD-1006',
-        userId: 'USR-002',
-        userName: 'Rahim Ahmed',
-        action: 'Tenant Suspended',
-        module: 'Tenant Management',
-        description: 'Suspended Popular Pharmacy account.',
-        ipAddress: '103.45.12.102',
-        date: '2026-09-09 03:30 PM',
-        status: 'Success'
-      },
-
-      {
-        id: 'AUD-1007',
-        userId: 'USR-007',
-        userName: 'Fahim Khan',
-        action: 'Payment Failed',
-        module: 'Billing',
-        description: 'Payment processing failed for subscription.',
-        ipAddress: '103.45.12.107',
-        date: '2026-09-09 01:15 PM',
-        status: 'Failed'
-      },
-
-      {
-        id: 'AUD-1008',
-        userId: 'USR-001',
-        userName: 'Md. Ashikur Rahman',
-        action: 'User Created',
-        module: 'Platform Users',
-        description: 'Created a new support agent account.',
-        ipAddress: '103.45.12.101',
-        date: '2026-09-08 11:40 AM',
-        status: 'Success'
-      },
-
-      {
-        id: 'AUD-1009',
-        userId: 'USR-004',
-        userName: 'Tanvir Hasan',
-        action: 'Billing Log Viewed',
-        module: 'Billing Logs',
-        description: 'Viewed platform billing activity logs.',
-        ipAddress: '103.45.12.104',
-        date: '2026-09-08 10:25 AM',
-        status: 'Success'
+      error: (error) => {
+        console.error('Failed to load audit logs', error);
+        this.errorMessage = error?.error?.message || 'Audit logs could not be loaded from the server.';
+        this.logs = [];
+        this.filteredLogs = [];
+        this.loading = false;
       }
-
-    ];
+    });
   }
 
   get totalLogs(): number {
@@ -157,21 +85,7 @@ export class AuditLogsComponent implements OnInit {
   }
 
   get successLogs(): number {
-    return this.logs.filter(
-      log => log.status === 'Success'
-    ).length;
-  }
-
-  get warningLogs(): number {
-    return this.logs.filter(
-      log => log.status === 'Warning'
-    ).length;
-  }
-
-  get failedLogs(): number {
-    return this.logs.filter(
-      log => log.status === 'Failed'
-    ).length;
+    return this.logs.filter(log => log.status.toLowerCase() === 'success').length;
   }
 
   filterLogs(filter: string): void {
@@ -184,43 +98,34 @@ export class AuditLogsComponent implements OnInit {
   }
 
   private applyFilters(): void {
-
     let result = [...this.logs];
 
     if (this.selectedFilter !== 'All') {
-
-      result = result.filter(
-        log => log.status === this.selectedFilter
-      );
-
+      result = result.filter(log => log.status.toLowerCase() === this.selectedFilter.toLowerCase());
     }
 
-    if (this.searchText.trim()) {
-
-      const search = this.searchText
-        .toLowerCase()
-        .trim();
-
+    const search = this.searchText.trim().toLowerCase();
+    if (search) {
       result = result.filter(log =>
         log.id.toLowerCase().includes(search) ||
+        log.userId.toLowerCase().includes(search) ||
         log.userName.toLowerCase().includes(search) ||
         log.action.toLowerCase().includes(search) ||
         log.module.toLowerCase().includes(search) ||
         log.description.toLowerCase().includes(search) ||
         log.ipAddress.toLowerCase().includes(search)
       );
-
     }
 
     this.filteredLogs = result;
   }
 
   viewLog(log: AuditLog): void {
-
     alert(
       `Audit Log Details\n\n` +
       `Log ID: ${log.id}\n` +
       `User: ${log.userName}\n` +
+      `User ID: ${log.userId}\n` +
       `Action: ${log.action}\n` +
       `Module: ${log.module}\n` +
       `Description: ${log.description}\n` +
@@ -228,7 +133,25 @@ export class AuditLogsComponent implements OnInit {
       `Date: ${log.date}\n` +
       `Status: ${log.status}`
     );
-
   }
 
+  exportLogs(): void {
+    if (!this.filteredLogs.length) return;
+
+    const columns = ['Log ID', 'User ID', 'User', 'Action', 'Module', 'Description', 'IP Address', 'Date', 'Status'];
+    const rows = this.filteredLogs.map(log => [
+      log.id, log.userId, log.userName, log.action, log.module,
+      log.description, log.ipAddress, log.date, log.status
+    ]);
+
+    const escapeCsv = (value: string) => '"' + String(value ?? '').replace(/"/g, '""') + '"';
+    const csv = [columns, ...rows].map(row => row.map(escapeCsv).join(',')).join('\r\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'pharmsaas-audit-logs.csv';
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
 }

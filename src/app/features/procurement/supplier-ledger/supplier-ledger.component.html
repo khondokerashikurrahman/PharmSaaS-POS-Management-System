@@ -1,5 +1,8 @@
 
 <div class="ledger-page">
+  <div *ngIf="errorMessage" class="supplier-ledger-live-error" role="alert">{{ errorMessage }}</div>
+  <div *ngIf="successMessage" class="supplier-ledger-live-success" role="status">{{ successMessage }}</div>
+  <div *ngIf="loading" class="supplier-ledger-loading" role="status">Loading supplier ledger...</div>
 
   <!-- PAGE HEADER -->
   <div class="page-header">
@@ -56,11 +59,8 @@
           (change)="onSupplierChange()"
           class="supplier-select"
         >
-          <option
-            *ngFor="let supplier of suppliers"
-            [value]="supplier"
-          >
-            {{ supplier }}
+          <option *ngFor="let supplier of suppliers" [ngValue]="supplier.id">
+            {{ supplier.name }} ({{ supplier.supplierCode }})
           </option>
         </select>
 
@@ -151,13 +151,13 @@
         <h2>Transaction Ledger</h2>
         <p>
           Showing transaction history for
-          <strong>{{ selectedSupplier }}</strong>
+          <strong>{{ selectedSupplier?.name || "Select a supplier" }}</strong>
         </p>
       </div>
 
       <button
         class="btn btn-success"
-        (click)="makePayment()"
+        (click)="openPaymentForm()"
       >
         <i class="bi bi-plus-lg"></i>
         Make Payment
@@ -202,6 +202,7 @@
             <th class="text-right">Debit</th>
             <th class="text-right">Credit</th>
             <th class="text-right">Balance</th>
+            <th>Action</th>
           </tr>
         </thead>
 
@@ -266,6 +267,12 @@
             <td class="amount balance">
               ৳{{ entry.balance | number:'1.2-2' }}
             </td>
+            <td>
+              <button *ngIf="entry.type === 'Payment' && entry.status === 'PAID'"
+                type="button" class="btn btn-outline btn-sm"
+                (click)="cancelPayment(entry)">Cancel</button>
+              <span *ngIf="entry.type !== 'Payment' || entry.status !== 'PAID'">—</span>
+            </td>
 
           </tr>
 
@@ -274,7 +281,7 @@
           <tr *ngIf="filteredEntries.length === 0">
 
             <td
-              colspan="7"
+              colspan="8"
               class="empty-cell"
             >
 
@@ -353,4 +360,45 @@
 
   </div>
 
+
+  <div class="supplier-payment-overlay" *ngIf="showPaymentForm">
+    <div class="supplier-payment-modal" role="dialog" aria-modal="true" aria-labelledby="supplierPaymentTitle">
+      <div class="supplier-payment-modal-header">
+        <div>
+          <h2 id="supplierPaymentTitle">Record Supplier Payment</h2>
+          <p>{{ selectedSupplier?.name }}</p>
+        </div>
+        <button type="button" class="btn btn-outline" (click)="closePaymentForm()" [disabled]="savingPayment">×</button>
+      </div>
+
+      <form (ngSubmit)="submitPayment()">
+        <label>Payment Date</label>
+        <input type="date" name="paymentDate" [(ngModel)]="payment.paymentDate" required />
+
+        <label>Amount (৳)</label>
+        <input type="number" name="amount" [(ngModel)]="payment.amount" min="0.01" step="0.01" required />
+
+        <label>Payment Method</label>
+        <select name="paymentMethod" [(ngModel)]="payment.paymentMethod" required>
+          <option value="Cash">Cash</option>
+          <option value="Bank Transfer">Bank Transfer</option>
+          <option value="Card">Card</option>
+          <option value="Mobile Banking">Mobile Banking</option>
+        </select>
+
+        <label>Reference Number (Optional)</label>
+        <input type="text" name="referenceNumber" [(ngModel)]="payment.referenceNumber" maxlength="100" />
+
+        <label>Notes (Optional)</label>
+        <textarea name="notes" [(ngModel)]="payment.notes" maxlength="1000" rows="3"></textarea>
+
+        <div class="supplier-payment-modal-actions">
+          <button type="button" class="btn btn-outline" (click)="closePaymentForm()" [disabled]="savingPayment">Cancel</button>
+          <button type="submit" class="btn btn-success" [disabled]="savingPayment">
+            {{ savingPayment ? 'Saving...' : 'Save Payment' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>

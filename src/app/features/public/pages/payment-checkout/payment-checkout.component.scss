@@ -851,3 +851,28 @@
   }
 
 }
+.manual-payment-fields {
+  display: grid;
+  gap: 10px;
+  margin: 22px 0;
+}
+.manual-payment-fields label {
+  font-weight: 600;
+  margin-top: 5px;
+}
+.manual-payment-fields input,
+.manual-payment-fields select {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid #d7dee8;
+  border-radius: 8px;
+  background: #fff;
+  color: #1f2937;
+  font: inherit;
+}
+.manual-payment-fields input:focus,
+.manual-payment-fields select:focus {
+  outline: 2px solid rgba(37, 99, 235, .2);
+  border-color: #2563eb;
+}

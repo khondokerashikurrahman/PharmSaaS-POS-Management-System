@@ -164,6 +164,23 @@
     </div>
 
 
+<div *ngIf="loading" class="p-4 text-center">
+  Loading billing activity...
+</div>
+
+<div *ngIf="errorMessage" class="alert alert-danger m-3">
+  {{ errorMessage }}
+  <button type="button" class="btn btn-sm btn-outline-danger ms-2"
+          (click)="loadLogs()">
+    Retry
+  </button>
+</div>
+
+<div *ngIf="!loading && !errorMessage && logs.length === 0"
+     class="p-4 text-center">
+  No billing activity found.
+</div>
+
     <div class="table-wrapper">
 
       <table>
@@ -228,9 +245,7 @@
                   {{ log.pharmacyName }}
                 </strong>
 
-                <span>
-                  Pharmacy Tenant
-                </span>
+                <span>{{ log.ownerName || "Owner not recorded" }}</span>
 
               </div>
 
@@ -295,7 +310,7 @@
             <!-- DATE -->
 
             <td>
-              {{ log.date }}
+              {{ formatDate(log.date) }}
             </td>
 
 

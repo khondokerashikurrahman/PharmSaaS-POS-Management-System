@@ -74,7 +74,7 @@ export class TransferReceiveComponent implements OnInit {
         ? Number(savedReceived)
         : transferredQty;
 
-    const damagedQty = Number(item.damagedQuantity || 0);
+    const damagedQty = Math.max(0, transferredQty - receivedQty);
     const condition: ReceiveItem['condition'] =
       damagedQty > 0
         ? 'Damaged'
@@ -229,13 +229,11 @@ export class TransferReceiveComponent implements OnInit {
   }
 
   updateCondition(item: ReceiveItem): void {
-    if (item.damagedQty > 0) {
-      item.condition = 'Damaged';
-    } else if (item.receivedQty < item.transferredQty) {
-      item.condition = 'Short';
-    } else {
-      item.condition = 'Good';
-    }
+    item.damagedQty = Math.max(
+      0,
+      Number(item.transferredQty || 0) - Number(item.receivedQty || 0)
+    );
+    item.condition = item.damagedQty > 0 ? 'Short' : 'Good';
     this.calculateItemTotal(item);
   }
 
@@ -279,9 +277,7 @@ export class TransferReceiveComponent implements OnInit {
 
     const invalidQuantity = transfer.items.some(item =>
       item.receivedQty < 0 ||
-      item.receivedQty > item.transferredQty ||
-      item.damagedQty < 0 ||
-      item.damagedQty > item.receivedQty
+      item.receivedQty > item.transferredQty
     );
 
     if (invalidQuantity) {
@@ -302,12 +298,9 @@ export class TransferReceiveComponent implements OnInit {
       note: this.receiveNotes.trim(),
       items: transfer.items.map(item => ({
         transferItemId: Number(item.transferItemId),
-        // Backend records the quantity accepted into destination stock.
-        // Damaged quantity is excluded from the accepted quantity.
-        receivedQuantity: Math.max(
-          0,
-          Number(item.receivedQty || 0) - Number(item.damagedQty || 0)
-        )
+        // Backend expects accepted quantity and calculates the remaining
+        // dispatched quantity as damaged/missing.
+        receivedQuantity: Number(item.receivedQty || 0)
       }))
     };
 

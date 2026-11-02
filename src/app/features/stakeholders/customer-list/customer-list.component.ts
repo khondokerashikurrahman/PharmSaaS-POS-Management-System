@@ -1,19 +1,20 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
 
 interface Customer {
-  id: string;
+  id: number;
+  customerCode: string;
   name: string;
   phone: string;
-  email: string;
-  address: string;
-  totalPurchases: number;
-  totalPaid: number;
-  dueAmount: number;
-  status: 'Active' | 'Inactive';
-  lastPurchase: string;
+  email?: string;
+  address?: string;
+  openingBalance: number;
+  status: string;
+  createdAt?: string;
 }
 
 @Component({
@@ -23,128 +24,94 @@ interface Customer {
   templateUrl: './customer-list.component.html',
   styleUrl: './customer-list.component.scss'
 })
-export class CustomerListComponent {
-
+export class CustomerListComponent implements OnInit {
+  customers: Customer[] = [];
   searchTerm = '';
   statusFilter = 'All';
+  loading = false;
+  saving = false;
+  errorMessage = '';
+  successMessage = '';
+  showForm = false;
+  editingId: number | null = null;
 
-  customers: Customer[] = [
-    {
-      id: 'CUS-001',
-      name: 'Abdul Karim',
-      phone: '+880 1711-234567',
-      email: 'abdul.karim@gmail.com',
-      address: 'Dhanmondi, Dhaka',
-      totalPurchases: 48500,
-      totalPaid: 45000,
-      dueAmount: 3500,
-      status: 'Active',
-      lastPurchase: '12 Sep 2026'
-    },
-    {
-      id: 'CUS-002',
-      name: 'Rahim Ahmed',
-      phone: '+880 1812-345678',
-      email: 'rahim.ahmed@gmail.com',
-      address: 'Mirpur, Dhaka',
-      totalPurchases: 32600,
-      totalPaid: 32600,
-      dueAmount: 0,
-      status: 'Active',
-      lastPurchase: '11 Sep 2026'
-    },
-    {
-      id: 'CUS-003',
-      name: 'Sadia Islam',
-      phone: '+880 1912-456789',
-      email: 'sadia.islam@gmail.com',
-      address: 'Uttara, Dhaka',
-      totalPurchases: 28750,
-      totalPaid: 25000,
-      dueAmount: 3750,
-      status: 'Active',
-      lastPurchase: '10 Sep 2026'
-    },
-    {
-      id: 'CUS-004',
-      name: 'Tanvir Hasan',
-      phone: '+880 1612-567890',
-      email: 'tanvir.hasan@gmail.com',
-      address: 'Mohammadpur, Dhaka',
-      totalPurchases: 19400,
-      totalPaid: 19400,
-      dueAmount: 0,
-      status: 'Active',
-      lastPurchase: '09 Sep 2026'
-    },
-    {
-      id: 'CUS-005',
-      name: 'Nusrat Jahan',
-      phone: '+880 1512-678901',
-      email: 'nusrat.jahan@gmail.com',
-      address: 'Gulshan, Dhaka',
-      totalPurchases: 41200,
-      totalPaid: 38000,
-      dueAmount: 3200,
-      status: 'Active',
-      lastPurchase: '08 Sep 2026'
-    },
-    {
-      id: 'CUS-006',
-      name: 'Fahim Rahman',
-      phone: '+880 1812-789012',
-      email: 'fahim.rahman@gmail.com',
-      address: 'Banani, Dhaka',
-      totalPurchases: 15600,
-      totalPaid: 15600,
-      dueAmount: 0,
-      status: 'Inactive',
-      lastPurchase: '25 Aug 2026'
-    },
-    {
-      id: 'CUS-007',
-      name: 'Mst. Shirin Akter',
-      phone: '+880 1715-890123',
-      email: 'shirin.akter@gmail.com',
-      address: 'Bashundhara, Dhaka',
-      totalPurchases: 52300,
-      totalPaid: 47000,
-      dueAmount: 5300,
-      status: 'Active',
-      lastPurchase: '07 Sep 2026'
-    },
-    {
-      id: 'CUS-008',
-      name: 'Mehedi Hasan',
-      phone: '+880 1915-901234',
-      email: 'mehedi.hasan@gmail.com',
-      address: 'Wari, Dhaka',
-      totalPurchases: 22100,
-      totalPaid: 22100,
-      dueAmount: 0,
-      status: 'Active',
-      lastPurchase: '06 Sep 2026'
+  form = {
+    name: '',
+    phone: '',
+    email: '',
+    address: '',
+    openingBalance: 0
+  };
+
+  private tenantId = '';
+
+  constructor(private http: HttpClient, private router: Router) {}
+
+  ngOnInit(): void {
+    this.tenantId = this.getTenantId();
+    if (!this.tenantId) {
+      this.errorMessage = 'Tenant ID পাওয়া যায়নি। আবার login করুন।';
+      return;
     }
-  ];
+    this.loadCustomers();
+  }
 
-  constructor(private router: Router) {}
+  private getTenantId(): string {
+    const user = this.parseUser();
+    return String(
+      localStorage.getItem('tenantId') ||
+      localStorage.getItem('tenant_id') ||
+      user?.tenantId ||
+      user?.tenant?.id ||
+      user?.currentTenantId ||
+      ''
+    );
+  }
+
+  private parseUser(): any {
+    try {
+      return JSON.parse(localStorage.getItem('pharm_user') || '{}');
+    } catch {
+      return {};
+    }
+  }
+
+  private url(path = ''): string {
+    return `${environment.apiUrl}/tenants/${this.tenantId}/customers${path}`;
+  }
+
+  loadCustomers(): void {
+    this.loading = true;
+    this.errorMessage = '';
+
+    this.http.get<Customer[]>(this.url()).subscribe({
+      next: response => {
+        this.customers = Array.isArray(response) ? response : [];
+        this.loading = false;
+      },
+      error: error => {
+        this.loading = false;
+        this.errorMessage = error?.error?.message || 'Customer list load করা যায়নি।';
+      }
+    });
+  }
 
   get filteredCustomers(): Customer[] {
     const search = this.searchTerm.trim().toLowerCase();
 
     return this.customers.filter(customer => {
+      const matchesSearch = !search || [
+        customer.customerCode,
+        customer.name,
+        customer.phone,
+        customer.email,
+        customer.address
+      ].some(value => String(value || '').toLowerCase().includes(search));
 
-      const matchesSearch =
-        !search ||
-        customer.id.toLowerCase().includes(search) ||
-        customer.name.toLowerCase().includes(search) ||
-        customer.phone.toLowerCase().includes(search) ||
-        customer.email.toLowerCase().includes(search) ||
-        customer.address.toLowerCase().includes(search);
-
-      const matchesStatus =
-        this.statusFilter === 'All' ||
-        customer.status === this.statusFilter;
+      const status = customer.status?.toUpperCase();
+      const matchesStatus = this.statusFilter === 'All' ||
+        (this.statusFilter === 'Active' && status === 'ACTIVE') ||
+        (this.statusFilter === 'Inactive' && status !== 'ACTIVE');
 
       return matchesSearch && matchesStatus;
     });
@@ -155,53 +122,112 @@ export class CustomerListComponent {
   }
 
   get activeCustomers(): number {
-    return this.customers.filter(
-      customer => customer.status === 'Active'
-    ).length;
+    return this.customers.filter(c => c.status?.toUpperCase() === 'ACTIVE').length;
   }
 
   get inactiveCustomers(): number {
-    return this.customers.filter(
-      customer => customer.status === 'Inactive'
-    ).length;
+    return this.totalCustomers - this.activeCustomers;
   }
 
   get totalDue(): number {
-    return this.customers.reduce(
-      (total, customer) => total + customer.dueAmount,
-      0
-    );
-  }
-
-  get totalPurchases(): number {
-    return this.customers.reduce(
-      (total, customer) => total + customer.totalPurchases,
-      0
-    );
+    return this.customers.reduce((sum, c) => sum + Number(c.openingBalance || 0), 0);
   }
 
   getInitial(name: string): string {
-    return name.charAt(0).toUpperCase();
+    return name?.charAt(0).toUpperCase() || '?';
   }
 
-  viewCustomer(id: string): void {
+  getStatusClass(status: string): string {
+    return status?.toUpperCase() === 'ACTIVE' ? 'status-active' : 'status-inactive';
+  }
+
+  openAddForm(): void {
+    this.editingId = null;
+    this.form = { name: '', phone: '', email: '', address: '', openingBalance: 0 };
+    this.showForm = true;
+  }
+
+  openEditForm(customer: Customer): void {
+    this.editingId = customer.id;
+    this.form = {
+      name: customer.name || '',
+      phone: customer.phone || '',
+      email: customer.email || '',
+      address: customer.address || '',
+      openingBalance: Number(customer.openingBalance || 0)
+    };
+    this.showForm = true;
+  }
+
+  closeForm(): void {
+    this.showForm = false;
+    this.saving = false;
+  }
+
+  saveCustomer(): void {
+    if (!this.form.name.trim() || !this.form.phone.trim()) {
+      this.errorMessage = 'Customer name এবং phone আবশ্যক।';
+      return;
+    }
+
+    if (this.form.openingBalance < 0) {
+      this.errorMessage = 'Opening balance ঋণাত্মক হতে পারবে না।';
+      return;
+    }
+
+    this.saving = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    const payload = {
+      name: this.form.name.trim(),
+      phone: this.form.phone.trim(),
+      email: this.form.email.trim() || null,
+      address: this.form.address.trim() || null,
+      openingBalance: Number(this.form.openingBalance || 0)
+    };
+
+    const request = this.editingId
+      ? this.http.put(this.url(`/${this.editingId}`), payload)
+      : this.http.post(this.url(), payload);
+
+    request.subscribe({
+      next: () => {
+        this.closeForm();
+        this.successMessage = this.editingId
+          ? 'Customer update হয়েছে।'
+          : 'নতুন Customer তৈরি হয়েছে।';
+        this.loadCustomers();
+      },
+      error: error => {
+        this.saving = false;
+        this.errorMessage = error?.error?.message || 'Customer save করা যায়নি।';
+      }
+    });
+  }
+
+  deactivateCustomer(customer: Customer): void {
+    if (!confirm(`"${customer.name}" customer-কে deactivate করতে চাও?`)) return;
+
+    this.http.patch(this.url(`/${customer.id}/deactivate`), {}).subscribe({
+      next: () => {
+        this.successMessage = 'Customer deactivate হয়েছে।';
+        this.loadCustomers();
+      },
+      error: error => {
+        this.errorMessage = error?.error?.message || 'Customer deactivate করা যায়নি।';
+      }
+    });
+  }
+
+  viewCustomer(id: number): void {
     this.router.navigate(['/app/stakeholders/customers', id]);
   }
 
-  viewLedger(id: string): void {
+  viewLedger(id: number): void {
     this.router.navigate(
       ['/app/stakeholders/customers/ledger'],
       { queryParams: { customerId: id } }
     );
-  }
-
-  addCustomer(): void {
-    alert('Customer form will be connected with backend later.');
-  }
-
-  getStatusClass(status: string): string {
-    return status === 'Active'
-      ? 'status-active'
-      : 'status-inactive';
   }
 }

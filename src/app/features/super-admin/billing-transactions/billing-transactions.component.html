@@ -161,7 +161,9 @@
     </div>
 
 
-    <div class="table-wrapper">
+    <div *ngIf="loading" class="loading-state">Loading billing transactions...</div>
+    <div *ngIf="errorMessage" class="error-state">{{ errorMessage }}</div>
+    <div class="table-wrapper" *ngIf="!loading && !errorMessage">
 
       <table>
 
@@ -169,7 +171,7 @@
 
           <tr>
 
-            <th>Transaction</th>
+            <th>Payment Reference</th>
 
             <th>Pharmacy</th>
 
@@ -179,7 +181,7 @@
 
             <th>Payment Method</th>
 
-            <th>Date</th>
+            <th>Payment Date</th>
 
             <th>Status</th>
 
@@ -207,7 +209,7 @@
                 </strong>
 
                 <span>
-                  {{ transaction.invoiceNumber }}
+                  {{ transaction.id }}
                 </span>
 
               </div>
@@ -269,10 +271,10 @@
 
                 <i
                   class="bi"
-                  [class.bi-credit-card]="transaction.paymentMethod === 'Card'"
+                  [class.bi-credit-card]="transaction.paymentMethod === 'Card' || transaction.paymentMethod === 'SSLCOMMERZ'"
                   [class.bi-phone]="
                     transaction.paymentMethod === 'bKash' ||
-                    transaction.paymentMethod === 'Nagad'
+                    transaction.paymentMethod === 'Nagad' || transaction.paymentMethod === 'Rocket'
                   "
                   [class.bi-bank]="transaction.paymentMethod === 'Bank Transfer'"
                 ></i>
@@ -329,13 +331,7 @@
                 </button>
 
 
-                <button
-                  class="invoice-btn"
-                  title="Invoice"
-                  (click)="downloadInvoice(transaction)"
-                >
-                  <i class="bi bi-file-earmark-pdf"></i>
-                </button>
+
 
               </div>
 

@@ -22,11 +22,8 @@ interface PlatformUser {
   id: number;
   name: string;
   email: string;
-  phone: string;
   role: string;
-  department: string;
-  lastLogin: string;
-  status: 'Active' | 'Inactive' | 'Suspended';
+  status: 'Active' | 'Inactive';
 }
 
 @Component({
@@ -77,12 +74,9 @@ export class PlatformUsersComponent implements OnInit {
           id: user.id,
           name: user.fullName || 'Unnamed user',
           email: user.email,
-          phone: '—',
           role: user.systemRole === 'SUPER_ADMIN'
             ? 'Super Admin'
             : user.systemRole,
-          department: '—',
-          lastLogin: '—',
           status: user.enabled ? 'Active' : 'Inactive'
         }));
 
@@ -113,10 +107,6 @@ export class PlatformUsersComponent implements OnInit {
 
   get inactiveUsers(): number {
     return this.users.filter(user => user.status === 'Inactive').length;
-  }
-
-  get suspendedUsers(): number {
-    return this.users.filter(user => user.status === 'Suspended').length;
   }
 
   filterUsers(status: string): void {
@@ -245,36 +235,31 @@ export class PlatformUsersComponent implements OnInit {
   }
 
   toggleUserStatus(user: PlatformUser): void {
-    if (user.status !== 'Active') {
-      alert(
-        'Reactivating a disabled account is not supported by the current backend API.'
-      );
+    const enabled = user.status !== 'Active';
+    const action = enabled ? 'enable' : 'disable';
+
+    if (!confirm(`${action} ${user.name}'s account?`)) {
       return;
     }
 
-    if (!confirm(`Disable ${user.name}'s account?`)) {
-      return;
-    }
-
-    this.api.delete<void>(`/auth/${user.id}`).subscribe({
+    this.api.patch<void>(
+      `/auth/users/${user.id}/status?enabled=${enabled}`,
+      {}
+    ).subscribe({
       next: () => {
-        this.successMessage = `${user.name}'s account was disabled.`;
+        this.successMessage =
+          `${user.name}'s account was ${enabled ? 'enabled' : 'disabled'}.`;
         this.loadUsers();
       },
       error: (err) => {
         alert(
           err?.status === 403
-            ? 'Only Super Admin can disable this account.'
-            : 'Could not update the account. Please try again.'
+            ? 'You cannot change this account. The backend protects Super Admin accounts and your own account.'
+            : err?.status === 401
+              ? 'Please log in again.'
+              : 'Could not update the account. Please try again.'
         );
       }
     });
-  }
-
-  suspendUser(user: PlatformUser): void {
-    alert(
-      'A separate Suspended status is not implemented in the backend yet. ' +
-      'No changes have been made to this account.'
-    );
   }
 }

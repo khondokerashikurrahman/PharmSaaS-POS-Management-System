@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { StorageService } from '../../../core/services/storage.service';
 import { SaleApiService } from '../../../core/services/sale-api.service';
 import { StoreApiService, StoreResponse } from '../../../core/services/store-api.service';
+import { ApiService } from '../../../core/services/api.service';
 
 import {
   InvoiceReceiptData
@@ -108,6 +109,19 @@ export class PosTerminalComponent implements OnInit {
   // =====================================================
 
   taxRate = 0;
+  taxSettingsLoaded = false;
+  taxSettingsLoadFailed = false;
+
+  posSettings = {
+    discountEnabled: true,
+    maximumDiscountPercentage: 10,
+    customerRequired: false,
+    cashEnabled: true,
+    cardEnabled: true,
+    mobileEnabled: true
+  };
+  posSettingsLoaded = false;
+  posSettingsLoadFailed = false;
 
 
   // =====================================================
@@ -158,7 +172,8 @@ export class PosTerminalComponent implements OnInit {
   constructor(
     private storageService: StorageService,
     private saleApiService: SaleApiService,
-    private storeApiService: StoreApiService
+    private storeApiService: StoreApiService,
+    private apiService: ApiService
   ) {}
 
 
@@ -187,7 +202,106 @@ export class PosTerminalComponent implements OnInit {
 
     this.loadStores();
     this.loadCart();
+    this.loadTaxSettings();
+    this.loadPosSettings();
 
+  }
+
+  // Load tenant POS restrictions from the backend.
+  loadPosSettings(): void {
+    const tenantId = this.currentTenantId;
+
+    this.posSettingsLoaded = false;
+    this.posSettingsLoadFailed = false;
+
+    if (!Number.isSafeInteger(tenantId) || tenantId <= 0) {
+      this.posSettingsLoadFailed = true;
+      return;
+    }
+
+    this.apiService.get<{
+      discountEnabled: boolean;
+      maximumDiscountPercentage: number;
+      customerRequired: boolean;
+      cashEnabled: boolean;
+      cardEnabled: boolean;
+      mobileEnabled: boolean;
+    }>(`/tenant-settings/${tenantId}/pos`).subscribe({
+      next: settings => {
+        const maximum = Number(settings.maximumDiscountPercentage);
+
+        if (
+          !Number.isFinite(maximum) ||
+          maximum < 0 ||
+          maximum > 100
+        ) {
+          this.posSettingsLoadFailed = true;
+          return;
+        }
+
+        this.posSettings = {
+          discountEnabled: settings.discountEnabled === true,
+          maximumDiscountPercentage: maximum,
+          customerRequired: settings.customerRequired === true,
+          cashEnabled: settings.cashEnabled === true,
+          cardEnabled: settings.cardEnabled === true,
+          mobileEnabled: settings.mobileEnabled === true
+        };
+
+        if (
+          !this.posSettings.cashEnabled &&
+          !this.posSettings.cardEnabled &&
+          !this.posSettings.mobileEnabled
+        ) {
+          this.posSettingsLoadFailed = true;
+          return;
+        }
+
+        this.posSettingsLoaded = true;
+      },
+      error: error => {
+        console.error('Unable to load POS settings:', error);
+        this.posSettingsLoadFailed = true;
+      }
+    });
+  }
+
+  // Load the tenant's saved tax configuration before allowing sales.
+  loadTaxSettings(): void {
+    const tenantId = this.currentTenantId;
+
+    this.taxSettingsLoaded = false;
+    this.taxSettingsLoadFailed = false;
+
+    if (!Number.isSafeInteger(tenantId) || tenantId <= 0) {
+      this.taxSettingsLoadFailed = true;
+      return;
+    }
+
+    this.apiService.get<{
+      tenantId?: number;
+      taxEnabled: boolean;
+      taxName: string;
+      taxRate: number;
+    }>(`/tenant-settings/${tenantId}/tax`).subscribe({
+      next: settings => {
+        this.taxRate = settings.taxEnabled
+          ? Number(settings.taxRate || 0)
+          : 0;
+
+        if (!Number.isFinite(this.taxRate) || this.taxRate < 0 || this.taxRate > 100) {
+          this.taxRate = 0;
+          this.taxSettingsLoadFailed = true;
+          return;
+        }
+
+        this.taxSettingsLoaded = true;
+      },
+      error: error => {
+        console.error('Unable to load tenant tax settings:', error);
+        this.taxSettingsLoadFailed = true;
+      }
+    });
   }
 
   // Load only active stores belonging to the current tenant.
@@ -933,41 +1047,27 @@ export class PosTerminalComponent implements OnInit {
    * Open Discount Modal
    */
   openDiscountModal(): void {
-
-    /*
-     * Discount cannot be applied
-     * without products.
-     */
-    if (
-      this.cartItems.length === 0
-    ) {
-
-      alert(
-        'Please add products to the cart first.'
-      );
-
+    if (!this.posSettingsLoaded) {
+      alert('POS Settings load হয়নি। কিছুক্ষণ পর আবার চেষ্টা করুন।');
       return;
-
     }
 
+    if (!this.posSettings.discountEnabled) {
+      alert('Discount বর্তমানে POS Settings থেকে বন্ধ রাখা হয়েছে।');
+      return;
+    }
 
-    /*
-     * Make sure subtotal is available.
-     */
+    if (this.cartItems.length === 0) {
+      alert('Please add products to the cart first.');
+      return;
+    }
+
     if (this.subtotal <= 0) {
-
-      alert(
-        'Cart subtotal must be greater than zero.'
-      );
-
+      alert('Cart subtotal must be greater than zero.');
       return;
-
     }
 
-
-    this.showDiscountModal =
-      true;
-
+    this.showDiscountModal = true;
   }
 
 
@@ -983,109 +1083,58 @@ export class PosTerminalComponent implements OnInit {
    * }
    */
   onDiscountApplied(data: any): void {
+    if (!data) return;
 
-    if (!data) {
-
+    if (!this.posSettingsLoaded || !this.posSettings.discountEnabled) {
+      alert('Discount বর্তমানে available নয়। POS Settings যাচাই করুন।');
       return;
-
     }
 
+    const value = Number(data.value ?? data.discount ?? 0);
 
-    /*
-     * Get discount value
-     */
-    const value =
-      Number(
-        data.value ??
-        data.discount ??
-        0
-      );
+    if (!Number.isFinite(value) || value < 0) {
+      alert('Please enter a valid discount.');
+      return;
+    }
 
+    const type = data.type === 'percentage' ? 'percentage' : 'amount';
 
-    /*
-     * Invalid value
-     */
+    if (type === 'percentage' && value > 100) {
+      alert('Percentage discount cannot exceed 100%.');
+      return;
+    }
+
+    if (type === 'amount' && value > this.subtotal) {
+      alert('Discount cannot exceed subtotal.');
+      return;
+    }
+
+    const requestedDiscount = type === 'percentage'
+      ? this.subtotal * value / 100
+      : value;
+
+    const itemDiscountTotal = this.cartItems.reduce(
+      (sum, item) => sum + Number(item.discount || 0),
+      0
+    );
+
+    const maximumAllowedDiscount =
+      this.subtotal * this.posSettings.maximumDiscountPercentage / 100;
+
     if (
-      !Number.isFinite(value) ||
-      value < 0
+      itemDiscountTotal + requestedDiscount >
+      maximumAllowedDiscount + 0.001
     ) {
-
       alert(
-        'Please enter a valid discount.'
+        `Total discount cannot exceed ${this.posSettings.maximumDiscountPercentage}% of subtotal.`
       );
-
       return;
-
     }
 
-
-    /*
-     * Get discount type
-     */
-    const type =
-      data.type === 'percentage'
-        ? 'percentage'
-        : 'amount';
-
-
-    /*
-     * Percentage validation
-     */
-    if (
-      type === 'percentage' &&
-      value > 100
-    ) {
-
-      alert(
-        'Percentage discount cannot exceed 100%.'
-      );
-
-      return;
-
-    }
-
-
-    /*
-     * Amount validation
-     */
-    if (
-      type === 'amount' &&
-      value > this.subtotal
-    ) {
-
-      alert(
-        'Discount cannot exceed subtotal.'
-      );
-
-      return;
-
-    }
-
-
-    /*
-     * Save discount
-     */
-    this.discount =
-      value;
-
-    this.discountType =
-      type;
-
-
-    /*
-     * Close modal
-     */
-    this.showDiscountModal =
-      false;
-
-
-    /*
-     * Force Angular UI refresh
-     */
-    this.cartItems = [
-      ...this.cartItems
-    ];
-
+    this.discount = value;
+    this.discountType = type;
+    this.showDiscountModal = false;
+    this.cartItems = [...this.cartItems];
   }
 
 
@@ -1191,47 +1240,46 @@ export class PosTerminalComponent implements OnInit {
    * Open payment panel
    */
   openPayment(): void {
-
-    if (
-      this.cartItems.length === 0
-    ) {
-
-      alert(
-        'Please add products to the cart.'
-      );
-
+    if (!this.posSettingsLoaded) {
+      alert('POS Settings load হচ্ছে বা load করা যায়নি।');
       return;
-
     }
 
-
-    if (
-      this.totalAmount <= 0
-    ) {
-
-      alert(
-        'Total amount must be greater than zero.'
-      );
-
+    if (this.cartItems.length === 0) {
+      alert('Please add products to the cart.');
       return;
-
     }
 
+    if (this.totalAmount <= 0) {
+      alert('Total amount must be greater than zero.');
+      return;
+    }
 
-    /*
-     * Reset payment values
-     */
+    if (
+      this.posSettings.customerRequired &&
+      !this.selectedCustomer
+    ) {
+      alert('এই Sale সম্পন্ন করতে Customer নির্বাচন করতে হবে।');
+      return;
+    }
+
+    if (
+      !this.posSettings.cashEnabled &&
+      !this.posSettings.cardEnabled &&
+      !this.posSettings.mobileEnabled
+    ) {
+      alert('কোনো Payment Method চালু নেই। POS Settings যাচাই করুন।');
+      return;
+    }
+
+    this.paymentMethod = this.posSettings.cashEnabled
+      ? 'Cash'
+      : this.posSettings.cardEnabled
+        ? 'Card'
+        : 'Mobile';
+
     this.amountReceived = 0;
-
-    this.paymentMethod = 'Cash';
-
-
-    /*
-     * Open payment modal
-     */
-    this.showPaymentPanel =
-      true;
-
+    this.showPaymentPanel = true;
   }
 
 
@@ -1319,6 +1367,41 @@ export class PosTerminalComponent implements OnInit {
       return;
     }
 
+    if (!this.posSettingsLoaded) {
+      alert(
+        this.posSettingsLoadFailed
+          ? 'POS Settings load করা যায়নি। POS refresh করুন।'
+          : 'POS Settings load হচ্ছে। কিছুক্ষণ পর চেষ্টা করুন।'
+      );
+      return;
+    }
+
+    if (
+      this.posSettings.customerRequired &&
+      !this.selectedCustomer
+    ) {
+      alert('এই Sale সম্পন্ন করতে Customer নির্বাচন করতে হবে।');
+      return;
+    }
+
+    if (
+      (this.paymentMethod === 'Cash' && !this.posSettings.cashEnabled) ||
+      (this.paymentMethod === 'Card' && !this.posSettings.cardEnabled) ||
+      (this.paymentMethod === 'Mobile' && !this.posSettings.mobileEnabled)
+    ) {
+      alert('Selected payment method POS Settings থেকে বন্ধ রয়েছে।');
+      return;
+    }
+
+    if (!this.taxSettingsLoaded) {
+      alert(
+        this.taxSettingsLoadFailed
+          ? 'Tax Settings load করা যায়নি। Settings ঠিক করে POS আবার চালু করুন।'
+          : 'Tax Settings load হচ্ছে। কিছুক্ষণ পর আবার চেষ্টা করুন।'
+      );
+      return;
+    }
+
     if (!this.cartItems.length) {
       alert('Cart is empty.');
       return;
@@ -1399,8 +1482,14 @@ export class PosTerminalComponent implements OnInit {
 
     this.processingSale = true;
 
+    const selectedCustomerId = Number(this.selectedCustomer?.id);
+    const customerId = Number.isInteger(selectedCustomerId) && selectedCustomerId > 0
+      ? selectedCustomerId
+      : undefined;
+
     this.saleApiService.createSale(tenantId, {
       customerName: this.customerName || 'Walk-in Customer',
+      ...(customerId ? { customerId } : {}),
       storeId: this.selectedStoreId ?? undefined,
       paymentMethod,
       discountType: this.discountType,

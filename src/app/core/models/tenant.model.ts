@@ -8,7 +8,8 @@ export type TenantStatus =
   | 'Pending'
   | 'Suspended'
   | 'Approved'
-  | 'Rejected';
+  | 'Rejected'
+  | 'Archived';
 
 export interface Tenant {
   id: string;
@@ -22,7 +23,7 @@ export interface Tenant {
   address: string;
 
   // SaaS subscription
-  plan: TenantPlan;
+  plan: string | null;
 
   status: TenantStatus;
 
@@ -35,7 +36,7 @@ export interface Tenant {
   branches: number;
   employees: number;
 
-  monthlyBilling: number;
+  monthlyBilling: number | null;
   tenantCode?: string;
 
   createdAt?: string;

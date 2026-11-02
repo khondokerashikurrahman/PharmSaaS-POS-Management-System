@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-why-pharmsaas',
   standalone: true,
-  imports: [RouterLink],
+  imports: [CommonModule, RouterLink],
   template: `
     <main class="why-page">
       <section class="why-hero"><div class="hero-copy"><span class="eyebrow">A SMARTER WAY TO RUN YOUR PHARMACY</span><h1>Less operational chaos.<br><span>More business clarity.</span></h1><p>PharmSaaS brings your pharmacy's everyday operations into one connected digital workspace—helping your team work with better visibility and control.</p><a routerLink="/register" class="primary">Discover PharmSaaS <i class="bi bi-arrow-right"></i></a><div class="trust"><span><i class="bi bi-shield-check"></i> Structured access</span><span><i class="bi bi-diagram-3"></i> Connected operations</span></div></div><div class="hero-visual"><div class="glass-panel"><div class="panel-head"><i class="bi bi-heart-pulse-fill"></i> PHARMACY OPERATIONS <span>CONNECTED</span></div><div class="visual-center"><div class="central-icon"><i class="bi bi-capsule-pill"></i></div><strong>PharmSaaS</strong><small>One connected platform</small></div><div class="satellite s1"><i class="bi bi-cart-check"></i> Sales</div><div class="satellite s2"><i class="bi bi-box-seam"></i> Inventory</div><div class="satellite s3"><i class="bi bi-people"></i> Team</div><div class="satellite s4"><i class="bi bi-graph-up"></i> Reports</div></div></div></section>

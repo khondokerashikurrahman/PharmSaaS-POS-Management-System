@@ -1,0 +1,306 @@
+.settings-page {
+  padding: 24px;
+  color: #1e293b;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+
+  h1 {
+    margin: 0 0 7px;
+    font-size: 25px;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 0;
+    color: #64748b;
+  }
+}
+
+.header-icon {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 24px;
+}
+
+.settings-content {
+  max-width: 850px;
+}
+
+.settings-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 18px;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+
+  h2 {
+    margin: 0 0 5px;
+    font-size: 17px;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 0;
+    color: #64748b;
+    font-size: 13px;
+  }
+}
+
+.section-icon {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  font-size: 19px;
+}
+
+.tax-icon {
+  color: #0d9488;
+  background: #ccfbf1;
+}
+
+.preview-icon {
+  color: #7c3aed;
+  background: #ede9fe;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 17px 0;
+  border-top: 1px solid #f1f5f9;
+}
+
+.setting-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  strong {
+    font-size: 14px;
+  }
+
+  span {
+    color: #64748b;
+    font-size: 13px;
+  }
+}
+
+.switch {
+  position: relative;
+  width: 46px;
+  height: 25px;
+  flex-shrink: 0;
+
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+}
+
+.switch-slider {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+  border-radius: 20px;
+  background: #cbd5e1;
+  transition: .2s;
+
+  &::before {
+    content: '';
+    position: absolute;
+    width: 19px;
+    height: 19px;
+    left: 3px;
+    top: 3px;
+    border-radius: 50%;
+    background: #fff;
+    transition: .2s;
+  }
+}
+
+.switch input:checked + .switch-slider {
+  background: #2563eb;
+
+  &::before {
+    transform: translateX(21px);
+  }
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 20px;
+
+  label {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  input {
+    width: 100%;
+    max-width: 420px;
+    padding: 11px 13px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    outline: none;
+
+    &:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px #dbeafe;
+    }
+  }
+
+  small {
+    color: #64748b;
+    font-size: 12px;
+  }
+}
+
+.number-control {
+  position: relative;
+  max-width: 220px;
+
+  input {
+    padding-right: 40px;
+  }
+
+  span {
+    position: absolute;
+    right: 14px;
+    top: 11px;
+    color: #64748b;
+  }
+}
+
+.preview-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid #f1f5f9;
+  font-size: 14px;
+
+  span {
+    color: #64748b;
+  }
+}
+
+.total-row {
+  margin-top: 4px;
+  padding-top: 16px;
+  border-top: 1px solid #cbd5e1;
+  font-size: 16px;
+
+  strong {
+    color: #0f172a;
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 22px;
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 18px;
+    border: 0;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.reset-btn {
+  color: #475569;
+  background: #f1f5f9;
+}
+
+.save-btn {
+  color: #fff;
+  background: #2563eb;
+}
+
+.alert {
+  padding: 12px 15px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  font-size: 14px;
+
+  i {
+    margin-right: 7px;
+  }
+}
+
+.error {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+.success {
+  color: #15803d;
+  background: #dcfce7;
+}
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 25px;
+  color: #64748b;
+}
+
+@media (max-width: 600px) {
+  .settings-page {
+    padding: 14px;
+  }
+
+  .settings-card {
+    padding: 17px;
+  }
+
+  .page-header h1 {
+    font-size: 21px;
+  }
+
+  .form-actions {
+    flex-wrap: wrap;
+
+    button {
+      flex: 1;
+      justify-content: center;
+    }
+  }
+}

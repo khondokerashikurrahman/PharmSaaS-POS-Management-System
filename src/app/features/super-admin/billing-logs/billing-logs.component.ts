@@ -1,6 +1,28 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ApiService } from '../../../core/services/api.service';
+
+interface PaymentResponse {
+  id: number;
+  paymentReference: string;
+  registrationReference: string;
+  tenantId: number | null;
+  tenantName: string;
+  ownerName: string;
+  email: string;
+  planName: string;
+  amount: number;
+  currency: string;
+  paymentMethod: string;
+  transactionId: string | null;
+  senderNumber: string | null;
+  status: string;
+  reviewNote: string | null;
+  createdAt: string;
+  verifiedAt: string | null;
+  reviewedAt: string | null;
+}
 
 interface BillingLog {
   id: string;
@@ -9,149 +31,138 @@ interface BillingLog {
   action: string;
   description: string;
   amount: number;
+  currency: string;
   performedBy: string;
   date: string;
   status: 'Success' | 'Warning' | 'Failed' | 'Info';
+  paymentReference: string;
+  transactionId: string;
+  paymentMethod: string;
+  ownerName: string;
+  email: string;
+  planName: string;
+  reviewNote: string;
 }
 
 @Component({
   selector: 'app-billing-logs',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule
-  ],
+  imports: [CommonModule, FormsModule],
   templateUrl: './billing-logs.component.html',
   styleUrl: './billing-logs.component.scss'
 })
 export class BillingLogsComponent implements OnInit {
 
   logs: BillingLog[] = [];
-
   filteredLogs: BillingLog[] = [];
 
-  selectedFilter: string = 'All';
+  selectedFilter = 'All';
+  searchText = '';
 
-  searchText: string = '';
+  loading = false;
+  errorMessage = '';
+
+  constructor(private api: ApiService) {}
 
   ngOnInit(): void {
     this.loadLogs();
-    this.filteredLogs = [...this.logs];
   }
 
   loadLogs(): void {
+    this.loading = true;
+    this.errorMessage = '';
 
-    this.logs = [
+    this.api.get<PaymentResponse[]>('/super-admin/billing-transactions')
+      .subscribe({
+        next: (payments) => {
+          this.logs = (payments || []).map(payment =>
+            this.mapPaymentToLog(payment)
+          );
 
-      {
-        id: 'LOG-1001',
-        tenantId: 'TEN-001',
-        pharmacyName: 'Care Pharmacy',
-        action: 'Payment Received',
-        description: 'Monthly Premium subscription payment received.',
-        amount: 4999,
-        performedBy: 'System',
-        date: '2026-09-10 10:25 AM',
-        status: 'Success'
-      },
+          this.applyFilters();
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Billing logs loading failed:', error);
+          this.errorMessage =
+            error?.error?.message ||
+            'Unable to load billing activity. Please try again.';
+          this.loading = false;
+        }
+      });
+  }
 
-      {
-        id: 'LOG-1002',
-        tenantId: 'TEN-002',
-        pharmacyName: 'Health Plus Pharmacy',
-        action: 'Subscription Renewed',
-        description: 'Standard plan subscription renewed successfully.',
-        amount: 2999,
-        performedBy: 'System',
-        date: '2026-09-09 09:40 AM',
-        status: 'Success'
-      },
+  private mapPaymentToLog(payment: PaymentResponse): BillingLog {
+    const status = (payment.status || '').toUpperCase();
 
-      {
-        id: 'LOG-1003',
-        tenantId: 'TEN-003',
-        pharmacyName: 'City Medicine',
-        action: 'Trial Started',
-        description: 'New tenant trial subscription started.',
-        amount: 0,
-        performedBy: 'Admin',
-        date: '2026-09-08 02:15 PM',
-        status: 'Info'
-      },
+    let action = 'Payment Activity';
+    let logStatus: BillingLog['status'] = 'Info';
 
-      {
-        id: 'LOG-1004',
-        tenantId: 'TEN-004',
-        pharmacyName: 'Medicare Pharmacy',
-        action: 'Payment Received',
-        description: 'Annual Premium subscription payment received.',
-        amount: 49990,
-        performedBy: 'System',
-        date: '2026-09-07 11:30 AM',
-        status: 'Success'
-      },
+    switch (status) {
+      case 'VALIDATED':
+        action = 'Payment Verified';
+        logStatus = 'Success';
+        break;
 
-      {
-        id: 'LOG-1005',
-        tenantId: 'TEN-005',
-        pharmacyName: 'Popular Pharmacy',
-        action: 'Payment Failed',
-        description: 'Card payment failed during subscription renewal.',
-        amount: 2999,
-        performedBy: 'Payment Gateway',
-        date: '2026-09-06 04:45 PM',
-        status: 'Failed'
-      },
+      case 'PENDING_VERIFICATION':
+        action = 'Payment Awaiting Verification';
+        logStatus = 'Warning';
+        break;
 
-      {
-        id: 'LOG-1006',
-        tenantId: 'TEN-006',
-        pharmacyName: 'Green Life Pharmacy',
-        action: 'Payment Received',
-        description: 'Basic plan monthly payment received.',
-        amount: 1999,
-        performedBy: 'System',
-        date: '2026-09-05 10:10 AM',
-        status: 'Success'
-      },
+      case 'INITIATED':
+        action = 'Payment Initiated';
+        logStatus = 'Info';
+        break;
 
-      {
-        id: 'LOG-1007',
-        tenantId: 'TEN-007',
-        pharmacyName: 'Wellness Pharmacy',
-        action: 'Payment Pending',
-        description: 'Payment is waiting for confirmation.',
-        amount: 2999,
-        performedBy: 'Payment Gateway',
-        date: '2026-09-04 01:20 PM',
-        status: 'Warning'
-      },
+      case 'FAILED':
+      case 'VALIDATION_FAILED':
+      case 'REJECTED':
+        action = status === 'REJECTED'
+          ? 'Payment Rejected'
+          : 'Payment Failed';
+        logStatus = 'Failed';
+        break;
 
-      {
-        id: 'LOG-1008',
-        tenantId: 'TEN-008',
-        pharmacyName: 'Modern Care Pharmacy',
-        action: 'Subscription Upgraded',
-        description: 'Subscription upgraded from Standard to Premium.',
-        amount: 4999,
-        performedBy: 'Admin',
-        date: '2026-09-03 03:35 PM',
-        status: 'Success'
-      },
+      case 'CANCELLED':
+        action = 'Payment Cancelled';
+        logStatus = 'Info';
+        break;
 
-      {
-        id: 'LOG-1009',
-        tenantId: 'TEN-009',
-        pharmacyName: 'Green Valley Medicine',
-        action: 'Payment Refunded',
-        description: 'Subscription payment refunded to tenant.',
-        amount: 1999,
-        performedBy: 'Admin',
-        date: '2026-09-02 12:05 PM',
-        status: 'Warning'
-      }
+      default:
+        action = `Payment Status: ${status || 'Unknown'}`;
+        logStatus = 'Info';
+    }
 
-    ];
+    const eventDate =
+      payment.verifiedAt ||
+      payment.reviewedAt ||
+      payment.createdAt;
+
+    const description = payment.reviewNote?.trim()
+      ? payment.reviewNote
+      : `${payment.paymentMethod || 'Payment Gateway'} payment for ${payment.planName || 'subscription'} plan. Current payment status: ${status || 'Unknown'}.`;
+
+    return {
+      id: `PAY-${payment.id}`,
+      tenantId: payment.tenantId
+        ? `TEN-${payment.tenantId}`
+        : payment.registrationReference || 'Registration pending',
+      pharmacyName: payment.tenantName || 'Unknown Pharmacy',
+      action,
+      description,
+      amount: Number(payment.amount || 0),
+      currency: payment.currency || 'BDT',
+      performedBy: 'Not recorded',
+      date: eventDate || payment.createdAt,
+      status: logStatus,
+      paymentReference: payment.paymentReference || '',
+      transactionId: payment.transactionId || '',
+      paymentMethod: payment.paymentMethod || '',
+      ownerName: payment.ownerName || '',
+      email: payment.email || '',
+      planName: payment.planName || '',
+      reviewNote: payment.reviewNote || ''
+    };
   }
 
   get totalLogs(): number {
@@ -159,78 +170,84 @@ export class BillingLogsComponent implements OnInit {
   }
 
   get successfulLogs(): number {
-    return this.logs.filter(
-      log => log.status === 'Success'
-    ).length;
+    return this.logs.filter(log => log.status === 'Success').length;
   }
 
   get warningLogs(): number {
-    return this.logs.filter(
-      log => log.status === 'Warning'
-    ).length;
+    return this.logs.filter(log => log.status === 'Warning').length;
   }
 
   get failedLogs(): number {
-    return this.logs.filter(
-      log => log.status === 'Failed'
-    ).length;
+    return this.logs.filter(log => log.status === 'Failed').length;
   }
 
   filterLogs(status: string): void {
-
     this.selectedFilter = status;
-
     this.applyFilters();
   }
 
   searchLogs(): void {
-
     this.applyFilters();
   }
 
   private applyFilters(): void {
-
     let result = [...this.logs];
 
     if (this.selectedFilter !== 'All') {
-
       result = result.filter(
         log => log.status === this.selectedFilter
       );
     }
 
-    if (this.searchText.trim()) {
+    const search = this.searchText.trim().toLowerCase();
 
-      const search = this.searchText
-        .toLowerCase()
-        .trim();
-
+    if (search) {
       result = result.filter(log =>
         log.id.toLowerCase().includes(search) ||
         log.tenantId.toLowerCase().includes(search) ||
         log.pharmacyName.toLowerCase().includes(search) ||
         log.action.toLowerCase().includes(search) ||
         log.description.toLowerCase().includes(search) ||
-        log.performedBy.toLowerCase().includes(search)
+        log.performedBy.toLowerCase().includes(search) ||
+        log.paymentReference.toLowerCase().includes(search) ||
+        log.transactionId.toLowerCase().includes(search) ||
+        log.ownerName.toLowerCase().includes(search) ||
+        log.email.toLowerCase().includes(search)
       );
     }
 
     this.filteredLogs = result;
   }
 
-  viewLog(log: BillingLog): void {
+  formatDate(value: string): string {
+    if (!value) return '—';
 
-    alert(
-      `Billing Log Details\n\n` +
-      `Log ID: ${log.id}\n` +
-      `Pharmacy: ${log.pharmacyName}\n` +
-      `Action: ${log.action}\n` +
-      `Description: ${log.description}\n` +
-      `Amount: ৳${log.amount}\n` +
-      `Performed By: ${log.performedBy}\n` +
-      `Date: ${log.date}\n` +
-      `Status: ${log.status}`
-    );
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) return '—';
+
+    return date.toLocaleString();
   }
 
+  viewLog(log: BillingLog): void {
+    alert(
+      `Billing Activity Details\n\n` +
+      `Payment ID: ${log.id}\n` +
+      `Payment Reference: ${log.paymentReference}\n` +
+      `Registration/Tenant: ${log.tenantId}\n` +
+      `Pharmacy: ${log.pharmacyName}\n` +
+      `Owner: ${log.ownerName}\n` +
+      `Email: ${log.email}\n` +
+      `Plan: ${log.planName}\n` +
+      `Activity: ${log.action}\n` +
+      `Description: ${log.description}\n` +
+      `Amount: ${log.currency} ${log.amount}\n` +
+      `Payment Method: ${log.paymentMethod}\n` +
+      `Transaction ID: ${log.transactionId || '—'}\n` +
+      `Performed By: ${log.performedBy}\n` +
+      `Date: ${this.formatDate(log.date)}\n` +
+      `Status: ${log.status}\n` +
+      `Review Note: ${log.reviewNote || '—'}`
+    );
+  }
 }

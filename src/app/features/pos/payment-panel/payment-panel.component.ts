@@ -28,6 +28,10 @@ export class PaymentPanelComponent {
 
   @Input() totalAmount = 0;
 
+  @Input() cashEnabled = true;
+  @Input() cardEnabled = true;
+  @Input() mobileEnabled = true;
+
   @Input()
   initialPaymentMethod: 'Cash' | 'Card' | 'Mobile' = 'Cash';
 
@@ -71,6 +75,10 @@ export class PaymentPanelComponent {
         this.initialPaymentMethod;
     }
 
+    if (!this.isMethodEnabled(this.paymentMethod)) {
+      this.paymentMethod = this.getFirstEnabledMethod();
+    }
+
     if (this.paymentMethod !== 'Cash') {
       this.amountReceived =
         this.totalAmount;
@@ -82,9 +90,25 @@ export class PaymentPanelComponent {
     this.emitPayment();
   }
 
+  isMethodEnabled(method: 'Cash' | 'Card' | 'Mobile'): boolean {
+    if (method === 'Cash') return this.cashEnabled;
+    if (method === 'Card') return this.cardEnabled;
+    return this.mobileEnabled;
+  }
+
+  private getFirstEnabledMethod(): 'Cash' | 'Card' | 'Mobile' {
+    if (this.cashEnabled) return 'Cash';
+    if (this.cardEnabled) return 'Card';
+    return 'Mobile';
+  }
+
   selectPaymentMethod(
     method: 'Cash' | 'Card' | 'Mobile'
   ): void {
+
+    if (!this.isMethodEnabled(method)) {
+      return;
+    }
 
     this.paymentMethod = method;
 
@@ -118,6 +142,10 @@ export class PaymentPanelComponent {
   get isPaymentValid(): boolean {
 
     if (this.totalAmount <= 0) {
+      return false;
+    }
+
+    if (!this.isMethodEnabled(this.paymentMethod)) {
       return false;
     }
 

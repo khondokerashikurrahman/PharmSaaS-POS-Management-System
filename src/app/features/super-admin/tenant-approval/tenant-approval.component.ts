@@ -132,6 +132,7 @@ export class TenantApprovalComponent implements OnInit {
     this.router.navigate(
       ['/admin/tenant-details'],
       {
+        queryParams: { id: tenant.id },
         state: {
           tenant: tenant
         }
@@ -154,7 +155,7 @@ export class TenantApprovalComponent implements OnInit {
 
     this.tenantService.approveTenantOnBackend(tenant.id).subscribe({
       next: updated => {
-        this.tenants = this.tenantService.getTenants();
+        this.loadTenants();
         alert(`${updated.name} has been approved successfully.`);
       },
       error: error => {
@@ -212,7 +213,7 @@ export class TenantApprovalComponent implements OnInit {
       .rejectTenantOnBackend(this.selectedTenant.id, reason)
       .subscribe({
         next: updated => {
-          this.tenants = this.tenantService.getTenants();
+          this.loadTenants();
           this.closeRejectModal();
           alert(`${updated.name || tenantName} has been rejected.`);
         },

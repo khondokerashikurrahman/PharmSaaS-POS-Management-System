@@ -1,106 +1,122 @@
 <div class="checkout-page">
-
   <header class="checkout-header">
     <div class="header-inner">
       <a routerLink="/" class="brand">
-        <span class="brand-icon">
-          <i class="bi bi-capsule"></i>
-        </span>
+        <span class="brand-icon"><i class="bi bi-capsule"></i></span>
         <span>Pharm<span>SaaS</span></span>
       </a>
-
       <div class="secure-checkout">
         <i class="bi bi-shield-check"></i>
-        Secure Checkout
+        Manual Payment
       </div>
     </div>
   </header>
 
   <main class="checkout-main">
     <div class="checkout-container">
-
       <div class="checkout-title">
         <span class="step-label">STEP 2 OF 2</span>
         <h1>Complete Your Subscription</h1>
-        <p>Review your plan and continue to our secure payment gateway.</p>
+        <p>Submit your payment details for manual verification.</p>
       </div>
 
       <div class="checkout-grid">
-
         <div class="payment-card">
-
           <div class="card-header">
             <div>
-              <h2>Secure Payment</h2>
-              <p>Choose your preferred payment method on the payment gateway.</p>
+              <h2>Payment Information</h2>
+              <p>Pay using your preferred mobile banking or bank method.</p>
             </div>
-            <i class="bi bi-credit-card"></i>
+            <i class="bi bi-wallet2"></i>
           </div>
 
           <div class="demo-notice">
-            <i class="bi bi-shield-lock"></i>
+            <i class="bi bi-info-circle"></i>
             <div>
-              <strong>SSLCommerz Hosted Checkout</strong>
-              <p>
-                You will be redirected to SSLCommerz to pay securely using
-                supported cards and mobile banking services. PharmSaaS does
-                not collect or store your card details.
-              </p>
+              <strong>Before making payment</strong>
+              <p>Contact PharmSaaS support to obtain the official payment account number. Do not send money to an unverified personal account.</p>
             </div>
           </div>
 
-          <div class="security-note">
-            <i class="bi bi-shield-check"></i>
-            <span>
-              Your payment is verified directly with the payment gateway
-              before your registration is completed.
-            </span>
-          </div>
+          <form (ngSubmit)="submitManualPayment()" #paymentForm="ngForm">
+            <div class="manual-payment-fields">
+              <label for="paymentMethod">Payment Method</label>
+              <select id="paymentMethod" name="paymentMethod" [(ngModel)]="paymentMethod" required>
+                <option value="BKASH">bKash</option>
+                <option value="NAGAD">Nagad</option>
+                <option value="ROCKET">Rocket</option>
+                <option value="BANK">Bank Transfer</option>
+              </select>
 
-          <div *ngIf="errorMessage" class="demo-notice">
-            <i class="bi bi-exclamation-triangle"></i>
-            <div>
-              <strong>Payment could not be started</strong>
-              <p>{{ errorMessage }}</p>
+              <label for="senderNumber">Sender Number / Account</label>
+              <input
+                id="senderNumber"
+                name="senderNumber"
+                type="text"
+                [(ngModel)]="senderNumber"
+                placeholder="Enter the number/account used to pay"
+                required
+                maxlength="60"
+                autocomplete="off"
+              />
+
+              <label for="transactionId">Transaction ID (TrxID)</label>
+              <input
+                id="transactionId"
+                name="transactionId"
+                type="text"
+                [(ngModel)]="transactionId"
+                placeholder="Enter your payment transaction ID"
+                required
+                maxlength="120"
+                autocomplete="off"
+              />
             </div>
-          </div>
 
-          <button
-            type="button"
-            class="pay-button"
-            [disabled]="loading || loadingPlan || !registrationReference || !selectedPlan"
-            (click)="startPayment()"
-          >
-            <ng-container *ngIf="!loading; else loadingTemplate">
-              Continue to Secure Payment
-              <span>{{ currency === 'BDT' ? '৳' : currency }}{{ monthlyPrice | number }} / month</span>
-              <i class="bi bi-arrow-right"></i>
-            </ng-container>
+            <div class="security-note">
+              <i class="bi bi-shield-check"></i>
+              <span>Submitting a TrxID does not confirm payment. A Super Admin will verify the transaction before registration is completed.</span>
+            </div>
 
-            <ng-template #loadingTemplate>
-              <i class="bi bi-arrow-repeat"></i>
-              Connecting to payment gateway...
-            </ng-template>
-          </button>
+            <div *ngIf="errorMessage" class="demo-notice">
+              <i class="bi bi-exclamation-triangle"></i>
+              <div>
+                <strong>Submission issue</strong>
+                <p>{{ errorMessage }}</p>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              class="pay-button"
+              [disabled]="loading || loadingPlan || !registrationReference || !selectedPlan || paymentForm.invalid"
+            >
+              <ng-container *ngIf="!loading; else loadingTemplate">
+                Submit Payment Details
+                <span>{{ currency === 'BDT' ? '৳' : currency }}{{ monthlyPrice | number }} / {{ durationDays }} days</span>
+                <i class="bi bi-arrow-right"></i>
+              </ng-container>
+              <ng-template #loadingTemplate>
+                <i class="bi bi-arrow-repeat"></i>
+                Submitting payment details...
+              </ng-template>
+            </button>
+          </form>
 
           <a routerLink="/register" class="back-link">
             <i class="bi bi-arrow-left"></i>
             Back to Registration
           </a>
-
         </div>
 
         <aside class="summary-card">
-
           <div class="summary-header">
             <h2>Order Summary</h2>
             <span class="summary-status">{{ durationDays }} days</span>
           </div>
 
           <div class="selected-plan">
-            <div class="plan-icon">
-              <i class="bi bi-stars"></i>
-            </div>
+            <div class="plan-icon"><i class="bi bi-stars"></i></div>
             <div>
               <span>Selected Plan</span>
               <h3>{{ selectedPlan || 'Loading plan...' }}</h3>
@@ -109,7 +125,6 @@
 
           <div class="summary-features">
             <h4>Plan includes</h4>
-
             <div><i class="bi bi-check-circle-fill"></i> POS & Sales Management</div>
             <div><i class="bi bi-check-circle-fill"></i> Inventory & Batch Tracking</div>
             <div><i class="bi bi-check-circle-fill"></i> Procurement Management</div>
@@ -119,37 +134,20 @@
           </div>
 
           <div class="price-breakdown">
-            <div>
-              <span>Plan Price</span>
-              <strong>{{ currency === 'BDT' ? '৳' : currency }}{{ monthlyPrice | number }}</strong>
-            </div>
-
-            <div>
-              <span>Setup Fee</span>
-              <strong class="free">Free</strong>
-            </div>
-
-            <div>
-              <span>Tax</span>
-              <strong>Included</strong>
-            </div>
-
+            <div><span>Plan Price</span><strong>{{ currency === 'BDT' ? '৳' : currency }}{{ monthlyPrice | number }}</strong></div>
+            <div><span>Setup Fee</span><strong class="free">Free</strong></div>
+            <div><span>Tax</span><strong>Included</strong></div>
             <div class="total">
               <span>Total</span>
-              <strong>
-                {{ currency === 'BDT' ? '৳' : currency }}{{ monthlyPrice | number }}
-                <small>/ {{ durationDays }} days</small>
-              </strong>
+              <strong>{{ currency === 'BDT' ? '৳' : currency }}{{ monthlyPrice | number }} <small>/ {{ durationDays }} days</small></strong>
             </div>
           </div>
 
           <div class="summary-footer">
-            <i class="bi bi-arrow-repeat"></i>
-            <span>You can upgrade or change your plan anytime.</span>
+            <i class="bi bi-clock-history"></i>
+            <span>Registration is completed only after payment verification and admin approval.</span>
           </div>
-
         </aside>
-
       </div>
     </div>
   </main>

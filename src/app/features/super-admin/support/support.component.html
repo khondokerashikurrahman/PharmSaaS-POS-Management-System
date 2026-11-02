@@ -1,407 +1,154 @@
 <div class="support-page">
-
-  <!-- PAGE HEADER -->
-
   <div class="page-header">
-
     <div>
-
       <div class="breadcrumb">
         <span>Super Admin</span>
         <i class="bi bi-chevron-right"></i>
         <span>Support</span>
       </div>
-
       <h1>Support Center</h1>
-
-      <p>
-        Manage pharmacy support requests, tickets and customer issues.
-      </p>
-
+      <p>Manage pharmacy support requests, tickets and customer issues.</p>
     </div>
-
-    <button class="create-btn">
-      <i class="bi bi-plus-lg"></i>
-      Create Ticket
+    <button class="create-btn" type="button" (click)="openCreateForm()">
+      <i class="bi bi-plus-lg"></i> Create Ticket
     </button>
-
   </div>
 
-
-  <!-- SUMMARY -->
-
-  <div class="summary-grid">
-
-    <div class="summary-card">
-
-      <div class="summary-icon blue">
-        <i class="bi bi-ticket-detailed"></i>
-      </div>
-
-      <div>
-        <span>Total Tickets</span>
-        <h2>{{ totalTickets }}</h2>
-      </div>
-
-    </div>
-
-
-    <div class="summary-card">
-
-      <div class="summary-icon orange">
-        <i class="bi bi-envelope-open"></i>
-      </div>
-
-      <div>
-        <span>Open Tickets</span>
-        <h2>{{ openTickets }}</h2>
-      </div>
-
-    </div>
-
-
-    <div class="summary-card">
-
-      <div class="summary-icon purple">
-        <i class="bi bi-hourglass-split"></i>
-      </div>
-
-      <div>
-        <span>In Progress</span>
-        <h2>{{ inProgressTickets }}</h2>
-      </div>
-
-    </div>
-
-
-    <div class="summary-card">
-
-      <div class="summary-icon green">
-        <i class="bi bi-check-circle"></i>
-      </div>
-
-      <div>
-        <span>Resolved</span>
-        <h2>{{ resolvedTickets }}</h2>
-      </div>
-
-    </div>
-
+  <div *ngIf="successMessage" class="alert alert-success">
+    {{ successMessage }}
+    <button type="button" class="btn-close float-end" aria-label="Close" (click)="successMessage = ''"></button>
+  </div>
+  <div *ngIf="errorMessage" class="alert alert-danger">
+    {{ errorMessage }}
+    <button type="button" class="btn-close float-end" aria-label="Close" (click)="errorMessage = ''"></button>
   </div>
 
+  <section class="create-panel" *ngIf="showCreateForm">
+    <div class="panel-heading">
+      <h3>Create Support Ticket</h3>
+      <button type="button" class="btn btn-sm btn-outline-secondary" (click)="closeCreateForm()">Close</button>
+    </div>
+    <form #ticketForm="ngForm" (ngSubmit)="createTicket()">
+      <div class="form-grid">
+        <label>Requester Name
+          <input name="requesterName" [(ngModel)]="form.requesterName" required maxlength="150">
+        </label>
+        <label>Requester Email
+          <input type="email" name="requesterEmail" [(ngModel)]="form.requesterEmail" required email maxlength="255">
+        </label>
+        <label>Tenant ID (optional)
+          <input type="number" name="tenantId" [(ngModel)]="form.tenantId" min="1">
+        </label>
+        <label>Assigned User ID (optional)
+          <input type="number" name="assignedToId" [(ngModel)]="form.assignedToId" min="1">
+        </label>
+        <label>Category
+          <select name="category" [(ngModel)]="form.category" required>
+            <option value="Technical">Technical</option>
+            <option value="Billing">Billing</option>
+            <option value="Account">Account</option>
+            <option value="General">General</option>
+          </select>
+        </label>
+        <label>Priority
+          <select name="priority" [(ngModel)]="form.priority" required>
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+            <option value="Urgent">Urgent</option>
+          </select>
+        </label>
+        <label class="full-width">Subject
+          <input name="subject" [(ngModel)]="form.subject" required maxlength="200">
+        </label>
+        <label class="full-width">Description
+          <textarea name="description" [(ngModel)]="form.description" required maxlength="10000" rows="4"></textarea>
+        </label>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-light" (click)="closeCreateForm()">Cancel</button>
+        <button type="submit" class="create-btn" [disabled]="ticketForm.invalid || saving">
+          {{ saving ? 'Creating...' : 'Create Ticket' }}
+        </button>
+      </div>
+    </form>
+  </section>
 
-  <!-- TOOLBAR -->
+  <section class="summary-grid">
+    <div class="summary-card"><div class="summary-icon blue"><i class="bi bi-ticket-detailed"></i></div><div><span>Total Tickets</span><h2>{{ totalTickets }}</h2></div></div>
+    <div class="summary-card"><div class="summary-icon orange"><i class="bi bi-envelope-open"></i></div><div><span>Open Tickets</span><h2>{{ openTickets }}</h2></div></div>
+    <div class="summary-card"><div class="summary-icon purple"><i class="bi bi-hourglass-split"></i></div><div><span>In Progress</span><h2>{{ inProgressTickets }}</h2></div></div>
+    <div class="summary-card"><div class="summary-icon green"><i class="bi bi-check-circle"></i></div><div><span>Resolved / Closed</span><h2>{{ resolvedTickets }}</h2></div></div>
+  </section>
 
   <div class="toolbar">
-
     <div class="search-box">
-
       <i class="bi bi-search"></i>
-
-      <input
-        type="text"
-        placeholder="Search tickets, pharmacy, requester..."
-        [(ngModel)]="searchText"
-        (input)="searchTickets()"
-      />
-
+      <input type="text" placeholder="Search tickets, pharmacy, requester..." [(ngModel)]="searchText" (input)="searchTickets()">
     </div>
-
-
     <div class="filter-buttons">
-
-      <button
-        [class.active]="selectedFilter === 'All'"
-        (click)="filterTickets('All')">
-        All
-      </button>
-
-      <button
-        [class.active]="selectedFilter === 'Open'"
-        (click)="filterTickets('Open')">
-        Open
-      </button>
-
-      <button
-        [class.active]="selectedFilter === 'In Progress'"
-        (click)="filterTickets('In Progress')">
-        In Progress
-      </button>
-
-      <button
-        [class.active]="selectedFilter === 'Resolved'"
-        (click)="filterTickets('Resolved')">
-        Resolved
-      </button>
-
-      <button
-        [class.active]="selectedFilter === 'Closed'"
-        (click)="filterTickets('Closed')">
-        Closed
-      </button>
-
+      <button [class.active]="selectedFilter === 'All'" (click)="filterTickets('All')">All</button>
+      <button [class.active]="selectedFilter === 'Open'" (click)="filterTickets('Open')">Open</button>
+      <button [class.active]="selectedFilter === 'In Progress'" (click)="filterTickets('In Progress')">In Progress</button>
+      <button [class.active]="selectedFilter === 'Resolved'" (click)="filterTickets('Resolved')">Resolved</button>
+      <button [class.active]="selectedFilter === 'Closed'" (click)="filterTickets('Closed')">Closed</button>
     </div>
-
   </div>
 
-
-  <!-- TICKET TABLE -->
+  <div *ngIf="loading" class="alert alert-info">Loading support tickets...</div>
+  <div *ngIf="errorMessage && !tickets.length" class="alert alert-danger">
+    {{ errorMessage }}
+    <button type="button" class="btn btn-sm btn-outline-danger ms-2" (click)="loadTickets()">Retry</button>
+  </div>
 
   <div class="table-card">
-
     <div class="table-header">
-
-      <div>
-
-        <h3>Support Tickets</h3>
-
-        <p>
-          {{ filteredTickets.length }} tickets found
-        </p>
-
-      </div>
-
-      <div class="support-status">
-
-        <i class="bi bi-headset"></i>
-
-        Support Team Online
-
-        <span class="online-dot"></span>
-
-      </div>
-
+      <div><h3>Support Tickets</h3><p>{{ filteredTickets.length }} tickets found</p></div>
+      <button type="button" class="btn btn-sm btn-outline-secondary" (click)="loadTickets()">Refresh</button>
     </div>
-
-
     <div class="table-wrapper">
-
       <table>
-
-        <thead>
-
-          <tr>
-
-            <th>Ticket</th>
-            <th>Pharmacy</th>
-            <th>Subject</th>
-            <th>Category</th>
-            <th>Priority</th>
-            <th>Assigned To</th>
-            <th>Status</th>
-            <th>Updated</th>
-            <th>Action</th>
-
-          </tr>
-
-        </thead>
-
-
+        <thead><tr>
+          <th>Ticket</th><th>Pharmacy</th><th>Subject</th><th>Category</th>
+          <th>Priority</th><th>Assigned To</th><th>Status</th><th>Updated</th><th>Action</th>
+        </tr></thead>
         <tbody>
-
-          <tr *ngFor="let ticket of filteredTickets">
-
-            <!-- TICKET -->
-
-            <td>
-
-              <div class="ticket-id">
-
-                <div class="ticket-icon">
-                  <i class="bi bi-ticket-perforated"></i>
-                </div>
-
-                <div>
-
-                  <strong>
-                    {{ ticket.id }}
-                  </strong>
-
-                  <span>
-                    {{ ticket.requester }}
-                  </span>
-
-                </div>
-
-              </div>
-
-            </td>
-
-
-            <!-- PHARMACY -->
-
-            <td>
-
-              <div class="pharmacy-name">
-
-                <i class="bi bi-shop"></i>
-
-                <span>
-                  {{ ticket.tenant }}
-                </span>
-
-              </div>
-
-            </td>
-
-
-            <!-- SUBJECT -->
-
-            <td>
-
-              <div class="subject">
-
-                <strong>
-                  {{ ticket.subject }}
-                </strong>
-
-                <span>
-                  {{ ticket.email }}
-                </span>
-
-              </div>
-
-            </td>
-
-
-            <!-- CATEGORY -->
-
-            <td>
-
-              <span class="category-badge">
-
-                <i class="bi bi-folder2"></i>
-
-                {{ ticket.category }}
-
-              </span>
-
-            </td>
-
-
-            <!-- PRIORITY -->
-
-            <td>
-
-              <span
-                class="priority-badge"
-                [class.low]="ticket.priority === 'Low'"
-                [class.medium]="ticket.priority === 'Medium'"
-                [class.high]="ticket.priority === 'High'"
-                [class.urgent]="ticket.priority === 'Urgent'"
-              >
-
-                {{ ticket.priority }}
-
-              </span>
-
-            </td>
-
-
-            <!-- ASSIGNED -->
-
-            <td>
-
-              <div class="assigned">
-
-                <div class="mini-avatar">
-                  {{ ticket.assignedTo.charAt(0) }}
-                </div>
-
-                <span>
-                  {{ ticket.assignedTo }}
-                </span>
-
-              </div>
-
-            </td>
-
-
-            <!-- STATUS -->
-
-            <td>
-
-              <span
-                class="status-badge"
-                [class.open]="ticket.status === 'Open'"
-                [class.progress]="ticket.status === 'In Progress'"
-                [class.resolved]="ticket.status === 'Resolved'"
-                [class.closed]="ticket.status === 'Closed'"
-              >
-
-                <span class="status-dot"></span>
-
-                {{ ticket.status }}
-
-              </span>
-
-            </td>
-
-
-            <!-- UPDATED -->
-
-            <td>
-
-              <span class="date-time">
-                {{ ticket.updatedAt }}
-              </span>
-
-            </td>
-
-
-            <!-- ACTION -->
-
-            <td>
-
-              <div class="actions">
-
-                <button
-                  class="view-btn"
-                  title="View Ticket"
-                  (click)="viewTicket(ticket)"
-                >
-                  <i class="bi bi-eye"></i>
-                </button>
-
-                <button
-                  class="update-btn"
-                  title="Change Status"
-                  (click)="changeStatus(ticket)"
-                >
-                  <i class="bi bi-arrow-repeat"></i>
-                </button>
-
-              </div>
-
-            </td>
-
+          <tr *ngFor="let ticket of filteredTickets; trackBy: trackById">
+            <td><div class="ticket-id"><div class="ticket-icon"><i class="bi bi-ticket-perforated"></i></div><div><strong>{{ ticket.ticketNumber }}</strong><span>{{ ticket.requesterName }}</span></div></div></td>
+            <td><div class="pharmacy-name"><i class="bi bi-shop"></i><span>{{ ticket.tenantName || 'Platform Support' }}</span></div></td>
+            <td><div class="subject"><strong>{{ ticket.subject }}</strong><span>{{ ticket.requesterEmail }}</span></div></td>
+            <td><span class="category-badge"><i class="bi bi-folder2"></i> {{ ticket.category }}</span></td>
+            <td><span class="priority-badge" [class.low]="ticket.priority === 'Low'" [class.medium]="ticket.priority === 'Medium'" [class.high]="ticket.priority === 'High'" [class.urgent]="ticket.priority === 'Urgent'">{{ ticket.priority }}</span></td>
+            <td><div class="assigned"><div class="mini-avatar">{{ ticket.assignedTo ? ticket.assignedTo.charAt(0) : '?' }}</div><span>{{ ticket.assignedTo || 'Unassigned' }}</span></div></td>
+            <td><span class="status-badge" [class.open]="ticket.status === 'Open'" [class.progress]="ticket.status === 'In Progress'" [class.resolved]="ticket.status === 'Resolved'" [class.closed]="ticket.status === 'Closed'"><span class="status-dot"></span>{{ ticket.status }}</span></td>
+            <td><span class="date-time">{{ ticket.updatedAt | date:'medium' }}</span></td>
+            <td><div class="actions">
+              <button class="view-btn" title="View Ticket" (click)="viewTicket(ticket)"><i class="bi bi-eye"></i></button>
+              <button class="update-btn" title="Advance Status" [disabled]="ticket.status === 'Closed'" (click)="changeStatus(ticket)"><i class="bi bi-arrow-repeat"></i></button>
+            </div></td>
           </tr>
-
-
-          <!-- EMPTY -->
-
-          <tr *ngIf="filteredTickets.length === 0">
-
-            <td colspan="9" class="empty-state">
-
-              <i class="bi bi-ticket-detailed"></i>
-
-              <h3>No support tickets found</h3>
-
-              <p>
-                Try changing your search or filter.
-              </p>
-
-            </td>
-
+          <tr *ngIf="!loading && filteredTickets.length === 0">
+            <td colspan="9" class="empty-state"><i class="bi bi-ticket-detailed"></i><h3>No support tickets found</h3><p>Tickets created through the real API will appear here.</p></td>
           </tr>
-
         </tbody>
-
       </table>
-
     </div>
-
   </div>
 
+  <section class="details-panel" *ngIf="selectedTicket">
+    <div class="panel-heading"><h3>{{ selectedTicket.ticketNumber }} — {{ selectedTicket.subject }}</h3><button class="btn btn-sm btn-outline-secondary" (click)="closeDetails()">Close</button></div>
+    <p><strong>Requester:</strong> {{ selectedTicket.requesterName }} ({{ selectedTicket.requesterEmail }})</p>
+    <p><strong>Tenant:</strong> {{ selectedTicket.tenantName || 'Platform Support' }}</p>
+    <p><strong>Category / Priority:</strong> {{ selectedTicket.category }} / {{ selectedTicket.priority }}</p>
+    <p><strong>Status:</strong> {{ selectedTicket.status }}</p>
+    <p><strong>Assigned to:</strong> {{ selectedTicket.assignedTo || 'Unassigned' }}</p>
+    <p><strong>Description:</strong></p>
+    <p class="ticket-description">{{ selectedTicket.description }}</p>
+    <label>Assign to User ID
+      <div class="assignment-row">
+        <input #assigneeInput type="number" min="1" placeholder="Enter user ID">
+        <button class="btn btn-primary" (click)="assignTicket(selectedTicket, assigneeInput.value ? +assigneeInput.value : null)">Save Assignment</button>
+      </div>
+    </label>
+  </section>
 </div>

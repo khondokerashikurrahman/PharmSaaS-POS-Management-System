@@ -1,0 +1,78 @@
+<div class="manual-payments-page">
+  <div class="page-heading">
+    <div>
+      <div class="breadcrumb">Super Admin <span>›</span> Payment Verification</div>
+      <h1>Manual Payment Verification</h1>
+      <p>Review submitted TrxIDs against the actual merchant account statement before verification.</p>
+    </div>
+    <button class="refresh-btn" type="button" (click)="loadPayments()" [disabled]="loading">
+      <i class="bi bi-arrow-clockwise"></i> Refresh
+    </button>
+  </div>
+
+  <div class="notice">
+    <i class="bi bi-shield-exclamation"></i>
+    <div>
+      <strong>Verify actual payment before approval</strong>
+      <p>A submitted TrxID is not proof of payment. Check the official bKash, Nagad, Rocket or bank merchant statement before selecting Verify.</p>
+    </div>
+  </div>
+
+  <div class="feedback error" *ngIf="errorMessage">{{ errorMessage }}</div>
+  <div class="feedback success" *ngIf="successMessage">{{ successMessage }}</div>
+
+  <div class="summary">
+    <div>
+      <span>Pending verification</span>
+      <strong>{{ payments.length }}</strong>
+    </div>
+  </div>
+
+  <div class="loading" *ngIf="loading">
+    <i class="bi bi-arrow-repeat"></i> Loading pending payments...
+  </div>
+
+  <div class="empty-state" *ngIf="!loading && payments.length === 0">
+    <i class="bi bi-check2-circle"></i>
+    <h3>No pending payments</h3>
+    <p>New manual payment submissions will appear here.</p>
+  </div>
+
+  <div class="payment-list" *ngIf="!loading && payments.length">
+    <article class="payment-card" *ngFor="let payment of payments; trackBy: trackByReference">
+      <div class="payment-top">
+        <div>
+          <span class="status">Pending verification</span>
+          <h2>{{ payment.pharmacyName }}</h2>
+          <p>{{ payment.ownerName }} · {{ payment.email }}</p>
+        </div>
+        <div class="amount">
+          <span>Submitted amount</span>
+          <strong>{{ payment.currency }} {{ payment.amount | number:'1.2-2' }}</strong>
+          <small>{{ payment.planName }} plan</small>
+        </div>
+      </div>
+
+      <div class="details-grid">
+        <div><span>Payment method</span><strong>{{ payment.paymentMethod }}</strong></div>
+        <div><span>Sender number / account</span><strong>{{ payment.senderNumber }}</strong></div>
+        <div><span>Transaction ID (TrxID)</span><strong class="trxid">{{ payment.transactionId }}</strong></div>
+        <div><span>Payment reference</span><strong class="reference">{{ payment.paymentReference }}</strong></div>
+      </div>
+
+      <div class="actions">
+        <button class="reject-btn" type="button"
+          [disabled]="processingReference === payment.paymentReference"
+          (click)="reject(payment)">
+          Reject
+        </button>
+        <button class="verify-btn" type="button"
+          [disabled]="processingReference === payment.paymentReference"
+          (click)="verify(payment)">
+          <i class="bi bi-check-circle"></i>
+          {{ processingReference === payment.paymentReference ? 'Processing...' : 'Verify Payment' }}
+        </button>
+      </div>
+    </article>
+  </div>
+</div>

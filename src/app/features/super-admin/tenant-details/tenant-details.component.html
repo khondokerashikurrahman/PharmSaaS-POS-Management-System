@@ -1,4 +1,8 @@
 <div class="tenant-details-page">
+  <div *ngIf="loading" class="content-card">Loading tenant details...</div>
+  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+  <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
+  <ng-container *ngIf="!loading && tenant as tenant">
 
   <!-- PAGE HEADER -->
   <div class="page-header">
@@ -24,19 +28,19 @@
 
     <div class="header-actions">
 
-      <button class="btn secondary-btn" (click)="editTenant()">
+      <button class="btn secondary-btn" (click)="editTenant()" [disabled]="saving">
         <i class="bi bi-pencil"></i>
         Edit Tenant
       </button>
 
-      <button class="btn" [class.suspend-btn]="tenant.status === 'Active'"
-        [class.activate-btn]="tenant.status === 'Suspended' || tenant.status === 'Pending'" (click)="changeStatus()">
+      <button class="btn" [class.suspend-btn]="statusLabel === 'Active'"
+        [class.activate-btn]="statusLabel === 'Suspended' || statusLabel === 'Pending'" (click)="changeStatus()" [disabled]="actionLoading || !canChangeStatus">
 
-        <i class="bi" [class.bi-pause-circle]="tenant.status === 'Active'"
-          [class.bi-check-circle]="tenant.status !== 'Active'">
+        <i class="bi" [class.bi-pause-circle]="statusLabel === 'Active'"
+          [class.bi-check-circle]="statusLabel !== 'Active'">
         </i>
 
-        {{ tenant.status === 'Active' ? 'Suspend Tenant' : 'Activate Tenant' }}
+        {{ statusLabel === 'Active' ? 'Suspend Tenant' : 'Activate Tenant' }}
 
       </button>
 
@@ -57,34 +61,34 @@
       <div class="title-row">
         <h3>{{ tenant.name }}</h3>
 
-        <span class="status-badge" [class.active]="tenant.status === 'Active'"
-          [class.pending]="tenant.status === 'Pending'" [class.suspended]="tenant.status === 'Suspended'">
+        <span class="status-badge" [class.active]="statusLabel === 'Active'"
+          [class.pending]="statusLabel === 'Pending'" [class.suspended]="statusLabel === 'Suspended'">
 
           <span class="status-dot"></span>
-          {{ tenant.status }}
+          {{ statusLabel }}
 
         </span>
       </div>
 
       <p class="tenant-id">
-        Tenant ID: <strong>{{ tenant.id }}</strong>
+        Tenant ID: <strong>{{ tenant.tenantCode || tenant.id }}</strong>
       </p>
 
       <div class="contact-row">
 
         <span>
           <i class="bi bi-envelope"></i>
-          {{ tenant.email }}
+          {{ tenant.email || '—' }}
         </span>
 
         <span>
           <i class="bi bi-telephone"></i>
-          {{ tenant.phone }}
+          {{ tenant.phone || '—' }}
         </span>
 
         <span>
           <i class="bi bi-geo-alt"></i>
-          {{ tenant.address }}
+          {{ tenant.address || '—' }}
         </span>
 
       </div>
@@ -105,7 +109,7 @@
 
       <div>
         <span class="stat-label">Current Plan</span>
-        <h3>{{ tenant.plan }}</h3>
+        <h3>{{ planName }}</h3>
       </div>
 
     </div>
@@ -118,8 +122,8 @@
       </div>
 
       <div>
-        <span class="stat-label">Total Branches</span>
-        <h3>{{ tenant.branches }}</h3>
+        <span class="stat-label">Branch Count</span>
+        <h3>—</h3>
       </div>
 
     </div>
@@ -132,8 +136,8 @@
       </div>
 
       <div>
-        <span class="stat-label">Employees</span>
-        <h3>{{ tenant.employees }}</h3>
+        <span class="stat-label">Employee Count</span>
+        <h3>—</h3>
       </div>
 
     </div>
@@ -147,7 +151,7 @@
 
       <div>
         <span class="stat-label">Monthly Billing</span>
-        <h3>৳{{ tenant.monthlyBilling | number }}</h3>
+        <h3>{{ monthlyBilling !== null ? ((monthlyBilling | number) + ' ' + (subscription?.currency || 'BDT')) : '—' }}</h3>
       </div>
 
     </div>
@@ -182,27 +186,27 @@
 
           <div class="info-item">
             <span>Tenant ID</span>
-            <strong>{{ tenant.id }}</strong>
+            <strong>{{ tenant.tenantCode || tenant.id }}</strong>
           </div>
 
           <div class="info-item">
             <span>Owner Name</span>
-            <strong>{{ tenant.owner }}</strong>
+            <strong>{{ tenant.ownerName || '—' }}</strong>
           </div>
 
           <div class="info-item">
             <span>Email Address</span>
-            <strong>{{ tenant.email }}</strong>
+            <strong>{{ tenant.email || '—' }}</strong>
           </div>
 
           <div class="info-item">
             <span>Phone Number</span>
-            <strong>{{ tenant.phone }}</strong>
+            <strong>{{ tenant.phone || '—' }}</strong>
           </div>
 
           <div class="info-item">
             <span>Address</span>
-            <strong>{{ tenant.address }}</strong>
+            <strong>{{ tenant.address || '—' }}</strong>
           </div>
 
         </div>
@@ -234,7 +238,7 @@
 
             <div>
               <span>Current Subscription</span>
-              <h3>{{ tenant.plan }} Plan</h3>
+              <h3>{{ planName }} Plan</h3>
             </div>
 
           </div>
@@ -243,17 +247,17 @@
 
             <div>
               <span>Start Date</span>
-              <strong>{{ tenant.subscriptionStart }}</strong>
+              <strong>{{ subscriptionStart }}</strong>
             </div>
 
             <div>
               <span>Expiry Date</span>
-              <strong>{{ tenant.subscriptionEnd }}</strong>
+              <strong>{{ subscriptionEnd }}</strong>
             </div>
 
             <div>
               <span>Monthly Price</span>
-              <strong>৳{{ tenant.monthlyBilling | number }}</strong>
+              <strong>{{ monthlyBilling !== null ? ((monthlyBilling | number) + ' ' + (subscription?.currency || 'BDT')) : '—' }}</strong>
             </div>
 
           </div>
@@ -278,51 +282,15 @@
         </div>
 
         <div class="activity-list">
-
-          <div class="activity-item">
-
-            <div class="activity-icon">
-              <i class="bi bi-person-plus"></i>
-            </div>
-
+          <div class="activity-item" *ngFor="let activity of activities">
+            <div class="activity-icon"><i class="bi bi-clock-history"></i></div>
             <div>
-              <strong>New employee added</strong>
-              <p>Pharmacy administrator added a new employee.</p>
-              <small>2 hours ago</small>
+              <strong>{{ formatAction(activity.action) }}</strong>
+              <p>{{ activity.description || activity.module }}</p>
+              <small>{{ activity.actorName }} · {{ activity.createdAt | date:'medium' }}</small>
             </div>
-
           </div>
-
-
-          <div class="activity-item">
-
-            <div class="activity-icon">
-              <i class="bi bi-box-seam"></i>
-            </div>
-
-            <div>
-              <strong>Inventory updated</strong>
-              <p>Medicine stock information was updated.</p>
-              <small>Yesterday</small>
-            </div>
-
-          </div>
-
-
-          <div class="activity-item">
-
-            <div class="activity-icon">
-              <i class="bi bi-credit-card"></i>
-            </div>
-
-            <div>
-              <strong>Subscription payment received</strong>
-              <p>Monthly subscription payment was successfully processed.</p>
-              <small>3 days ago</small>
-            </div>
-
-          </div>
-
+          <p *ngIf="activities.length === 0">No recorded activity is available for this tenant.</p>
         </div>
 
       </div>
@@ -345,21 +313,21 @@
 
         <div class="account-status">
 
-          <div class="large-status" [class.active]="tenant.status === 'Active'"
-            [class.suspended]="tenant.status === 'Suspended'" [class.pending]="tenant.status === 'Pending'">
+          <div class="large-status" [class.active]="statusLabel === 'Active'"
+            [class.suspended]="statusLabel === 'Suspended'" [class.pending]="statusLabel === 'Pending'">
 
-            <i class="bi" [class.bi-check-circle]="tenant.status === 'Active'"
-              [class.bi-pause-circle]="tenant.status === 'Suspended'"
-              [class.bi-hourglass-split]="tenant.status === 'Pending'">
+            <i class="bi" [class.bi-check-circle]="statusLabel === 'Active'"
+              [class.bi-pause-circle]="statusLabel === 'Suspended'"
+              [class.bi-hourglass-split]="statusLabel === 'Pending'">
             </i>
 
             <div>
-              <strong>{{ tenant.status }}</strong>
+              <strong>{{ statusLabel }}</strong>
               <span>
                 {{
-                tenant.status === 'Active'
+                statusLabel === 'Active'
                 ? 'Tenant is currently operational'
-                : tenant.status === 'Suspended'
+                : statusLabel === 'Suspended'
                 ? 'Tenant access is currently suspended'
                 : 'Tenant is waiting for approval'
                 }}
@@ -391,7 +359,7 @@
 
           <div>
             <span>Registration Date</span>
-            <strong>{{ tenant.registrationDate }}</strong>
+            <strong>{{ registrationDate }}</strong>
           </div>
 
           <div>
@@ -401,7 +369,7 @@
 
           <div>
             <span>Tenant Status</span>
-            <strong>{{ tenant.status }}</strong>
+            <strong>{{ statusLabel }}</strong>
           </div>
 
         </div>
@@ -409,50 +377,19 @@
       </div>
 
 
-      <!-- QUICK ACTIONS -->
+      <!-- SUBSCRIPTION STATUS -->
       <div class="content-card">
-
         <div class="card-header">
-
-          <div>
-            <h3>Quick Actions</h3>
-            <p>Manage this tenant</p>
-          </div>
-
+          <div><h3>Subscription Status</h3><p>Current subscription record</p></div>
         </div>
-
-        <div class="quick-actions">
-
-          <button>
-            <i class="bi bi-receipt"></i>
-            Billing History
-            <i class="bi bi-chevron-right"></i>
-          </button>
-
-          <button>
-            <i class="bi bi-diagram-3"></i>
-            Manage Branches
-            <i class="bi bi-chevron-right"></i>
-          </button>
-
-          <button>
-            <i class="bi bi-people"></i>
-            View Employees
-            <i class="bi bi-chevron-right"></i>
-          </button>
-
-          <button>
-            <i class="bi bi-clock-history"></i>
-            Activity Logs
-            <i class="bi bi-chevron-right"></i>
-          </button>
-
+        <div class="registration-info">
+          <div><span>Status</span><strong>{{ subscription?.status || 'No subscription' }}</strong></div>
+          <div><span>Auto Renew</span><strong>{{ subscription ? (subscription.autoRenew ? 'Enabled' : 'Disabled') : '—' }}</strong></div>
+          <div><span>Subscription ID</span><strong>{{ subscription?.id ?? '—' }}</strong></div>
         </div>
-
       </div>
-
     </div>
 
-  </div>
-
+    </div>
+    </ng-container>
 </div>

@@ -1,1 +1,120 @@
-<p>saas-plan works!</p>
+<section class="plan-page">
+  <div class="page-header">
+    <div>
+      <span class="eyebrow">ACCOUNT & SUBSCRIPTION</span>
+      <h2>Subscription Plan</h2>
+      <p>আপনার Pharmacy-এর বর্তমান SaaS Plan ও subscription details দেখুন।</p>
+    </div>
+    <button type="button" class="refresh-btn" (click)="loadSubscription()" [disabled]="loading">
+      <i class="bi bi-arrow-clockwise"></i>
+      {{ loading ? 'Loading...' : 'Refresh' }}
+    </button>
+  </div>
+
+  <div *ngIf="loading && !loaded" class="state-card">
+    <span class="spinner"></span>
+    <p>Subscription তথ্য লোড হচ্ছে...</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert-error">
+    <i class="bi bi-exclamation-circle"></i>
+    {{ errorMessage }}
+  </div>
+
+  <ng-container *ngIf="!loading && !errorMessage && subscription as plan">
+    <div class="plan-hero">
+      <div class="plan-heading">
+        <div class="plan-icon"><i class="bi bi-layers"></i></div>
+        <div>
+          <span class="eyebrow">CURRENT PLAN</span>
+          <h1>{{ plan.planName }}</h1>
+          <p>{{ plan.planDescription || 'আপনার বর্তমান subscription plan' }}</p>
+        </div>
+      </div>
+      <span class="status-pill" [ngClass]="statusClass">
+        {{ formatStatus(plan.subscriptionStatus) }}
+      </span>
+      <div class="price-block">
+        <strong>{{ plan.planPrice | number:'1.2-2' }} {{ plan.currency }}</strong>
+        <span>/ {{ plan.durationDays }} days</span>
+      </div>
+    </div>
+
+    <div class="summary-grid">
+      <article class="summary-card">
+        <span class="summary-icon"><i class="bi bi-calendar-check"></i></span>
+        <div>
+          <small>Subscription Start</small>
+          <strong>{{ plan.startsAt ? (plan.startsAt | date:'dd MMM yyyy') : '—' }}</strong>
+        </div>
+      </article>
+      <article class="summary-card">
+        <span class="summary-icon"><i class="bi bi-calendar-x"></i></span>
+        <div>
+          <small>Subscription Expiry</small>
+          <strong>{{ plan.endsAt ? (plan.endsAt | date:'dd MMM yyyy') : '—' }}</strong>
+        </div>
+      </article>
+      <article class="summary-card">
+        <span class="summary-icon"><i class="bi bi-hourglass-split"></i></span>
+        <div>
+          <small>Days Remaining</small>
+          <strong>{{ daysRemaining }} days</strong>
+        </div>
+      </article>
+      <article class="summary-card">
+        <span class="summary-icon"><i class="bi bi-arrow-repeat"></i></span>
+        <div>
+          <small>Auto Renewal</small>
+          <strong>{{ plan.autoRenew ? 'Enabled' : 'Disabled' }}</strong>
+        </div>
+      </article>
+    </div>
+
+    <div class="details-card">
+      <div class="section-heading">
+        <div>
+          <h3>Subscription Details</h3>
+          <p>Database-এ সংরক্ষিত subscription information</p>
+        </div>
+      </div>
+      <div class="details-grid">
+        <div class="detail-item">
+          <span>Subscription ID</span>
+          <strong>#{{ plan.subscriptionId }}</strong>
+        </div>
+        <div class="detail-item">
+          <span>Plan Code</span>
+          <strong>{{ plan.planCode }}</strong>
+        </div>
+        <div class="detail-item">
+          <span>Plan Duration</span>
+          <strong>{{ plan.durationDays }} days</strong>
+        </div>
+        <div class="detail-item">
+          <span>Plan Price</span>
+          <strong>{{ plan.planPrice | number:'1.2-2' }} {{ plan.currency }}</strong>
+        </div>
+        <div class="detail-item">
+          <span>Created At</span>
+          <strong>{{ plan.createdAt ? (plan.createdAt | date:'dd MMM yyyy, h:mm a') : '—' }}</strong>
+        </div>
+        <div class="detail-item">
+          <span>Renewal</span>
+          <strong>{{ plan.autoRenew ? 'Automatic renewal enabled' : 'Manual renewal' }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-note">
+      <i class="bi bi-info-circle"></i>
+      <span>Plan পরিবর্তন বা renewal-এর জন্য Super Admin-এর সঙ্গে যোগাযোগ করুন। Payment verification এবং Super Admin approval আলাদা প্রক্রিয়া।</span>
+    </div>
+  </ng-container>
+
+  <div *ngIf="loaded && !loading && !errorMessage && !subscription" class="empty-state">
+    <div class="empty-icon"><i class="bi bi-box-seam"></i></div>
+    <h3>কোনো Subscription পাওয়া যায়নি</h3>
+    <p>এই Pharmacy-এর সঙ্গে বর্তমানে কোনো subscription record যুক্ত নেই।</p>
+  </div>
+</section>

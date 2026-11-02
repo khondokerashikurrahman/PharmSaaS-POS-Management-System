@@ -252,6 +252,15 @@ export class TransferFormComponent implements OnInit {
     this.calculateTotal(item);
   }
 
+  getBatches(item: TransferItem): string[] {
+    if (!item.medicine) return [];
+    return [...new Set(
+      this.sourceStock
+        .filter(row => this.stockMedicineName(row) === item.medicine)
+        .map(row => this.stockBatchName(row))
+    )];
+  }
+
   private updateItemFromSelectedBatch(item: TransferItem): void {
     const row = this.sourceStock.find(candidate =>
       this.stockMedicineName(candidate) === item.medicine &&
@@ -259,7 +268,7 @@ export class TransferFormComponent implements OnInit {
     );
 
     item.availableQty = row ? this.stockQuantity(row) : 0;
-    item.unitPrice = Number(row?.unitPrice ?? row?.purchasePrice ?? 0);
+    item.unitPrice = 0;
   }
 
   addItem(): void {

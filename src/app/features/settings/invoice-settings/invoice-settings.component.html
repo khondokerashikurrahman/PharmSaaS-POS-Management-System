@@ -1,1 +1,171 @@
-<p>invoice-settings works!</p>
+<div class="invoice-settings-page">
+  <div class="page-heading">
+    <div>
+      <h1>Invoice Settings</h1>
+      <p>আপনার Pharmacy Invoice-এর তথ্য, ডিজাইন ও Print Configuration নিয়ন্ত্রণ করুন।</p>
+    </div>
+    <button type="button" class="btn-outline" (click)="loadSettings()" [disabled]="loading || saving">
+      <i class="bi bi-arrow-clockwise"></i> Reload
+    </button>
+  </div>
+
+  <div class="alert error" *ngIf="errorMessage">
+    <i class="bi bi-exclamation-circle"></i>
+    {{ errorMessage }}
+  </div>
+
+  <div class="alert success" *ngIf="successMessage">
+    <i class="bi bi-check-circle"></i>
+    {{ successMessage }}
+  </div>
+
+  <div class="loading-state" *ngIf="loading">
+    <i class="bi bi-arrow-repeat"></i>
+    <span>Invoice Settings load হচ্ছে...</span>
+  </div>
+
+  <form *ngIf="!loading" (ngSubmit)="saveSettings()" #invoiceForm="ngForm">
+
+    <section class="settings-card">
+      <div class="card-heading">
+        <div class="heading-icon"><i class="bi bi-receipt"></i></div>
+        <div>
+          <h2>Invoice Information</h2>
+          <p>Invoice-এর মূল পরিচিতি ও Header নির্ধারণ করুন।</p>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="invoiceTitle">Invoice Title *</label>
+          <input id="invoiceTitle" name="invoiceTitle" type="text"
+            [(ngModel)]="settings.invoiceTitle" maxlength="100" required>
+        </div>
+
+        <div class="form-field">
+          <label for="invoicePrefix">Invoice Number Prefix *</label>
+          <input id="invoicePrefix" name="invoicePrefix" type="text"
+            [(ngModel)]="settings.invoiceNumberPrefix" maxlength="12"
+            placeholder="INV" required>
+          <small>উদাহরণ: INV, PHARM, SALE</small>
+        </div>
+
+        <div class="form-field full-width">
+          <label for="logoUrl">Pharmacy Logo URL</label>
+          <input id="logoUrl" name="logoUrl" type="url"
+            [(ngModel)]="settings.logoUrl" maxlength="1000"
+            placeholder="https://example.com/logo.png">
+          <small>Logo URL দিলে JasperReports Invoice-এ ব্যবহার করা যাবে।</small>
+        </div>
+
+        <div class="form-field full-width" *ngIf="settings.logoUrl">
+          <label>Logo Preview</label>
+          <div class="logo-preview">
+            <img [src]="settings.logoUrl" alt="Pharmacy logo preview"
+              (error)="settings.logoUrl = ''">
+          </div>
+        </div>
+
+        <div class="form-field full-width">
+          <label for="headerText">Invoice Header Text</label>
+          <textarea id="headerText" name="headerText" rows="3"
+            [(ngModel)]="settings.headerText" maxlength="5000"
+            placeholder="Additional pharmacy information..."></textarea>
+        </div>
+
+        <div class="form-field full-width">
+          <label for="footerText">Invoice Footer / Thank You Message</label>
+          <textarea id="footerText" name="footerText" rows="3"
+            [(ngModel)]="settings.footerText" maxlength="5000"
+            placeholder="Thank you for shopping with us!"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <section class="settings-card">
+      <div class="card-heading">
+        <div class="heading-icon"><i class="bi bi-eye"></i></div>
+        <div>
+          <h2>Invoice Display Options</h2>
+          <p>Invoice-এ কোন কোন তথ্য দেখা যাবে তা নির্বাচন করুন।</p>
+        </div>
+      </div>
+
+      <div class="toggle-grid">
+        <label class="toggle-item">
+          <span><strong>Customer Information</strong><small>Customer name and details</small></span>
+          <input type="checkbox" name="showCustomerInfo" [(ngModel)]="settings.showCustomerInfo">
+        </label>
+
+        <label class="toggle-item">
+          <span><strong>Tax Information</strong><small>VAT / Tax amount</small></span>
+          <input type="checkbox" name="showTax" [(ngModel)]="settings.showTax">
+        </label>
+
+        <label class="toggle-item">
+          <span><strong>Discount</strong><small>Discount amount and details</small></span>
+          <input type="checkbox" name="showDiscount" [(ngModel)]="settings.showDiscount">
+        </label>
+
+        <label class="toggle-item">
+          <span><strong>Batch Number</strong><small>Medicine batch information</small></span>
+          <input type="checkbox" name="showBatchNumber" [(ngModel)]="settings.showBatchNumber">
+        </label>
+
+        <label class="toggle-item">
+          <span><strong>Expiry Date</strong><small>Medicine expiry information</small></span>
+          <input type="checkbox" name="showExpiryDate" [(ngModel)]="settings.showExpiryDate">
+        </label>
+
+        <label class="toggle-item">
+          <span><strong>Payment Method</strong><small>Cash, Card or Mobile</small></span>
+          <input type="checkbox" name="showPaymentMethod" [(ngModel)]="settings.showPaymentMethod">
+        </label>
+      </div>
+    </section>
+
+    <section class="settings-card">
+      <div class="card-heading">
+        <div class="heading-icon"><i class="bi bi-printer"></i></div>
+        <div>
+          <h2>Print Configuration</h2>
+          <p>Invoice-এর Paper Size ও Printing Behaviour নির্ধারণ করুন।</p>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="paperSize">Paper Size</label>
+          <select id="paperSize" name="paperSize" [(ngModel)]="settings.paperSize">
+            <option value="A4">A4 - Full Page</option>
+            <option value="80MM">80mm - Thermal Printer</option>
+            <option value="58MM">58mm - Thermal Printer</option>
+          </select>
+        </div>
+      </div>
+
+      <label class="toggle-item auto-print">
+        <span>
+          <strong>Auto Print</strong>
+          <small>Sale complete হওয়ার পর automatically print করার preference</small>
+        </span>
+        <input type="checkbox" name="autoPrint" [(ngModel)]="settings.autoPrint">
+      </label>
+      <p class="info-note">
+        <i class="bi bi-info-circle"></i>
+        Auto Print preference সংরক্ষিত হচ্ছে। POS ও JasperReports printing integration পরবর্তী ধাপে যুক্ত হবে।
+      </p>
+    </section>
+
+    <div class="form-actions">
+      <button type="button" class="btn-outline" (click)="resetSettings()" [disabled]="saving">
+        <i class="bi bi-arrow-counterclockwise"></i> Reload Saved Settings
+      </button>
+      <button type="submit" class="btn-primary"
+        [disabled]="saving || !invoiceForm.valid">
+        <i class="bi" [ngClass]="saving ? 'bi-arrow-repeat' : 'bi-check-lg'"></i>
+        {{ saving ? 'Saving...' : 'Save Invoice Settings' }}
+      </button>
+    </div>
+  </form>
+</div>

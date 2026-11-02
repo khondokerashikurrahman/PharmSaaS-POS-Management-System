@@ -1,1 +1,110 @@
-<p>billing-history works!</p>
+<div class="billing-page">
+  <header class="page-header">
+    <div>
+      <h1>Billing History</h1>
+      <p>আপনার Pharmacy-এর SaaS Subscription Payment-এর রেকর্ড দেখুন।</p>
+    </div>
+    <button class="refresh-btn" type="button" (click)="loadHistory()" [disabled]="loading">
+      <i class="bi bi-arrow-clockwise"></i> Refresh
+    </button>
+  </header>
+
+  <div class="alert error" *ngIf="errorMessage">
+    <i class="bi bi-exclamation-circle"></i> {{ errorMessage }}
+  </div>
+
+  <section class="summary-grid">
+    <div class="summary-card">
+      <span>Total Payments</span>
+      <strong>{{ records.length }}</strong>
+      <i class="bi bi-receipt"></i>
+    </div>
+    <div class="summary-card">
+      <span>Successful Payments</span>
+      <strong>{{ successfulCount }}</strong>
+      <i class="bi bi-check-circle"></i>
+    </div>
+    <div class="summary-card">
+      <span>Total Paid</span>
+      <strong>{{ totalPaid | number:'1.2-2' }} BDT</strong>
+      <i class="bi bi-wallet2"></i>
+    </div>
+  </section>
+
+  <section class="history-card">
+    <div class="table-heading">
+      <div>
+        <h2>Payment Transactions</h2>
+        <p>আপনার Subscription-এর সঙ্গে যুক্ত Payment History</p>
+      </div>
+      <div class="filters">
+        <input type="search" placeholder="Search transaction or plan..."
+          [(value)]="searchTerm"
+          (input)="searchTerm = $any($event.target).value">
+        <select [value]="statusFilter"
+          (change)="statusFilter = $any($event.target).value">
+          <option value="ALL">All Status</option>
+          <option value="VALIDATED">Successful</option>
+          <option value="PENDING_VERIFICATION">Pending</option>
+          <option value="REJECTED">Rejected</option>
+          <option value="FAILED">Failed</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="loading-state" *ngIf="loading">
+      <i class="bi bi-arrow-repeat"></i> Billing History লোড হচ্ছে...
+    </div>
+
+    <div class="empty-state" *ngIf="!loading && !errorMessage && records.length === 0">
+      <i class="bi bi-receipt"></i>
+      <strong>কোনো Payment History পাওয়া যায়নি</strong>
+      <span>আপনার Subscription Payment সম্পন্ন হলে এখানে দেখা যাবে।</span>
+    </div>
+
+    <div class="table-wrap" *ngIf="!loading && filteredRecords.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>Transaction</th>
+            <th>Plan</th>
+            <th>Payment Method</th>
+            <th>Amount</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Subscription</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let record of filteredRecords">
+            <td>
+              <strong>{{ record.transactionReference }}</strong>
+              <small *ngIf="record.gatewayTransactionId">
+                TrxID: {{ record.gatewayTransactionId }}
+              </small>
+            </td>
+            <td>{{ record.planName || '—' }}</td>
+            <td>{{ record.gatewayName || '—' }}</td>
+            <td class="amount">{{ record.amount | number:'1.2-2' }} {{ record.currency }}</td>
+            <td>{{ record.paymentDate | date:'dd MMM yyyy, hh:mm a' }}</td>
+            <td>
+              <span class="status" [ngClass]="statusClass(record.paymentStatus)">
+                {{ record.paymentStatus }}
+              </span>
+            </td>
+            <td>
+              <strong>{{ record.subscriptionStatus }}</strong>
+              <small *ngIf="record.subscriptionEndsAt">
+                Ends: {{ record.subscriptionEndsAt | date:'dd MMM yyyy' }}
+              </small>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="no-results" *ngIf="!loading && records.length > 0 && filteredRecords.length === 0">
+      এই Filter অনুযায়ী কোনো Transaction পাওয়া যায়নি।
+    </div>
+  </section>
+</div>

@@ -1,1 +1,126 @@
-<p>orgnization-settings works!</p>
+<div class="settings-page">
+  <div class="page-heading">
+    <div>
+      <span class="eyebrow">PHARMACY CONFIGURATION</span>
+      <h1>Organization Settings</h1>
+      <p>আপনার Pharmacy বা প্রতিষ্ঠানের প্রাথমিক তথ্য পরিচালনা করুন।</p>
+    </div>
+    <div class="tenant-code" *ngIf="settings.tenantCode">
+      <span>Tenant Code</span>
+      <strong>{{ settings.tenantCode }}</strong>
+    </div>
+  </div>
+
+  <div class="alert error" *ngIf="errorMessage">
+    {{ errorMessage }}
+  </div>
+
+  <div class="alert success" *ngIf="successMessage">
+    {{ successMessage }}
+  </div>
+
+  <section class="settings-card">
+    <div class="card-heading">
+      <div class="heading-icon">🏥</div>
+      <div>
+        <h2>প্রতিষ্ঠানের তথ্য</h2>
+        <p>এই তথ্য আপনার Pharmacy profile-এর সঙ্গে সংরক্ষিত থাকবে।</p>
+      </div>
+    </div>
+
+    <div class="loading-state" *ngIf="loading">
+      <span class="spinner"></span>
+      <span>তথ্য লোড হচ্ছে...</span>
+    </div>
+
+    <form *ngIf="!loading" (ngSubmit)="saveSettings()" #organizationForm="ngForm">
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="tenantCode">Tenant Code</label>
+          <input
+            id="tenantCode"
+            type="text"
+            [value]="settings.tenantCode"
+            disabled
+          />
+          <small>এই Code পরিবর্তন করা যাবে না।</small>
+        </div>
+
+        <div class="form-field">
+          <label for="name">Organization Name <span>*</span></label>
+          <input
+            id="name"
+            name="name"
+            type="text"
+            [(ngModel)]="settings.name"
+            required
+            maxlength="150"
+            placeholder="আপনার Pharmacy-এর নাম"
+          />
+        </div>
+
+        <div class="form-field">
+          <label for="ownerName">Owner Name</label>
+          <input
+            id="ownerName"
+            name="ownerName"
+            type="text"
+            [(ngModel)]="settings.ownerName"
+            maxlength="150"
+            placeholder="প্রতিষ্ঠানের মালিকের নাম"
+          />
+        </div>
+
+        <div class="form-field">
+          <label for="email">Email Address</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            [(ngModel)]="settings.email"
+            email
+            maxlength="255"
+            placeholder="example@pharmacy.com"
+          />
+        </div>
+
+        <div class="form-field">
+          <label for="phone">Phone Number</label>
+          <input
+            id="phone"
+            name="phone"
+            type="tel"
+            [(ngModel)]="settings.phone"
+            maxlength="30"
+            placeholder="+8801XXXXXXXXX"
+          />
+        </div>
+
+        <div class="form-field full-width">
+          <label for="address">Organization Address</label>
+          <textarea
+            id="address"
+            name="address"
+            [(ngModel)]="settings.address"
+            rows="4"
+            placeholder="প্রতিষ্ঠানের সম্পূর্ণ ঠিকানা লিখুন"
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="form-footer">
+        <p><span>*</span> চিহ্নিত তথ্য অবশ্যই দিতে হবে।</p>
+        <div class="actions">
+          <button type="button" class="btn-secondary"
+            (click)="resetForm()" [disabled]="saving">
+            Reset
+          </button>
+          <button type="submit" class="btn-primary"
+            [disabled]="saving || organizationForm.invalid">
+            {{ saving ? 'Saving...' : 'Save Changes' }}
+          </button>
+        </div>
+      </div>
+    </form>
+  </section>
+</div>

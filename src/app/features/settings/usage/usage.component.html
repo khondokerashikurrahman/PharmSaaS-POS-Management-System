@@ -1,1 +1,77 @@
-<p>usage works!</p>
+<section class="usage-page">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">SUBSCRIPTION & RESOURCES</span>
+      <h2>Usage & Limits</h2>
+      <p>আপনার Pharmacy-এর বর্তমান resource usage এবং subscription information।</p>
+    </div>
+    <button type="button" class="refresh-btn" (click)="loadUsage()" [disabled]="loading">
+      <i class="bi bi-arrow-clockwise"></i>
+      {{ loading ? 'Loading...' : 'Refresh' }}
+    </button>
+  </header>
+
+  <div *ngIf="loading && !loaded" class="state-card">
+    <span class="spinner"></span>
+    <p>Usage তথ্য লোড হচ্ছে...</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert-error">
+    <i class="bi bi-exclamation-circle"></i>
+    {{ errorMessage }}
+  </div>
+
+  <ng-container *ngIf="usage && !errorMessage">
+    <section class="subscription-card">
+      <div class="subscription-icon"><i class="bi bi-layers"></i></div>
+      <div class="subscription-info">
+        <span class="eyebrow">CURRENT SUBSCRIPTION</span>
+        <h3>{{ usage.planName || 'No plan assigned' }}</h3>
+        <p>Plan Code: {{ usage.planCode || '—' }}</p>
+      </div>
+      <div class="subscription-status">
+        <small>Subscription Status</small>
+        <strong>{{ formatStatus(usage.subscriptionStatus) }}</strong>
+        <small *ngIf="usage.subscriptionEndsAt">
+          Expires {{ usage.subscriptionEndsAt | date:'dd MMM yyyy' }}
+        </small>
+      </div>
+    </section>
+
+    <div class="section-title">
+      <div>
+        <h3>Resource Usage</h3>
+        <p>Database থেকে পাওয়া বর্তমান usage count</p>
+      </div>
+      <span class="live-label"><i class="bi bi-database-check"></i> Live Database</span>
+    </div>
+
+    <div class="usage-grid">
+      <article class="usage-card" *ngFor="let metric of metrics">
+        <div class="metric-top">
+          <span class="metric-icon"><i class="bi" [ngClass]="metric.icon"></i></span>
+          <span class="metric-label">{{ metric.label }}</span>
+        </div>
+        <strong class="metric-value">{{ metric.value | number }}</strong>
+        <p>{{ metric.description }}</p>
+        <div class="limit-row">
+          <span>Plan limit</span>
+          <strong>{{ limitLabel(metric.limit) }}</strong>
+        </div>
+        <div class="progress" *ngIf="usagePercent(metric.value, metric.limit) !== null"><span [style.width.%]="usagePercent(metric.value, metric.limit)"></span></div>
+      </article>
+    </div>
+
+    <section class="limit-notice" *ngIf="!usage.limitsConfigured">
+      <i class="bi bi-info-circle"></i>
+      <div>
+        <strong>Plan limits are not configured yet</strong>
+        <p>চারটি quota-র মধ্যে এক বা একাধিকটির মান database-এ Not configured থাকতে পারে। প্রতিটি quota-র প্রকৃত মান উপরে আলাদাভাবে দেখানো হচ্ছে। সবগুলো quota configure করা হলে এই notice আর দেখানো হবে না।</p>
+      </div>
+    </section>
+  </ng-container>
+
+  <div *ngIf="loaded && !loading && !errorMessage && !usage" class="state-card">
+    Usage information পাওয়া যায়নি।
+  </div>
+</section>

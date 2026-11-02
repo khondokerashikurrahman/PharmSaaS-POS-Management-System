@@ -1,322 +1,133 @@
 <div class="customer-page">
-
-  <!-- PAGE HEADER -->
   <div class="page-header">
-
     <div>
       <div class="breadcrumb">
         <span>Stakeholders</span>
         <i class="bi bi-chevron-right"></i>
         <span>Customers</span>
       </div>
-
       <h1>Customer Management</h1>
-
-      <p>
-        Manage customers, purchase history and outstanding balances.
-      </p>
+      <p>Manage registered customers and their account information.</p>
     </div>
-
-    <button class="primary-btn" (click)="addCustomer()">
-      <i class="bi bi-person-plus"></i>
-      Add Customer
+    <button class="primary-btn" (click)="openAddForm()">
+      <i class="bi bi-person-plus"></i> Add Customer
     </button>
-
   </div>
 
+  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+  <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
 
-  <!-- SUMMARY CARDS -->
   <div class="summary-grid">
-
     <div class="summary-card">
-
-      <div class="summary-icon blue">
-        <i class="bi bi-people"></i>
-      </div>
-
-      <div class="summary-content">
-        <span>Total Customers</span>
-        <strong>{{ totalCustomers }}</strong>
-        <small>All registered customers</small>
-      </div>
-
+      <div class="summary-icon blue"><i class="bi bi-people"></i></div>
+      <div class="summary-content"><span>Total Customers</span><strong>{{ totalCustomers }}</strong><small>Registered customers</small></div>
     </div>
-
-
     <div class="summary-card">
-
-      <div class="summary-icon green">
-        <i class="bi bi-person-check"></i>
-      </div>
-
-      <div class="summary-content">
-        <span>Active Customers</span>
-        <strong>{{ activeCustomers }}</strong>
-        <small>Currently active</small>
-      </div>
-
+      <div class="summary-icon green"><i class="bi bi-person-check"></i></div>
+      <div class="summary-content"><span>Active Customers</span><strong>{{ activeCustomers }}</strong><small>Currently active</small></div>
     </div>
-
-
     <div class="summary-card">
-
-      <div class="summary-icon orange">
-        <i class="bi bi-person-dash"></i>
-      </div>
-
-      <div class="summary-content">
-        <span>Inactive Customers</span>
-        <strong>{{ inactiveCustomers }}</strong>
-        <small>Inactive accounts</small>
-      </div>
-
+      <div class="summary-icon orange"><i class="bi bi-person-dash"></i></div>
+      <div class="summary-content"><span>Inactive Customers</span><strong>{{ inactiveCustomers }}</strong><small>Inactive accounts</small></div>
     </div>
-
-
     <div class="summary-card">
-
-      <div class="summary-icon red">
-        <i class="bi bi-wallet2"></i>
-      </div>
-
-      <div class="summary-content">
-        <span>Total Due</span>
-        <strong>৳{{ totalDue | number:'1.0-0' }}</strong>
-        <small>Outstanding balance</small>
-      </div>
-
+      <div class="summary-icon red"><i class="bi bi-wallet2"></i></div>
+      <div class="summary-content"><span>Opening Balance</span><strong>৳{{ totalDue | number:'1.0-2' }}</strong><small>Opening balances only</small></div>
     </div>
-
   </div>
 
-
-  <!-- TABLE CARD -->
   <div class="table-card">
-
-    <!-- TOOLBAR -->
     <div class="table-toolbar">
-
       <div class="toolbar-left">
-
         <div class="search-box">
           <i class="bi bi-search"></i>
-
-          <input
-            type="text"
-            [(ngModel)]="searchTerm"
-            placeholder="Search customer, phone or email..."
-          />
+          <input type="text" [(ngModel)]="searchTerm" placeholder="Search customer, phone or email..." />
         </div>
-
-        <select
-          class="filter-select"
-          [(ngModel)]="statusFilter"
-        >
+        <select class="filter-select" [(ngModel)]="statusFilter">
           <option value="All">All Status</option>
           <option value="Active">Active</option>
           <option value="Inactive">Inactive</option>
         </select>
-
       </div>
-
-      <div class="result-count">
-        Showing {{ filteredCustomers.length }} of {{ totalCustomers }}
-      </div>
-
+      <div class="result-count">Showing {{ filteredCustomers.length }} of {{ totalCustomers }}</div>
     </div>
 
+    <div *ngIf="loading" class="empty-state"><p>Loading customers...</p></div>
 
-    <!-- TABLE -->
-    <div class="table-wrapper">
-
+    <div class="table-wrapper" *ngIf="!loading">
       <table>
-
         <thead>
           <tr>
-
-            <th>CUSTOMER</th>
-
-            <th>CONTACT</th>
-
-            <th>ADDRESS</th>
-
-            <th>TOTAL PURCHASES</th>
-
-            <th>DUE</th>
-
-            <th>LAST PURCHASE</th>
-
-            <th>STATUS</th>
-
-            <th>ACTIONS</th>
-
+            <th>CUSTOMER</th><th>CONTACT</th><th>ADDRESS</th>
+            <th>OPENING BALANCE</th><th>STATUS</th><th>ACTIONS</th>
           </tr>
         </thead>
-
-
         <tbody>
-
           <tr *ngFor="let customer of filteredCustomers">
-
-            <!-- CUSTOMER -->
             <td>
-
               <div class="customer-info">
-
-                <div class="avatar">
-                  {{ getInitial(customer.name) }}
-                </div>
-
-                <div>
-                  <strong>{{ customer.name }}</strong>
-                  <span>{{ customer.id }}</span>
-                </div>
-
+                <div class="avatar">{{ getInitial(customer.name) }}</div>
+                <div><strong>{{ customer.name }}</strong><span>{{ customer.customerCode }}</span></div>
               </div>
-
             </td>
-
-
-            <!-- CONTACT -->
             <td>
-
               <div class="contact-info">
-
-                <span>
-                  <i class="bi bi-telephone"></i>
-                  {{ customer.phone }}
-                </span>
-
-                <span>
-                  <i class="bi bi-envelope"></i>
-                  {{ customer.email }}
-                </span>
-
+                <span><i class="bi bi-telephone"></i> {{ customer.phone }}</span>
+                <span><i class="bi bi-envelope"></i> {{ customer.email || '—' }}</span>
               </div>
-
             </td>
-
-
-            <!-- ADDRESS -->
+            <td><div class="address-info"><i class="bi bi-geo-alt"></i><span>{{ customer.address || '—' }}</span></div></td>
+            <td><strong class="amount">৳{{ customer.openingBalance | number:'1.0-2' }}</strong></td>
             <td>
-
-              <div class="address-info">
-                <i class="bi bi-geo-alt"></i>
-                <span>{{ customer.address }}</span>
-              </div>
-
-            </td>
-
-
-            <!-- PURCHASES -->
-            <td>
-
-              <strong class="amount">
-                ৳{{ customer.totalPurchases | number:'1.0-0' }}
-              </strong>
-
-              <div class="paid-text">
-                Paid ৳{{ customer.totalPaid | number:'1.0-0' }}
-              </div>
-
-            </td>
-
-
-            <!-- DUE -->
-            <td>
-
-              <span
-                class="due-amount"
-                [class.no-due]="customer.dueAmount === 0"
-              >
-                ৳{{ customer.dueAmount | number:'1.0-0' }}
+              <span class="status-badge" [ngClass]="getStatusClass(customer.status)">
+                <span class="status-dot"></span>{{ customer.status }}
               </span>
-
             </td>
-
-
-            <!-- LAST PURCHASE -->
             <td>
-
-              <div class="date-info">
-                <i class="bi bi-calendar3"></i>
-                {{ customer.lastPurchase }}
-              </div>
-
-            </td>
-
-
-            <!-- STATUS -->
-            <td>
-
-              <span
-                class="status-badge"
-                [ngClass]="getStatusClass(customer.status)"
-              >
-                <span class="status-dot"></span>
-                {{ customer.status }}
-              </span>
-
-            </td>
-
-
-            <!-- ACTIONS -->
-            <td>
-
               <div class="actions">
-
-                <button
-                  class="icon-btn view"
-                  title="View Customer"
-                  (click)="viewCustomer(customer.id)"
-                >
-                  <i class="bi bi-eye"></i>
-                </button>
-
-                <button
-                  class="icon-btn ledger"
-                  title="Customer Ledger"
-                  (click)="viewLedger(customer.id)"
-                >
-                  <i class="bi bi-journal-text"></i>
-                </button>
-
+                <button class="icon-btn view" title="View Customer" (click)="viewCustomer(customer.id)"><i class="bi bi-eye"></i></button>
+                <button class="icon-btn ledger" title="Customer Ledger" (click)="viewLedger(customer.id)"><i class="bi bi-journal-text"></i></button>
+                <button class="icon-btn" title="Edit Customer" (click)="openEditForm(customer)"><i class="bi bi-pencil"></i></button>
+                <button class="icon-btn" title="Deactivate Customer" *ngIf="customer.status?.toUpperCase() === 'ACTIVE'" (click)="deactivateCustomer(customer)"><i class="bi bi-person-x"></i></button>
               </div>
-
             </td>
-
           </tr>
-
-
-          <!-- EMPTY STATE -->
           <tr *ngIf="filteredCustomers.length === 0">
-
-            <td colspan="8">
-
+            <td colspan="6">
               <div class="empty-state">
-
-                <div class="empty-icon">
-                  <i class="bi bi-person-x"></i>
-                </div>
-
+                <div class="empty-icon"><i class="bi bi-person-x"></i></div>
                 <h3>No customers found</h3>
-
-                <p>
-                  Try changing your search or status filter.
-                </p>
-
+                <p>Try changing your search or status filter.</p>
               </div>
-
             </td>
-
           </tr>
-
         </tbody>
-
       </table>
-
     </div>
-
   </div>
 
+  <div class="customer-form-overlay" *ngIf="showForm">
+    <div class="customer-form-modal">
+      <div class="page-header">
+        <div><h2>{{ editingId ? 'Edit Customer' : 'Add Customer' }}</h2><p>Customer information</p></div>
+        <button type="button" class="icon-btn" (click)="closeForm()"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <form (ngSubmit)="saveCustomer()">
+        <label>Customer Name *</label>
+        <input class="form-control" name="name" [(ngModel)]="form.name" required />
+        <label>Phone *</label>
+        <input class="form-control" name="phone" [(ngModel)]="form.phone" required />
+        <label>Email</label>
+        <input class="form-control" type="email" name="email" [(ngModel)]="form.email" />
+        <label>Address</label>
+        <textarea class="form-control" name="address" [(ngModel)]="form.address"></textarea>
+        <label>Opening Balance</label>
+        <input class="form-control" type="number" min="0" step="0.01" name="openingBalance" [(ngModel)]="form.openingBalance" />
+        <div class="actions">
+          <button type="button" class="secondary-btn" (click)="closeForm()">Cancel</button>
+          <button type="submit" class="primary-btn" [disabled]="saving">{{ saving ? 'Saving...' : 'Save Customer' }}</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>

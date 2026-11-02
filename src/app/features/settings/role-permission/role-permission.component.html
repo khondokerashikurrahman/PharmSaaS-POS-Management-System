@@ -1,1 +1,140 @@
-<p>role-permission works!</p>
+<div class="settings-page">
+  <div class="page-header">
+    <div>
+      <h1>Role & Permission</h1>
+      <p>প্রতিটি user role-এর জন্য module অনুযায়ী access permission নির্ধারণ করুন।</p>
+    </div>
+    <div class="header-icon">
+      <i class="bi bi-shield-lock"></i>
+    </div>
+  </div>
+
+  <div class="settings-content">
+    <div class="loading-state" *ngIf="loading">
+      <i class="bi bi-arrow-repeat"></i>
+      <span>Role Permissions লোড হচ্ছে...</span>
+    </div>
+
+    <div class="alert error" *ngIf="errorMessage">
+      <i class="bi bi-exclamation-circle"></i>
+      {{ errorMessage }}
+    </div>
+
+    <div class="alert success" *ngIf="successMessage">
+      <i class="bi bi-check-circle"></i>
+      {{ successMessage }}
+    </div>
+
+    <ng-container *ngIf="!loading">
+      <section class="settings-card role-selector">
+        <div class="section-heading">
+          <div class="section-icon role-icon">
+            <i class="bi bi-people"></i>
+          </div>
+          <div>
+            <h2>Select User Role</h2>
+            <p>যে role-এর permission পরিবর্তন করতে চান সেটি নির্বাচন করুন।</p>
+          </div>
+        </div>
+
+        <div class="role-grid">
+          <button
+            type="button"
+            class="role-option"
+            *ngFor="let role of roles"
+            [class.active]="selectedRole === role.key"
+            (click)="selectedRole = role.key">
+            <strong>{{ role.label }}</strong>
+            <small>{{ role.description }}</small>
+          </button>
+        </div>
+      </section>
+
+      <section class="settings-card">
+        <div class="permission-header">
+          <div>
+            <h2>{{ selectedRoleInfo?.label }} Permissions</h2>
+            <p>{{ selectedRoleInfo?.description }}</p>
+          </div>
+          <div class="quick-actions">
+            <button type="button" class="small-btn" (click)="enableAllForSelectedRole()" [disabled]="saving">
+              Enable All
+            </button>
+            <button type="button" class="small-btn clear-btn" (click)="clearSelectedRole()" [disabled]="saving">
+              Clear All
+            </button>
+          </div>
+        </div>
+
+        <div class="permission-table-wrap">
+          <table class="permission-table">
+            <thead>
+              <tr>
+                <th>Module</th>
+                <th>View</th>
+                <th>Create</th>
+                <th>Edit</th>
+                <th>Delete</th>
+                <th>Approve</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let module of modules">
+                <td class="module-cell">
+                  <strong>{{ module.label }}</strong>
+                  <small>{{ module.description }}</small>
+                </td>
+                <td>
+                  <input type="checkbox"
+                    [checked]="isAllowed(module.key, 'canView')"
+                    [disabled]="saving"
+                    (change)="updatePermission(module.key, 'canView', $any($event.target).checked)">
+                </td>
+                <td>
+                  <input type="checkbox"
+                    [checked]="isAllowed(module.key, 'canCreate')"
+                    [disabled]="saving || !isAllowed(module.key, 'canView')"
+                    (change)="updatePermission(module.key, 'canCreate', $any($event.target).checked)">
+                </td>
+                <td>
+                  <input type="checkbox"
+                    [checked]="isAllowed(module.key, 'canEdit')"
+                    [disabled]="saving || !isAllowed(module.key, 'canView')"
+                    (change)="updatePermission(module.key, 'canEdit', $any($event.target).checked)">
+                </td>
+                <td>
+                  <input type="checkbox"
+                    [checked]="isAllowed(module.key, 'canDelete')"
+                    [disabled]="saving || !isAllowed(module.key, 'canView')"
+                    (change)="updatePermission(module.key, 'canDelete', $any($event.target).checked)">
+                </td>
+                <td>
+                  <input type="checkbox"
+                    [checked]="isAllowed(module.key, 'canApprove')"
+                    [disabled]="saving || !isAllowed(module.key, 'canView')"
+                    (change)="updatePermission(module.key, 'canApprove', $any($event.target).checked)">
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="permission-note">
+          <i class="bi bi-info-circle"></i>
+          <span>কোনো module-এর View বন্ধ করলে সেই module-এর Create, Edit, Delete ও Approve permission-ও বন্ধ হবে। Tenant Owner-এর সর্বোচ্চ প্রশাসনিক ক্ষমতা এই matrix-এর বাইরে থাকবে।</span>
+        </div>
+      </section>
+
+      <div class="form-actions">
+        <button type="button" class="reset-btn" (click)="resetPermissions()" [disabled]="saving">
+          <i class="bi bi-arrow-counterclockwise"></i>
+          Reload Saved
+        </button>
+        <button type="button" class="save-btn" (click)="savePermissions()" [disabled]="saving">
+          <i class="bi" [ngClass]="saving ? 'bi-arrow-repeat' : 'bi-check-lg'"></i>
+          {{ saving ? 'Saving...' : 'Save Permissions' }}
+        </button>
+      </div>
+    </ng-container>
+  </div>
+</div>

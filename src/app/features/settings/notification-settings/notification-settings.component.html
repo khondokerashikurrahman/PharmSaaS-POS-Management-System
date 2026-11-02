@@ -1,1 +1,205 @@
-<p>notification-settings works!</p>
+<div class="settings-page">
+  <div class="page-header">
+    <div>
+      <h1>Notification Settings</h1>
+      <p>আপনার Pharmacy-এর গুরুত্বপূর্ণ alert ও notification preferences নিয়ন্ত্রণ করুন।</p>
+    </div>
+    <div class="header-icon">
+      <i class="bi bi-bell"></i>
+    </div>
+  </div>
+
+  <div class="settings-content">
+    <div class="loading-state" *ngIf="loading">
+      <i class="bi bi-arrow-repeat"></i>
+      <span>Notification Settings লোড হচ্ছে...</span>
+    </div>
+
+    <div class="alert error" *ngIf="errorMessage">
+      <i class="bi bi-exclamation-circle"></i>
+      {{ errorMessage }}
+    </div>
+
+    <div class="alert success" *ngIf="successMessage">
+      <i class="bi bi-check-circle"></i>
+      {{ successMessage }}
+    </div>
+
+    <ng-container *ngIf="!loading">
+      <section class="settings-card">
+        <div class="section-heading">
+          <div class="section-icon stock-icon">
+            <i class="bi bi-box-seam"></i>
+          </div>
+          <div>
+            <h2>Inventory Alerts</h2>
+            <p>Stock ও medicine expiry সংক্রান্ত alert নির্ধারণ করুন।</p>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <strong>Low Stock Alert</strong>
+            <span>Medicine-এর stock নির্ধারিত পরিমাণের নিচে নামলে alert preference চালু থাকবে।</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" [(ngModel)]="settings.lowStockEnabled" [disabled]="saving">
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+
+        <div class="form-field nested-field" *ngIf="settings.lowStockEnabled">
+          <label for="lowStockThreshold">Low Stock Threshold</label>
+          <input
+            id="lowStockThreshold"
+            type="number"
+            min="1"
+            max="100000"
+            step="1"
+            [(ngModel)]="settings.lowStockThreshold"
+            [disabled]="saving">
+          <small>Stock এই সংখ্যার সমান বা নিচে এলে low-stock condition হিসেবে গণ্য হবে।</small>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <strong>Stock Out Alert</strong>
+            <span>কোনো medicine-এর stock সম্পূর্ণ শেষ হলে alert preference চালু থাকবে।</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" [(ngModel)]="settings.stockOutEnabled" [disabled]="saving">
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <strong>Expiry Alert</strong>
+            <span>Medicine-এর expiry date কাছাকাছি এলে alert preference চালু থাকবে।</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" [(ngModel)]="settings.expiryAlertEnabled" [disabled]="saving">
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+
+        <div class="form-field nested-field" *ngIf="settings.expiryAlertEnabled">
+          <label for="expiryWarningDays">Expiry Warning Period (Days)</label>
+          <input
+            id="expiryWarningDays"
+            type="number"
+            min="1"
+            max="3650"
+            step="1"
+            [(ngModel)]="settings.expiryWarningDays"
+            [disabled]="saving">
+          <small>Expiry date-এর কত দিন আগে থেকে warning দেখানোর preference থাকবে।</small>
+        </div>
+      </section>
+
+      <section class="settings-card">
+        <div class="section-heading">
+          <div class="section-icon activity-icon">
+            <i class="bi bi-activity"></i>
+          </div>
+          <div>
+            <h2>Business Activity Alerts</h2>
+            <p>Pharmacy-এর দৈনন্দিন কার্যক্রমের notification preferences।</p>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <strong>New Sale Notification</strong>
+            <span>নতুন sale সম্পন্ন হলে notification preference চালু থাকবে।</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" [(ngModel)]="settings.newSaleEnabled" [disabled]="saving">
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <strong>Purchase Received Notification</strong>
+            <span>Purchase বা stock receiving সম্পন্ন হলে notification preference চালু থাকবে।</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" [(ngModel)]="settings.purchaseReceivedEnabled" [disabled]="saving">
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <strong>Customer Due Alert</strong>
+            <span>Customer-এর বকেয়া সংক্রান্ত notification preference চালু থাকবে।</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" [(ngModel)]="settings.customerDueEnabled" [disabled]="saving">
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+      </section>
+
+      <section class="settings-card">
+        <div class="section-heading">
+          <div class="section-icon channel-icon">
+            <i class="bi bi-send"></i>
+          </div>
+          <div>
+            <h2>Notification Channels</h2>
+            <p>কোন মাধ্যমে notification পাওয়ার preference থাকবে তা নির্বাচন করুন।</p>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <strong>In-App Notifications</strong>
+            <span>Application-এর ভেতরে notification পাওয়ার preference।</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" [(ngModel)]="settings.inAppNotificationsEnabled" [disabled]="saving">
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <strong>Email Notifications</strong>
+            <span>Email-এর মাধ্যমে notification পাওয়ার preference।</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" [(ngModel)]="settings.emailNotificationsEnabled" [disabled]="saving">
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+
+        <div class="channel-note">
+          <i class="bi bi-info-circle"></i>
+          <span>এই পছন্দগুলো database-এ সংরক্ষিত হবে। Email বা In-app notification পাঠানোর delivery service আলাদাভাবে চালু করতে হবে।</span>
+        </div>
+      </section>
+
+      <div class="form-actions">
+        <button
+          type="button"
+          class="reset-btn"
+          (click)="resetSettings()"
+          [disabled]="saving">
+          <i class="bi bi-arrow-counterclockwise"></i>
+          Reset
+        </button>
+
+        <button
+          type="button"
+          class="save-btn"
+          (click)="saveSettings()"
+          [disabled]="saving">
+          <i class="bi" [ngClass]="saving ? 'bi-arrow-repeat' : 'bi-check-lg'"></i>
+          {{ saving ? 'Saving...' : 'Save Settings' }}
+        </button>
+      </div>
+    </ng-container>
+  </div>
+</div>

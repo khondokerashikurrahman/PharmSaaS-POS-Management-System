@@ -716,3 +716,50 @@ tbody tr:hover {
   }
 
 }
+.create-panel, .details-panel {
+  background: #fff;
+  border: 1px solid #e8edf3;
+  border-radius: 12px;
+  padding: 22px;
+  margin-bottom: 22px;
+}
+.panel-heading, .form-actions, .assignment-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.panel-heading h3 { margin: 0; font-size: 18px; }
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+}
+.form-grid label, .details-panel label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 600;
+}
+.form-grid input, .form-grid select, .form-grid textarea,
+.details-panel input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #dfe5ec;
+  border-radius: 7px;
+  padding: 10px 12px;
+  font: inherit;
+  font-weight: 400;
+}
+.full-width { grid-column: 1 / -1; }
+.form-actions { justify-content: flex-end; margin: 18px 0 0; }
+.assignment-row input { max-width: 220px; }
+.ticket-description { white-space: pre-wrap; overflow-wrap: anywhere; }
+button:disabled { opacity: .55; cursor: not-allowed; }
+@media (max-width: 768px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .full-width { grid-column: auto; }
+}

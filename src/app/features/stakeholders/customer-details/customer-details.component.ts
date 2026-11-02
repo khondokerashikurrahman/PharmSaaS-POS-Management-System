@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { CustomerApiService, CustomerResponse, CustomerPurchaseResponse, CustomerLedgerResponse } from '../../../core/services/customer-api.service';
 
 interface Purchase {
   invoice: string;
@@ -9,16 +10,17 @@ interface Purchase {
   amount: number;
   paid: number;
   due: number;
-  status: 'Paid' | 'Partial';
+  status: string;
 }
 
 interface Customer {
-  id: string;
+  id: number;
+  customerCode: string;
   name: string;
   phone: string;
   email: string;
   address: string;
-  status: 'Active' | 'Inactive';
+  status: string;
   totalPurchases: number;
   totalPaid: number;
   dueAmount: number;
@@ -36,190 +38,111 @@ interface Customer {
   styleUrl: './customer-details.component.scss'
 })
 export class CustomerDetailsComponent implements OnInit {
-
   customerId = '';
-
   customer: Customer | null = null;
+  loading = true;
+  errorMessage = '';
 
-  private customers: Record<string, Customer> = {
-
-    'CUS-001': {
-      id: 'CUS-001',
-      name: 'Abdul Karim',
-      phone: '+880 1711-234567',
-      email: 'abdul.karim@gmail.com',
-      address: 'Dhanmondi, Dhaka',
-      status: 'Active',
-      totalPurchases: 48500,
-      totalPaid: 45000,
-      dueAmount: 3500,
-      totalOrders: 18,
-      lastPurchase: '12 Sep 2026',
-      memberSince: '15 Jan 2025',
-      purchases: [
-        {
-          invoice: 'INV-2026-1048',
-          date: '12 Sep 2026',
-          items: 6,
-          amount: 4850,
-          paid: 4850,
-          due: 0,
-          status: 'Paid'
-        },
-        {
-          invoice: 'INV-2026-0987',
-          date: '28 Aug 2026',
-          items: 8,
-          amount: 7250,
-          paid: 5000,
-          due: 2250,
-          status: 'Partial'
-        },
-        {
-          invoice: 'INV-2026-0912',
-          date: '14 Aug 2026',
-          items: 5,
-          amount: 4100,
-          paid: 4100,
-          due: 0,
-          status: 'Paid'
-        },
-        {
-          invoice: 'INV-2026-0845',
-          date: '30 Jul 2026',
-          items: 9,
-          amount: 6800,
-          paid: 6800,
-          due: 0,
-          status: 'Paid'
-        }
-      ]
-    },
-
-    'CUS-002': {
-      id: 'CUS-002',
-      name: 'Rahim Ahmed',
-      phone: '+880 1812-345678',
-      email: 'rahim.ahmed@gmail.com',
-      address: 'Mirpur, Dhaka',
-      status: 'Active',
-      totalPurchases: 32600,
-      totalPaid: 32600,
-      dueAmount: 0,
-      totalOrders: 14,
-      lastPurchase: '11 Sep 2026',
-      memberSince: '20 Mar 2025',
-      purchases: [
-        {
-          invoice: 'INV-2026-1042',
-          date: '11 Sep 2026',
-          items: 5,
-          amount: 3650,
-          paid: 3650,
-          due: 0,
-          status: 'Paid'
-        },
-        {
-          invoice: 'INV-2026-0975',
-          date: '25 Aug 2026',
-          items: 7,
-          amount: 5400,
-          paid: 5400,
-          due: 0,
-          status: 'Paid'
-        }
-      ]
-    },
-
-    'CUS-003': {
-      id: 'CUS-003',
-      name: 'Sadia Islam',
-      phone: '+880 1912-456789',
-      email: 'sadia.islam@gmail.com',
-      address: 'Uttara, Dhaka',
-      status: 'Active',
-      totalPurchases: 28750,
-      totalPaid: 25000,
-      dueAmount: 3750,
-      totalOrders: 11,
-      lastPurchase: '10 Sep 2026',
-      memberSince: '08 Apr 2025',
-      purchases: [
-        {
-          invoice: 'INV-2026-1038',
-          date: '10 Sep 2026',
-          items: 4,
-          amount: 3750,
-          paid: 0,
-          due: 3750,
-          status: 'Partial'
-        },
-        {
-          invoice: 'INV-2026-0962',
-          date: '20 Aug 2026',
-          items: 6,
-          amount: 4900,
-          paid: 4900,
-          due: 0,
-          status: 'Paid'
-        }
-      ]
-    },
-
-    'CUS-004': {
-      id: 'CUS-004',
-      name: 'Tanvir Hasan',
-      phone: '+880 1612-567890',
-      email: 'tanvir.hasan@gmail.com',
-      address: 'Mohammadpur, Dhaka',
-      status: 'Active',
-      totalPurchases: 19400,
-      totalPaid: 19400,
-      dueAmount: 0,
-      totalOrders: 9,
-      lastPurchase: '09 Sep 2026',
-      memberSince: '12 May 2025',
-      purchases: [
-        {
-          invoice: 'INV-2026-1031',
-          date: '09 Sep 2026',
-          items: 5,
-          amount: 2850,
-          paid: 2850,
-          due: 0,
-          status: 'Paid'
-        }
-      ]
-    }
-
-  };
+  private tenantId(): number {
+    const user = JSON.parse(localStorage.getItem('pharm_user') || '{}');
+    return Number(
+      localStorage.getItem('tenantId') ||
+      localStorage.getItem('tenant_id') ||
+      user.tenantId || user.tenant?.id || user.currentTenantId || 0
+    );
+  }
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private customerApi: CustomerApiService
   ) {}
 
   ngOnInit(): void {
-    this.customerId =
-      this.route.snapshot.paramMap.get('id') || '';
-
+    this.customerId = this.route.snapshot.paramMap.get('id') || '';
     this.loadCustomer();
   }
 
   loadCustomer(): void {
-    this.customer =
-      this.customers[this.customerId] || null;
+    const tenantId = this.tenantId();
+    const customerId = Number(this.customerId);
 
-    if (!this.customer) {
-      alert('Customer not found.');
-      this.goBack();
+    if (!tenantId || !Number.isInteger(customerId) || customerId <= 0) {
+      this.loading = false;
+      this.errorMessage = 'Invalid tenant or customer ID.';
+      return;
     }
+
+    this.loading = true;
+    this.errorMessage = '';
+
+    this.customerApi.getById(tenantId, customerId).subscribe({
+      next: customer => this.loadCustomerFinancials(tenantId, customer),
+      error: err => {
+        this.loading = false;
+        this.errorMessage = err?.error?.message || 'Unable to load customer details.';
+      }
+    });
+  }
+
+  private loadCustomerFinancials(tenantId: number, response: CustomerResponse): void {
+    const id = response.id;
+
+    this.customerApi.purchases(tenantId, id).subscribe({
+      next: purchases => {
+        this.customerApi.ledger(tenantId, id).subscribe({
+          next: ledger => {
+            this.customer = this.mapCustomer(response, purchases, ledger);
+            this.loading = false;
+          },
+          error: err => {
+            this.errorMessage = err?.error?.message || 'Unable to load customer ledger.';
+            this.loading = false;
+          }
+        });
+      },
+      error: err => {
+        this.errorMessage = err?.error?.message || 'Unable to load purchase history.';
+        this.loading = false;
+      }
+    });
+  }
+
+  private mapCustomer(
+    c: CustomerResponse,
+    purchases: CustomerPurchaseResponse[],
+    ledger: CustomerLedgerResponse
+  ): Customer {
+    const rows = purchases.map(p => ({
+      invoice: p.invoiceNumber,
+      date: p.date,
+      items: p.itemCount,
+      amount: Number(p.amount || 0),
+      paid: Number(p.amount || 0),
+      due: 0,
+      status: p.status?.toUpperCase() === 'COMPLETED' ? 'Paid' : p.status
+    }));
+
+    return {
+      id: c.id,
+      customerCode: c.customerCode,
+      name: c.name,
+      phone: c.phone || '—',
+      email: c.email || '—',
+      address: c.address || '—',
+      status: c.status,
+      totalPurchases: Number(ledger.totalPurchases || 0),
+      totalPaid: Number(ledger.totalPaid || 0),
+      dueAmount: Number(ledger.currentBalance || 0),
+      totalOrders: rows.length,
+      lastPurchase: rows.length ? rows[0].date : '—',
+      memberSince: c.createdAt || '—',
+      purchases: rows
+    };
   }
 
   getInitial(): string {
-    return this.customer?.name
-      ?.charAt(0)
-      .toUpperCase() || 'C';
+    return this.customer?.name?.charAt(0).toUpperCase() || 'C';
   }
 
   goBack(): void {
@@ -227,14 +150,10 @@ export class CustomerDetailsComponent implements OnInit {
   }
 
   openLedger(): void {
-    this.router.navigate(
-      ['/app/stakeholders/customers/ledger'],
-      {
-        queryParams: {
-          customerId: this.customer?.id
-        }
-      }
-    );
+    if (!this.customer) return;
+    this.router.navigate(['/app/stakeholders/customers/ledger'], {
+      queryParams: { customerId: this.customer.id }
+    });
   }
 
   printDetails(): void {
@@ -242,14 +161,10 @@ export class CustomerDetailsComponent implements OnInit {
   }
 
   getStatusClass(status: string): string {
-    return status === 'Active'
-      ? 'status-active'
-      : 'status-inactive';
+    return status === 'Active' ? 'status-active' : 'status-inactive';
   }
 
   getPurchaseStatusClass(status: string): string {
-    return status === 'Paid'
-      ? 'purchase-paid'
-      : 'purchase-partial';
+    return status === 'Paid' ? 'purchase-paid' : 'purchase-partial';
   }
 }

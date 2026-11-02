@@ -329,7 +329,7 @@
                 </option>
 
                 <option
-                  *ngFor="let batch of batches"
+                  *ngFor="let batch of getBatches(item)"
                   [value]="batch"
                 >
                   {{ batch }}
@@ -377,20 +377,7 @@
             <!-- UNIT PRICE -->
             <td>
 
-              <div class="price-input">
-
-                <span>৳</span>
-
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  [(ngModel)]="item.unitPrice"
-                  [name]="'unitPrice-' + i"
-                  (input)="calculateTotal(item)"
-                />
-
-              </div>
+<span title="Unit price is not provided by the transfer API">Not provided</span>
 
             </td>
 
@@ -399,7 +386,7 @@
             <td>
 
               <strong class="item-total">
-                ৳{{ item.total | number:'1.2-2' }}
+                —
               </strong>
 
             </td>
@@ -531,7 +518,7 @@
         <div class="summary-row">
           <span>Transfer Value</span>
           <strong>
-            ৳{{ totalValue | number:'1.2-2' }}
+            Not available
           </strong>
         </div>
 
@@ -593,16 +580,6 @@
       (click)="cancel()"
     >
       Cancel
-    </button>
-
-
-    <button
-      type="button"
-      class="btn-draft"
-      (click)="saveDraft()"
-    >
-      <i class="bi bi-save"></i>
-      Save Draft
     </button>
 
 

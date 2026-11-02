@@ -570,3 +570,19 @@ tbody tr:last-child td {
   }
 
 }
+
+.customer-form-overlay {
+  position: fixed; inset: 0; z-index: 1000; background: rgba(15, 23, 42, .55);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.customer-form-modal {
+  width: min(560px, 100%); max-height: 90vh; overflow-y: auto; background: #fff;
+  border-radius: 14px; padding: 24px; box-shadow: 0 20px 60px rgba(0,0,0,.2);
+}
+.customer-form-modal label { display: block; margin: 14px 0 6px; font-weight: 600; }
+.customer-form-modal .form-control { width: 100%; padding: 10px 12px; border: 1px solid #dbe1ea; border-radius: 7px; }
+.customer-form-modal .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+.customer-form-modal .secondary-btn { padding: 10px 16px; border: 1px solid #cbd5e1; border-radius: 7px; background: #fff; }
+.alert { padding: 12px 16px; border-radius: 8px; margin: 12px 0; }
+.alert-danger { color: #991b1b; background: #fee2e2; }
+.alert-success { color: #166534; background: #dcfce7; }

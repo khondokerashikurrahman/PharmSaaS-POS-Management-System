@@ -1,160 +1,264 @@
-import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ApiService } from '../../../core/services/api.service';
 
-interface Tenant {
-  id: string;
+interface TenantData {
+  id: number;
+  tenantCode: string;
   name: string;
-  owner: string;
-  email: string;
-  phone: string;
+  ownerName: string | null;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  status: string;
+  createdAt: string | null;
+  updatedAt: string | null;
+  rejectionReason?: string | null;
+}
 
-  address: string;
+interface SubscriptionData {
+  id: number;
+  tenantId: number;
+  planName: string;
+  amount: number;
+  currency: string;
+  startsAt: string | null;
+  endsAt: string | null;
+  status: string;
+  autoRenew: boolean;
+  createdAt: string | null;
+}
 
-  plan: 'Basic' | 'Standard' | 'Premium';
-  status: 'Active' | 'Pending' | 'Suspended';
-
-  registrationDate: string;
-
-  subscriptionStart: string;
-  subscriptionEnd: string;
-
-  branches: number;
-  employees: number;
-
-  monthlyBilling: number;
+interface ActivityData {
+  id: number;
+  actorName: string;
+  action: string;
+  module: string;
+  targetType: string;
+  targetId: string;
+  description: string;
+  status: string;
+  createdAt: string;
 }
 
 @Component({
   selector: 'app-tenant-details',
   standalone: true,
-  imports: [
-    CommonModule
-  ],
+  imports: [CommonModule],
   templateUrl: './tenant-details.component.html',
   styleUrl: './tenant-details.component.scss'
 })
 export class TenantDetailsComponent implements OnInit {
+  tenant: TenantData | null = null;
+  subscription: SubscriptionData | null = null;
+  activities: ActivityData[] = [];
+  loading = true;
+  saving = false;
+  actionLoading = false;
+  errorMessage = '';
+  successMessage = '';
 
-  tenant: Tenant = {
-    id: 'TEN-001',
-    name: 'MediCare Pharmacy',
-    owner: 'Md. Rahim Uddin',
-    email: 'medicare@example.com',
-    phone: '+880 1712-345678',
-
-    address: 'Dhaka, Bangladesh',
-
-    plan: 'Premium',
-    status: 'Active',
-
-    registrationDate: '12 August 2026',
-
-    subscriptionStart: '12 August 2026',
-    subscriptionEnd: '12 August 2027',
-
-    branches: 1,
-    employees: 5,
-
-    monthlyBilling: 4999
-  };
-
-  constructor(private router: Router) {}
+  constructor(
+    private readonly api: ApiService,
+    private readonly router: Router,
+    private readonly route: ActivatedRoute
+  ) {}
 
   ngOnInit(): void {
+    this.route.queryParamMap.subscribe(params => {
+      const queryId = params.get('id');
+      const stateId = history.state?.tenant?.id;
+      const id = queryId || stateId;
 
-    const stateTenant = history.state?.tenant as Partial<Tenant> | undefined;
+      if (!id || !/^\d+$/.test(String(id))) {
+        this.loading = false;
+        this.errorMessage = 'Tenant ID পাওয়া যায়নি। Tenant List থেকে আবার Details খুলুন।';
+        return;
+      }
 
-    if (stateTenant) {
-
-      this.tenant = {
-        ...this.tenant,
-
-        ...stateTenant,
-
-        address:
-          stateTenant.address ??
-          'Dhaka, Bangladesh',
-
-        subscriptionStart:
-          stateTenant.subscriptionStart ??
-          stateTenant.registrationDate ??
-          '',
-
-        subscriptionEnd:
-          stateTenant.subscriptionEnd ??
-          '12 September 2027',
-
-        branches:
-          stateTenant.branches ??
-          1,
-
-        employees:
-          stateTenant.employees ??
-          5,
-
-        monthlyBilling:
-          stateTenant.monthlyBilling ??
-          this.getPlanPrice(stateTenant.plan)
-      };
-    }
+      this.loadTenant(Number(id));
+    });
   }
 
-  // =========================
-  // PLAN PRICE
-  // =========================
+  loadTenant(id: number): void {
+    this.loading = true;
+    this.errorMessage = '';
 
-  private getPlanPrice(
-    plan?: 'Basic' | 'Standard' | 'Premium'
-  ): number {
-
-    switch (plan) {
-
-      case 'Basic':
-        return 1999;
-
-      case 'Standard':
-        return 2999;
-
-      case 'Premium':
-        return 4999;
-
-      default:
-        return 1999;
-    }
+    this.api.get<TenantData>(`/tenants/${id}`).subscribe({
+      next: tenant => {
+        this.tenant = tenant;
+        this.loading = false;
+        this.loadSubscription(id);
+        this.loadActivities(id);
+      },
+      error: error => {
+        this.errorMessage = error?.error?.message || 'Tenant details load করা যায়নি।';
+        this.loading = false;
+      }
+    });
   }
 
-  // =========================
-  // BACK
-  // =========================
+  private loadSubscription(tenantId: number): void {
+    this.api.get<SubscriptionData[]>('/super-admin/subscriptions').subscribe({
+      next: rows => {
+        this.subscription = rows
+          .filter(row => Number(row.tenantId) === tenantId)
+          .sort((a, b) =>
+            new Date(b.createdAt || b.startsAt || 0).getTime() -
+            new Date(a.createdAt || a.startsAt || 0).getTime()
+          )[0] ?? null;
+      },
+      error: error => console.error('Subscription load failed:', error)
+    });
+  }
+
+  private loadActivities(tenantId: number): void {
+    this.api.get<ActivityData[]>('/super-admin/audit-logs').subscribe({
+      next: rows => {
+        this.activities = rows
+          .filter(row =>
+            row.targetType?.toLowerCase() === 'tenant' &&
+            String(row.targetId) === String(tenantId)
+          )
+          .slice(0, 8);
+      },
+      error: error => console.error('Tenant activity load failed:', error)
+    });
+  }
+
+  get statusLabel(): string {
+    const status = this.tenant?.status?.toLowerCase();
+    if (status === 'active') return 'Active';
+    if (status === 'suspended') return 'Suspended';
+    if (status === 'rejected') return 'Rejected';
+    if (status === 'archived') return 'Archived';
+    return 'Pending';
+  }
+
+  get planName(): string {
+    return this.subscription?.planName ?? 'No subscription';
+  }
+
+  get monthlyBilling(): number | null {
+    return this.subscription?.amount ?? null;
+  }
+
+  get registrationDate(): string {
+    return this.formatDate(this.tenant?.createdAt);
+  }
+
+  get subscriptionStart(): string {
+    return this.formatDate(this.subscription?.startsAt);
+  }
+
+  get subscriptionEnd(): string {
+    return this.formatDate(this.subscription?.endsAt);
+  }
+
+  formatDate(value: string | null | undefined): string {
+    if (!value) return '—';
+    const date = new Date(value);
+    return Number.isNaN(date.getTime())
+      ? '—'
+      : date.toLocaleDateString('en-GB', {
+          day: '2-digit', month: 'short', year: 'numeric'
+        });
+  }
+
+  formatAction(value: string): string {
+    return (value || '').replaceAll('_', ' ')
+      .toLowerCase()
+      .replace(/\b\w/g, c => c.toUpperCase());
+  }
 
   goBack(): void {
     this.router.navigate(['/admin/tenants']);
   }
 
-  // =========================
-  // EDIT
-  // =========================
-
   editTenant(): void {
-    alert(`Edit Tenant: ${this.tenant.name}`);
-  }
+    if (!this.tenant || this.saving) return;
 
-  // =========================
-  // STATUS
-  // =========================
+    const name = window.prompt('Business Name', this.tenant.name);
+    if (name === null) return;
+    const ownerName = window.prompt('Owner Name', this.tenant.ownerName || '');
+    if (ownerName === null) return;
+    const email = window.prompt('Email Address', this.tenant.email || '');
+    if (email === null) return;
+    const phone = window.prompt('Phone Number', this.tenant.phone || '');
+    if (phone === null) return;
+    const address = window.prompt('Business Address', this.tenant.address || '');
+    if (address === null) return;
+
+    if (!name.trim()) {
+      this.errorMessage = 'Business name is required.';
+      return;
+    }
+
+    this.saving = true;
+    this.errorMessage = '';
+
+    this.api.put<TenantData>(`/tenants/${this.tenant.id}`, {
+      tenantCode: this.tenant.tenantCode,
+      name: name.trim(),
+      ownerName: ownerName.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      address: address.trim()
+    }).subscribe({
+      next: updated => {
+        this.tenant = updated;
+        this.successMessage = 'Tenant profile updated successfully.';
+        this.saving = false;
+      },
+      error: error => {
+        this.errorMessage = error?.error?.message || 'Tenant profile update failed.';
+        this.saving = false;
+      }
+    });
+  }
 
   changeStatus(): void {
+    if (!this.tenant || this.actionLoading) return;
 
-    if (this.tenant.status === 'Active') {
+    const status = this.tenant.status.toLowerCase();
+    let endpoint = '';
+    let action = '';
 
-      this.tenant.status = 'Suspended';
-
+    if (status === 'active') {
+      endpoint = `/tenants/${this.tenant.id}/suspend`;
+      action = 'suspend';
+    } else if (status === 'suspended') {
+      endpoint = `/tenants/${this.tenant.id}/activate`;
+      action = 'activate';
+    } else if (status === 'pending' || status === 'approved') {
+      endpoint = `/tenants/${this.tenant.id}/approve`;
+      action = 'approve';
     } else {
-
-      this.tenant.status = 'Active';
-
+      this.errorMessage = 'এই Tenant-এর বর্তমান status থেকে action করা যাবে না।';
+      return;
     }
+
+    if (!window.confirm(`Are you sure you want to ${action} ${this.tenant.name}?`)) return;
+
+    this.actionLoading = true;
+    this.errorMessage = '';
+
+    this.api.post<TenantData>(endpoint, {}).subscribe({
+      next: updated => {
+        this.tenant = updated;
+        this.successMessage = `Tenant ${action} successful.`;
+        this.actionLoading = false;
+      },
+      error: error => {
+        this.errorMessage = error?.error?.message || `Tenant ${action} failed.`;
+        this.actionLoading = false;
+      }
+    });
   }
 
+  get canChangeStatus(): boolean {
+    return ['active', 'suspended', 'pending', 'approved']
+      .includes(this.tenant?.status?.toLowerCase() || '');
+  }
 }

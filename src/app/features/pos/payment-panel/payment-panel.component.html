@@ -58,6 +58,7 @@
       <div class="payment-methods">
 
         <button
+          *ngIf="cashEnabled"
           type="button"
           [class.active]="paymentMethod === 'Cash'"
           (click)="selectPaymentMethod('Cash')">
@@ -70,6 +71,7 @@
 
 
         <button
+          *ngIf="cardEnabled"
           type="button"
           [class.active]="paymentMethod === 'Card'"
           (click)="selectPaymentMethod('Card')">
@@ -82,6 +84,7 @@
 
 
         <button
+          *ngIf="mobileEnabled"
           type="button"
           [class.active]="paymentMethod === 'Mobile'"
           (click)="selectPaymentMethod('Mobile')">

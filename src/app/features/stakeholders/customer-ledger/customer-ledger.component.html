@@ -188,7 +188,7 @@
           <option value="All">All Transactions</option>
           <option value="Purchase">Purchase</option>
           <option value="Payment">Payment</option>
-          <option value="Adjustment">Adjustment</option>
+          <option value="Adjustment">Adjustment</option>\n          <option value="Return">Return</option>
 
         </select>
 
@@ -248,7 +248,8 @@
                   [ngClass]="{
                     'bi-cart3': transaction.type === 'Purchase',
                     'bi-cash-stack': transaction.type === 'Payment',
-                    'bi-sliders': transaction.type === 'Adjustment'
+                    'bi-sliders': transaction.type === 'Adjustment',
+                     'bi-arrow-counterclockwise': transaction.type === 'Return'
                   }">
                 </i>
 

@@ -11,6 +11,7 @@ interface PaymentStatusResponse {
   planName: string;
   verifiedAt: string | null;
   registrationCompleted: boolean;
+  reviewNote?: string | null;
 }
 
 @Component({
@@ -21,13 +22,10 @@ interface PaymentStatusResponse {
   styleUrl: './payment-success.component.scss'
 })
 export class PaymentSuccessComponent implements OnInit, OnDestroy {
-
   reference = '';
-  result = '';
   payment: PaymentStatusResponse | null = null;
-
   loading = true;
-  message = 'Checking your payment with the server...';
+  message = 'Checking your submitted payment details...';
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private attempts = 0;
 
@@ -39,7 +37,6 @@ export class PaymentSuccessComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.route.queryParamMap.subscribe(params => {
       this.reference = params.get('reference') || '';
-      this.result = params.get('result') || '';
 
       if (!this.reference) {
         this.loading = false;
@@ -47,33 +44,27 @@ export class PaymentSuccessComponent implements OnInit, OnDestroy {
         return;
       }
 
-      if (this.result === 'failed' || this.result === 'cancelled') {
-        this.loading = false;
-        this.message = this.result === 'failed'
-          ? 'The payment was not completed. You can return to checkout and try again.'
-          : 'The payment was cancelled. You can return to checkout and try again.';
-        this.loadStatus();
-        return;
-      }
-
       this.checkStatus();
       this.pollTimer = setInterval(() => {
-        if (this.attempts >= 15 || this.payment?.registrationCompleted) {
+        if (
+          this.attempts >= 15 ||
+          this.payment?.registrationCompleted ||
+          this.payment?.status === 'PENDING_VERIFICATION' ||
+          this.payment?.status === 'REJECTED' ||
+          this.payment?.status === 'FAILED' ||
+          this.payment?.status === 'VALIDATION_FAILED'
+        ) {
           this.stopPolling();
           this.loading = false;
           return;
         }
-
         this.checkStatus();
       }, 3000);
     });
   }
 
   checkStatus(): void {
-    if (!this.reference) {
-      return;
-    }
-
+    if (!this.reference) return;
     this.attempts++;
 
     this.api.get<PaymentStatusResponse>(
@@ -83,22 +74,30 @@ export class PaymentSuccessComponent implements OnInit, OnDestroy {
         this.payment = response;
 
         if (response.registrationCompleted) {
-          this.message = 'Payment verified. Your pharmacy registration is awaiting administrator approval.';
+          this.message = 'Your payment has been verified. Your pharmacy registration is now awaiting administrator approval.';
           this.loading = false;
           this.stopPolling();
-        } else if (response.status === 'REVIEW_REQUIRED') {
-          this.message = 'Your payment requires additional review. Please wait for confirmation.';
+        } else if (response.status === 'PENDING_VERIFICATION') {
+          this.message = 'Your payment details have been submitted. A Super Admin must verify the TrxID before your pharmacy registration can be completed.';
+          this.loading = false;
+          this.stopPolling();
+        } else if (response.status === 'REJECTED') {
+          this.message = 'Your payment submission was rejected. Please contact PharmSaaS support for assistance.';
           this.loading = false;
           this.stopPolling();
         } else if (
           response.status === 'FAILED' ||
           response.status === 'VALIDATION_FAILED'
         ) {
-          this.message = 'Payment could not be verified. Please contact support if money was deducted.';
+          this.message = 'Payment verification failed. Please contact support if money was deducted.';
+          this.loading = false;
+          this.stopPolling();
+        } else if (response.status === 'REVIEW_REQUIRED') {
+          this.message = 'Your payment requires additional review. Please wait for confirmation.';
           this.loading = false;
           this.stopPolling();
         } else {
-          this.message = 'Payment received. Waiting for server-side verification...';
+          this.message = 'The server is checking your payment status. Please wait...';
         }
       },
       error: () => {
@@ -108,19 +107,6 @@ export class PaymentSuccessComponent implements OnInit, OnDestroy {
           this.stopPolling();
         }
       }
-    });
-  }
-
-  loadStatus(): void {
-    if (!this.reference) {
-      return;
-    }
-
-    this.api.get<PaymentStatusResponse>(
-      `/public/subscription/payments/${encodeURIComponent(this.reference)}/status`
-    ).subscribe({
-      next: response => this.payment = response,
-      error: () => {}
     });
   }
 

@@ -647,3 +647,60 @@ tfoot td {
   }
 
 }
+
+
+.supplier-ledger-live-error,
+.supplier-ledger-live-success,
+.supplier-ledger-loading {
+  margin: 12px 0;
+  padding: 12px 16px;
+  border-radius: 8px;
+}
+.supplier-ledger-live-error { color: #991b1b; background: #fee2e2; }
+.supplier-ledger-live-success { color: #166534; background: #dcfce7; }
+.supplier-ledger-loading { color: #1e40af; background: #dbeafe; }
+
+.supplier-payment-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, .55);
+}
+.supplier-payment-modal {
+  width: min(100%, 520px);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 24px;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 20px 60px rgba(0,0,0,.2);
+}
+.supplier-payment-modal-header,
+.supplier-payment-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.supplier-payment-modal-header h2 { margin: 0 0 5px; }
+.supplier-payment-modal-header p { margin: 0; color: #64748b; }
+.supplier-payment-modal form label {
+  display: block;
+  margin: 12px 0 6px;
+  font-weight: 600;
+}
+.supplier-payment-modal form input,
+.supplier-payment-modal form select,
+.supplier-payment-modal form textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  background: #fff;
+}
+.supplier-payment-modal-actions { justify-content: flex-end; margin: 22px 0 0; }

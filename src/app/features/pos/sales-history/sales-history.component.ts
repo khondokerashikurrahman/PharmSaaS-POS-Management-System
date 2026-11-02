@@ -72,6 +72,7 @@ export class SalesHistoryComponent implements OnInit {
   showReturnModal = false;
   returnTarget: PosSale | null = null;
   processingReturn = false;
+  downloadingInvoiceId: number | null = null;
 
   private pendingRefundRequestKey: string | null = null;
   private pendingRefundSignature = '';
@@ -516,6 +517,55 @@ export class SalesHistoryComponent implements OnInit {
   // =========================
   // PRINT INVOICE
   // =========================
+
+  downloadInvoice(sale: PosSale): void {
+    if (this.downloadingInvoiceId !== null) {
+      return;
+    }
+
+    let tenantId = Number(localStorage.getItem('tenantId'));
+
+    if (!Number.isSafeInteger(tenantId) || tenantId <= 0) {
+      try {
+        tenantId = Number(
+          JSON.parse(localStorage.getItem('pharm_user') || '{}').tenantId
+        );
+      } catch {
+        tenantId = 0;
+      }
+    }
+
+    if (!Number.isSafeInteger(tenantId) || tenantId <= 0) {
+      alert('Tenant information is missing. Please log in again.');
+      return;
+    }
+
+    this.downloadingInvoiceId = sale.id;
+
+    this.saleApiService.downloadInvoice(tenantId, sale.id).subscribe({
+      next: pdf => {
+        const url = window.URL.createObjectURL(pdf);
+        const link = document.createElement('a');
+
+        link.href = url;
+        link.download = `${sale.invoice || `SALE-${sale.id}`}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        window.setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+        this.downloadingInvoiceId = null;
+      },
+      error: error => {
+        console.error('Invoice PDF download failed:', error);
+        this.downloadingInvoiceId = null;
+        alert(
+          error?.error?.message ||
+          'Invoice PDF download failed. Please try again.'
+        );
+      }
+    });
+  }
 
   printInvoice(): void {
     window.print();

@@ -22,9 +22,8 @@ export class TenantListComponent implements OnInit, OnDestroy {
 
   searchTerm = '';
   selectedStatus = '';
-  selectedPlan = '';
+  showArchived = false;
 
-  showAddModal = false;
   showViewModal = false;
   showRejectModal = false;
   rejectionReason = '';
@@ -33,12 +32,10 @@ export class TenantListComponent implements OnInit, OnDestroy {
   selectedTenant: Tenant | null = null;
 
   loading = false;
-  saving = false;
   errorMessage = '';
 
   private refreshSubscription?: Subscription;
 
-  newTenant = this.createEmptyTenant();
 
   constructor(
     private readonly router: Router,
@@ -64,7 +61,7 @@ export class TenantListComponent implements OnInit, OnDestroy {
       this.errorMessage = '';
     }
 
-    this.tenantService.loadTenants().subscribe({
+    this.tenantService.loadTenants(this.showArchived).subscribe({
       next: tenants => {
         this.tenants = tenants;
         this.loading = false;
@@ -95,11 +92,7 @@ export class TenantListComponent implements OnInit, OnDestroy {
         !this.selectedStatus ||
         tenant.status === this.selectedStatus;
 
-      const matchesPlan =
-        !this.selectedPlan ||
-        tenant.plan === this.selectedPlan;
-
-      return matchesSearch && matchesStatus && matchesPlan;
+      return matchesSearch && matchesStatus;
     });
   }
 
@@ -123,30 +116,38 @@ export class TenantListComponent implements OnInit, OnDestroy {
     return this.tenants.filter(t => t.status === 'Rejected').length;
   }
 
-  private createEmptyTenant(): {
-    name: string;
-    owner: string;
-    email: string;
-    phone: string;
-    plan: 'Basic' | 'Standard' | 'Premium';
-  } {
-    return {
-      name: '',
-      owner: '',
-      email: '',
-      phone: '',
-      plan: 'Basic'
-    };
+  get archivedTenants(): number {
+    return this.tenants.filter(t => t.status === 'Archived').length;
   }
 
-  openAddModal(): void {
-    this.newTenant = this.createEmptyTenant();
-    this.showAddModal = true;
+  toggleArchived(): void {
+    this.showArchived = !this.showArchived;
+    this.selectedStatus = '';
+    this.loadTenants();
   }
 
-  closeAddModal(): void {
-    this.showAddModal = false;
+  restoreTenant(tenant: Tenant): void {
+    if (tenant.status !== 'Archived') {
+      return;
+    }
+
+    if (!confirm(`Restore ${tenant.name}? It will return as Suspended.`)) {
+      return;
+    }
+
+    this.tenantService.restoreTenantFromBackend(tenant.id).subscribe({
+      next: updated => {
+        this.replaceTenant(updated);
+        alert(`${updated.name} has been restored as Suspended.`);
+      },
+      error: error => {
+        console.error('Failed to restore tenant:', error);
+        alert(error?.error?.message || 'Could not restore this tenant.');
+        this.loadTenants(true);
+      }
+    });
   }
+
 
   openViewModal(tenant: Tenant): void {
     this.selectedTenant = tenant;
@@ -160,23 +161,13 @@ export class TenantListComponent implements OnInit, OnDestroy {
 
   viewTenant(tenant: Tenant): void {
     this.router.navigate(['/admin/tenant-details'], {
+      queryParams: { id: tenant.id },
       state: { tenant }
     });
   }
 
   enterPharmacy(tenant: Tenant): void {
-    if (tenant.status !== 'Active') {
-      alert('Only active tenants can be accessed.');
-      return;
-    }
-
-    if (!this.tenantService.setBackendTenantId(tenant.id)) {
-      alert('Invalid tenant ID.');
-      return;
-    }
-
-    localStorage.setItem('admin_selected_tenant', String(tenant.id));
-    this.router.navigate(['/app/dashboard']);
+    alert('Super Admin cannot enter a tenant using the platform account. Please sign in with an authorized tenant member account.');
   }
 
   approveTenant(tenant: Tenant): void {
@@ -189,7 +180,17 @@ export class TenantListComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.changeStatus(tenant, 'Active', 'approved');
+    this.tenantService.approveTenantOnBackend(tenant.id).subscribe({
+      next: updated => {
+        this.replaceTenant(updated);
+        alert(`${updated.name} has been approved successfully.`);
+      },
+      error: error => {
+        console.error('Failed to approve tenant:', error);
+        alert(error?.error?.message || 'Could not approve this tenant.');
+        this.loadTenants();
+      }
+    });
   }
 
   rejectTenant(tenant: Tenant): void {
@@ -266,10 +267,7 @@ export class TenantListComponent implements OnInit, OnDestroy {
   }
 
   activateTenant(tenant: Tenant): void {
-    if (
-      tenant.status !== 'Suspended' &&
-      tenant.status !== 'Rejected'
-    ) {
+    if (tenant.status !== 'Suspended') {
       alert('This tenant cannot be activated from its current status.');
       return;
     }
@@ -303,7 +301,7 @@ export class TenantListComponent implements OnInit, OnDestroy {
 
   deleteTenant(tenant: Tenant): void {
     if (
-      !confirm(`Are you sure you want to permanently delete ${tenant.name}?`)
+      !confirm(`Archive ${tenant.name}? Its sales, invoices and financial history will be preserved.`)
     ) {
       return;
     }
@@ -321,7 +319,7 @@ export class TenantListComponent implements OnInit, OnDestroy {
           this.closeViewModal();
         }
 
-        alert(`${tenant.name} has been deleted successfully.`);
+        alert(`${tenant.name} has been archived. Business history has been preserved.`);
       },
       error: error => {
         console.error('Failed to delete tenant:', error);
@@ -329,69 +327,17 @@ export class TenantListComponent implements OnInit, OnDestroy {
         const message =
           error?.error?.message ||
           error?.message ||
-          'Could not delete this tenant. Please try again.';
+          'Could not archive this tenant. Please try again.';
 
         alert(message);
       }
     });
   }
 
-  addTenant(): void {
-    const name = this.newTenant.name.trim();
-    const owner = this.newTenant.owner.trim();
-    const email = this.newTenant.email.trim().toLowerCase();
-    const phone = this.newTenant.phone.trim();
-
-    if (!name || !owner || !email || !phone) {
-      alert('Please fill in all required fields.');
-      return;
-    }
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      alert('Please enter a valid email address.');
-      return;
-    }
-
-    if (this.tenants.some(t => t.email.toLowerCase() === email)) {
-      alert('A tenant with this email address already exists.');
-      return;
-    }
-
-    const tenantCode =
-      `PH-${Date.now().toString(36).toUpperCase()}`;
-
-    this.saving = true;
-
-    this.tenantService.createTenant({
-      tenantCode,
-      name,
-      ownerName: owner,
-      email,
-      phone,
-      address: 'Dhaka, Bangladesh',
-      status: 'Pending'
-    }).subscribe({
-      next: created => {
-        this.saving = false;
-        this.tenants.unshift(created);
-        this.closeAddModal();
-        this.clearFilters();
-        alert(`${created.name} has been added successfully.`);
-      },
-      error: error => {
-        this.saving = false;
-        console.error('Failed to create tenant:', error);
-        alert(
-          'Could not add the tenant. The backend may require an authenticated user. Check the server response.'
-        );
-      }
-    });
-  }
 
   clearFilters(): void {
     this.searchTerm = '';
     this.selectedStatus = '';
-    this.selectedPlan = '';
   }
 
   refreshTenants(): void {
