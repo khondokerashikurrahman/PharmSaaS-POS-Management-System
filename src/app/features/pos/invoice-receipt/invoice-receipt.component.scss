@@ -23,7 +23,7 @@
 }
 
 .receipt-modal {
-  width: min(1040px, 97vw);
+  width: min(960px, 94vw);
   max-height: 95vh;
   display: flex;
   flex-direction: column;
@@ -86,7 +86,7 @@
 
 .receipt-content {
   width: 100%;
-  max-width: 920px;
+  max-width: 860px;
   margin: 0 auto;
   padding: 20px 24px 24px;
   overflow-y: auto;
