@@ -6,10 +6,26 @@
       <p>Overview of your pharmacy SaaS platform</p>
     </div>
 
-    <button class="refresh-btn" type="button"
-      (click)="refreshDashboard()" [disabled]="loading">
-      {{ loading ? 'Loading...' : '↻ Refresh' }}
-    </button>
+    <div class="dashboard-actions">
+      <div class="report-date-range">
+        <label>
+          <span>From</span>
+          <input type="date" [(ngModel)]="reportStartDate">
+        </label>
+        <label>
+          <span>To</span>
+          <input type="date" [(ngModel)]="reportEndDate">
+        </label>
+        <button class="report-download-btn" type="button"
+          (click)="downloadPlatformReport()" [disabled]="downloadingReport">
+          {{ downloadingReport ? 'Preparing PDF...' : '↓ Download PDF' }}
+        </button>
+      </div>
+      <button class="refresh-btn" type="button"
+        (click)="refreshDashboard()" [disabled]="loading">
+        {{ loading ? 'Loading...' : '↻ Refresh' }}
+      </button>
+    </div>
   </div>
 
   <div *ngIf="loading && !dashboard" class="card">

@@ -206,6 +206,76 @@ export class SalesReportComponent implements OnInit {
   }
 
 
+  downloadingReport = false;
+
+  downloadPresetJasperReport(period: 'daily' | 'weekly' | 'three-months' | 'six-months' | 'annual'): void {
+    const tenantId = this.getTenantId();
+    if (!Number.isSafeInteger(tenantId) || tenantId <= 0) {
+      alert('Tenant information is missing. Please select your pharmacy again.');
+      return;
+    }
+    if (this.downloadingReport) return;
+
+    const today = new Date();
+    const end = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const start = new Date(end);
+    let label = '';
+
+    switch (period) {
+      case 'daily':
+        label = 'Daily Sales';
+        break;
+      case 'weekly': {
+        const day = start.getDay();
+        start.setDate(start.getDate() - (day === 0 ? 6 : day - 1));
+        label = 'Weekly Sales';
+        break;
+      }
+      case 'three-months':
+        start.setMonth(start.getMonth() - 3);
+        label = '3 Months Sales';
+        break;
+      case 'six-months':
+        start.setMonth(start.getMonth() - 6);
+        label = '6 Months Sales';
+        break;
+      case 'annual':
+        start.setMonth(0, 1);
+        label = 'Annual Sales';
+        break;
+    }
+
+    const toIsoDate = (date: Date): string => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    const startDate = toIsoDate(start);
+    const endDate = toIsoDate(end);
+    this.downloadingReport = true;
+
+    this.saleApi.downloadSalesRangePdf(tenantId, startDate, endDate, label).subscribe({
+      next: blob => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `sales-report-${period}-${startDate}-to-${endDate}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+        this.downloadingReport = false;
+      },
+      error: error => {
+        console.error('Jasper sales report download failed:', error);
+        this.downloadingReport = false;
+        alert('Jasper Sales Report download failed. Please check your login and backend connection.');
+      }
+    });
+  }
+
   selectRange(range: 'today' | 'week' | 'month' | 'all'): void {
     this.selectedRange = range;
   }

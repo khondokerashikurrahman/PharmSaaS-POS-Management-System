@@ -53,6 +53,9 @@ export class ReportsDashboardComponent implements OnInit {
   private readonly inventoryApi = inject(TenantInventoryApiService);
 
   selectedPeriod = '7 Days';
+  selectedAnnualYear = new Date().getFullYear();
+  annualReportLoading = false;
+  annualReportError = '';
   loading = false;
   errorMessage = '';
 
@@ -150,6 +153,49 @@ export class ReportsDashboardComponent implements OnInit {
     }
 
     return 0;
+  }
+
+  downloadAnnualSalesReport(): void {
+    const tenantId = this.resolveTenantId();
+    const year = Number(this.selectedAnnualYear);
+
+    if (!tenantId || tenantId <= 0) {
+      this.annualReportError = 'Tenant information not found. Please log in again.';
+      return;
+    }
+
+    if (!Number.isInteger(year) || year < 2000 || year > 2100) {
+      this.annualReportError = 'Please select a valid report year.';
+      return;
+    }
+
+    this.annualReportLoading = true;
+    this.annualReportError = '';
+
+    this.saleApi.downloadAnnualSalesPdf(tenantId, year).subscribe({
+      next: (blob: Blob) => {
+        this.annualReportLoading = false;
+
+        if (!blob || blob.size === 0) {
+          this.annualReportError = 'The generated PDF is empty.';
+          return;
+        }
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `annual-sales-report-${year}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      },
+      error: () => {
+        this.annualReportLoading = false;
+        this.annualReportError =
+          'Annual Sales PDF could not be generated. Please check your access and backend connection.';
+      }
+    });
   }
 
   refreshReports(): void {

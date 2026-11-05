@@ -19,6 +19,11 @@
 
     </div>
 
+    <button type="button" class="create-tenant-btn" (click)="openCreateModal()" *ngIf="!showArchived">
+      <i class="bi bi-plus-lg"></i>
+      Create Tenant
+    </button>
+
     <button class="refresh-btn" (click)="toggleArchived()">
       <i class="bi bi-archive"></i>
       {{ showArchived ? 'Show Active Tenant List' : 'Show Archived Tenants' }}
@@ -381,6 +386,120 @@
 
 </div>
 
+
+
+<!-- CREATE TENANT MODAL -->
+<div class="modal-backdrop" *ngIf="showCreateModal" (click)="closeCreateModal()">
+  <section class="tenant-modal create-tenant-modal" role="dialog"
+    aria-modal="true" aria-labelledby="create-tenant-title"
+    (click)="$event.stopPropagation()">
+
+    <header class="modal-header">
+      <div>
+        <h2 id="create-tenant-title">Create Pharmacy Tenant</h2>
+        <p>Create a tenant and its owner account directly from Super Admin.</p>
+      </div>
+      <button type="button" class="close-btn" [disabled]="creatingTenant"
+        (click)="closeCreateModal()" aria-label="Close">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </header>
+
+    <div class="modal-body create-tenant-form">
+      <div class="create-form-section">
+        <h3>Pharmacy Information</h3>
+        <div class="create-form-grid">
+          <div class="form-group">
+            <label for="create-tenant-code">Tenant Code *</label>
+            <input id="create-tenant-code" name="tenantCode" [(ngModel)]="newTenant.tenantCode"
+              maxlength="30" placeholder="e.g. ABC_PHARMA" [disabled]="creatingTenant">
+          </div>
+          <div class="form-group">
+            <label for="create-tenant-name">Pharmacy Name *</label>
+            <input id="create-tenant-name" name="tenantName" [(ngModel)]="newTenant.name"
+              maxlength="150" placeholder="Pharmacy name" [disabled]="creatingTenant">
+          </div>
+          <div class="form-group">
+            <label for="create-tenant-phone">Phone</label>
+            <input id="create-tenant-phone" name="tenantPhone" [(ngModel)]="newTenant.phone"
+              maxlength="30" placeholder="Phone number" [disabled]="creatingTenant">
+          </div>
+          <div class="form-group">
+            <label for="create-tenant-address">Address</label>
+            <input id="create-tenant-address" name="tenantAddress" [(ngModel)]="newTenant.address"
+              placeholder="Pharmacy address" [disabled]="creatingTenant">
+          </div>
+        </div>
+      </div>
+
+      <div class="create-form-section">
+        <h3>Owner Account</h3>
+        <div class="create-form-grid">
+          <div class="form-group">
+            <label for="create-owner-name">Owner Name *</label>
+            <input id="create-owner-name" name="ownerName" [(ngModel)]="newTenant.ownerName"
+              maxlength="150" placeholder="Owner full name" [disabled]="creatingTenant">
+          </div>
+          <div class="form-group">
+            <label for="create-owner-email">Email *</label>
+            <input id="create-owner-email" name="ownerEmail" type="email" [(ngModel)]="newTenant.email"
+              maxlength="255" placeholder="owner@example.com" [disabled]="creatingTenant">
+          </div>
+          <div class="form-group full-width">
+            <label for="create-owner-password">Initial Password *</label>
+            <input id="create-owner-password" name="ownerPassword" type="password"
+              [(ngModel)]="newTenant.password" minlength="8" maxlength="72"
+              placeholder="At least 8 characters" [disabled]="creatingTenant">
+          </div>
+        </div>
+      </div>
+
+      <div class="create-form-section">
+        <h3>Subscription & Default Branch</h3>
+        <div class="create-form-grid">
+          <div class="form-group full-width">
+            <label for="create-tenant-plan">Subscription Plan *</label>
+            <select id="create-tenant-plan" name="planId" [(ngModel)]="newTenant.planId"
+              [disabled]="creatingTenant">
+              <option [ngValue]="0">Select an active plan</option>
+              <option *ngFor="let plan of subscriptionPlans" [ngValue]="plan.id">
+                {{ plan.name }} — {{ plan.currency }} {{ plan.price | number }}
+                ({{ plan.durationDays }} days)
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="create-store-code">Default Branch Code *</label>
+            <input id="create-store-code" name="storeCode" [(ngModel)]="newTenant.storeCode"
+              maxlength="30" [disabled]="creatingTenant">
+          </div>
+          <div class="form-group">
+            <label for="create-store-name">Default Branch Name *</label>
+            <input id="create-store-name" name="storeName" [(ngModel)]="newTenant.storeName"
+              maxlength="150" [disabled]="creatingTenant">
+          </div>
+        </div>
+      </div>
+
+      <div class="create-tenant-notice">
+        <i class="bi bi-info-circle"></i>
+        The newly created tenant will remain Pending until it is approved.
+      </div>
+
+      <p class="create-error" *ngIf="createTenantError">{{ createTenantError }}</p>
+    </div>
+
+    <footer class="modal-footer">
+      <button type="button" class="cancel-btn" [disabled]="creatingTenant"
+        (click)="closeCreateModal()">Cancel</button>
+      <button type="button" class="save-btn" [disabled]="creatingTenant || !subscriptionPlans.length"
+        (click)="submitCreateTenant()">
+        <i class="bi bi-plus-circle"></i>
+        {{ creatingTenant ? 'Creating...' : 'Create Tenant' }}
+      </button>
+    </footer>
+  </section>
+</div>
 
 <!-- REJECT REASON MODAL -->
   <div

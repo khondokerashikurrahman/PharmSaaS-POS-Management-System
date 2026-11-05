@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import { HttpParams } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
 
@@ -38,7 +40,7 @@ interface DashboardResponse {
 @Component({
   selector: 'app-super-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
@@ -46,8 +48,24 @@ export class DashboardComponent implements OnInit {
   dashboard: DashboardResponse | null = null;
   loading = false;
   errorMessage = '';
+  downloadingReport = false;
+  reportStartDate = '';
+  reportEndDate = '';
 
-  constructor(private api: ApiService) {}
+  constructor(private api: ApiService) {
+    const now = new Date();
+    const formatDate = (date: Date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    this.reportStartDate = formatDate(
+      new Date(now.getFullYear(), now.getMonth(), 1)
+    );
+    this.reportEndDate = formatDate(now);
+  }
 
   ngOnInit(): void {
     this.refreshDashboard();
@@ -74,6 +92,44 @@ export class DashboardComponent implements OnInit {
           this.loading = false;
         }
       });
+  }
+
+  downloadPlatformReport(): void {
+    if (!this.reportStartDate || !this.reportEndDate ||
+        this.reportStartDate > this.reportEndDate) {
+      this.errorMessage = 'Please select a valid report date range.';
+      return;
+    }
+
+    this.downloadingReport = true;
+    this.errorMessage = '';
+
+    const params = new HttpParams()
+      .set('startDate', this.reportStartDate)
+      .set('endDate', this.reportEndDate);
+
+    this.api.getBlob(
+      '/super-admin/reports/platform-summary/pdf',
+      params
+    ).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `pharmsaas-platform-summary-${this.reportStartDate}-to-${this.reportEndDate}.pdf`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        this.downloadingReport = false;
+      },
+      error: (error) => {
+        console.error('Platform report download error:', error);
+        this.errorMessage =
+          error.status === 401 ? 'Please login again.' :
+          error.status === 403 ? 'Super Admin permission required.' :
+          'Unable to download platform report. Please try again.';
+        this.downloadingReport = false;
+      }
+    });
   }
 
   get stats() {

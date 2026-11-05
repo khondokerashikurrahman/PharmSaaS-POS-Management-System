@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
@@ -45,7 +46,7 @@ interface ActivityData {
 @Component({
   selector: 'app-tenant-details',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './tenant-details.component.html',
   styleUrl: './tenant-details.component.scss'
 })
@@ -58,6 +59,16 @@ export class TenantDetailsComponent implements OnInit {
   actionLoading = false;
   errorMessage = '';
   successMessage = '';
+  showEditModal = false;
+
+  editForm = {
+    tenantCode: '',
+    name: '',
+    ownerName: '',
+    email: '',
+    phone: '',
+    address: ''
+  };
 
   constructor(
     private readonly api: ApiService,
@@ -179,19 +190,31 @@ export class TenantDetailsComponent implements OnInit {
   editTenant(): void {
     if (!this.tenant || this.saving) return;
 
-    const name = window.prompt('Business Name', this.tenant.name);
-    if (name === null) return;
-    const ownerName = window.prompt('Owner Name', this.tenant.ownerName || '');
-    if (ownerName === null) return;
-    const email = window.prompt('Email Address', this.tenant.email || '');
-    if (email === null) return;
-    const phone = window.prompt('Phone Number', this.tenant.phone || '');
-    if (phone === null) return;
-    const address = window.prompt('Business Address', this.tenant.address || '');
-    if (address === null) return;
+    this.editForm = {
+      tenantCode: this.tenant.tenantCode || '',
+      name: this.tenant.name || '',
+      ownerName: this.tenant.ownerName || '',
+      email: this.tenant.email || '',
+      phone: this.tenant.phone || '',
+      address: this.tenant.address || ''
+    };
 
-    if (!name.trim()) {
-      this.errorMessage = 'Business name is required.';
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.showEditModal = true;
+  }
+
+  closeEditModal(): void {
+    if (this.saving) return;
+    this.showEditModal = false;
+    this.errorMessage = '';
+  }
+
+  saveTenantChanges(): void {
+    if (!this.tenant || this.saving) return;
+
+    if (!this.editForm.tenantCode.trim() || !this.editForm.name.trim()) {
+      this.errorMessage = 'Tenant Code এবং Business Name আবশ্যক।';
       return;
     }
 
@@ -199,17 +222,18 @@ export class TenantDetailsComponent implements OnInit {
     this.errorMessage = '';
 
     this.api.put<TenantData>(`/tenants/${this.tenant.id}`, {
-      tenantCode: this.tenant.tenantCode,
-      name: name.trim(),
-      ownerName: ownerName.trim(),
-      email: email.trim(),
-      phone: phone.trim(),
-      address: address.trim()
+      tenantCode: this.editForm.tenantCode.trim(),
+      name: this.editForm.name.trim(),
+      ownerName: this.editForm.ownerName.trim(),
+      email: this.editForm.email.trim(),
+      phone: this.editForm.phone.trim(),
+      address: this.editForm.address.trim()
     }).subscribe({
       next: updated => {
         this.tenant = updated;
-        this.successMessage = 'Tenant profile updated successfully.';
         this.saving = false;
+        this.showEditModal = false;
+        this.successMessage = 'Tenant profile updated successfully.';
       },
       error: error => {
         this.errorMessage = error?.error?.message || 'Tenant profile update failed.';

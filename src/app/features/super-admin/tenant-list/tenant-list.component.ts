@@ -18,6 +18,122 @@ import {
   styleUrl: './tenant-list.component.scss'
 })
 export class TenantListComponent implements OnInit, OnDestroy {
+  subscriptionPlans: Array<{
+    id: number;
+    code: string;
+    name: string;
+    price: number;
+    currency: string;
+    durationDays: number;
+    active: boolean;
+  }> = [];
+
+  showCreateModal = false;
+  creatingTenant = false;
+  createTenantError = '';
+  createTenantSuccess = '';
+
+  newTenant = this.emptyTenantForm();
+
+  private emptyTenantForm() {
+    return {
+      tenantCode: '',
+      name: '',
+      ownerName: '',
+      email: '',
+      password: '',
+      phone: '',
+      address: '',
+      planId: 0,
+      storeCode: 'MAIN',
+      storeName: 'Main Branch'
+    };
+  }
+
+  openCreateModal(): void {
+    this.newTenant = this.emptyTenantForm();
+    this.createTenantError = '';
+    this.createTenantSuccess = '';
+    this.showCreateModal = true;
+
+    this.tenantService.loadSubscriptionPlans().subscribe({
+      next: plans => {
+        this.subscriptionPlans = (plans || []).filter(plan => plan.active);
+        if (!this.subscriptionPlans.length) {
+          this.createTenantError = 'No active subscription plans are available.';
+        }
+      },
+      error: error => {
+        this.createTenantError =
+          error?.error?.message || 'Could not load subscription plans.';
+      }
+    });
+  }
+
+  closeCreateModal(): void {
+    if (this.creatingTenant) return;
+    this.showCreateModal = false;
+    this.createTenantError = '';
+  }
+
+  submitCreateTenant(): void {
+    const form = this.newTenant;
+
+    if (
+      !form.tenantCode.trim() || !form.name.trim() ||
+      !form.ownerName.trim() || !form.email.trim() ||
+      !form.password || !form.planId ||
+      !form.storeCode.trim() || !form.storeName.trim()
+    ) {
+      this.createTenantError = 'Please complete all required fields.';
+      return;
+    }
+
+    if (!/^[A-Za-z0-9_-]{2,30}$/.test(form.tenantCode.trim())) {
+      this.createTenantError = 'Tenant code must contain 2–30 letters, numbers, _ or -.';
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      this.createTenantError = 'Enter a valid email address.';
+      return;
+    }
+
+    if (form.password.length < 8 || form.password.length > 72) {
+      this.createTenantError = 'Password must be between 8 and 72 characters.';
+      return;
+    }
+
+    this.creatingTenant = true;
+    this.createTenantError = '';
+
+    this.tenantService.createTenant({
+      ...form,
+      tenantCode: form.tenantCode.trim().toUpperCase(),
+      name: form.name.trim(),
+      ownerName: form.ownerName.trim(),
+      email: form.email.trim().toLowerCase(),
+      phone: form.phone.trim(),
+      address: form.address.trim(),
+      storeCode: form.storeCode.trim().toUpperCase(),
+      storeName: form.storeName.trim()
+    }).subscribe({
+      next: created => {
+        this.creatingTenant = false;
+        this.showCreateModal = false;
+        this.newTenant = this.emptyTenantForm();
+        this.loadTenants(true);
+        alert(`Tenant "${created.name}" created successfully. It is pending approval.`);
+      },
+      error: error => {
+        this.creatingTenant = false;
+        this.createTenantError =
+          error?.error?.message || error?.error?.detail ||
+          'Tenant creation failed. Please check the submitted information.';
+      }
+    });
+  }
+
   tenants: Tenant[] = [];
 
   searchTerm = '';

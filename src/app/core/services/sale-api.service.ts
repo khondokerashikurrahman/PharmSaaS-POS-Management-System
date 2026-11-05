@@ -143,6 +143,31 @@ export class SaleApiService {
     );
   }
 
+  downloadAnnualSalesPdf(tenantId: number, year: number): Observable<Blob> {
+    return this.http.get(
+      `${this.apiUrl}/${tenantId}/reports/annual-sales/pdf`,
+      {
+        params: { year: String(year) },
+        responseType: 'blob'
+      }
+    );
+  }
+
+  downloadSalesRangePdf(
+    tenantId: number,
+    startDate: string,
+    endDate: string,
+    periodLabel: string
+  ): Observable<Blob> {
+    return this.http.get(
+      `${this.apiUrl}/${tenantId}/reports/annual-sales/range/pdf`,
+      {
+        params: { startDate, endDate, periodLabel },
+        responseType: 'blob'
+      }
+    );
+  }
+
   downloadInvoice(tenantId: number, saleId: number): Observable<Blob> {
     return this.http.get(
       `${this.apiUrl}/${tenantId}/sales/${saleId}/invoice.pdf`,

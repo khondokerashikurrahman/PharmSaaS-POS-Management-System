@@ -587,3 +587,22 @@
   }
 
 }
+/* Tenant edit modal */
+.tenant-edit-backdrop{position:fixed;inset:0;z-index:1200;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(15,23,42,.6);backdrop-filter:blur(4px)}
+.tenant-edit-modal{width:min(680px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:18px;box-shadow:0 24px 70px rgba(15,23,42,.25)}
+.tenant-edit-header{display:flex;align-items:center;gap:14px;padding:22px 26px;border-bottom:1px solid #e9eef5}
+.tenant-edit-icon{width:44px;height:44px;display:grid;place-items:center;border-radius:12px;background:#eff6ff;color:#2563eb;font-size:20px}
+.tenant-edit-header h2{margin:0;font-size:19px;color:#172033}.tenant-edit-header p{margin:4px 0 0;color:#7b8798;font-size:13px}
+.tenant-edit-close{margin-left:auto;border:0;border-radius:8px;width:34px;height:34px;background:#f1f5f9;color:#475569;font-size:23px;cursor:pointer}
+.tenant-edit-form{padding:22px 26px}.tenant-edit-form h3{display:flex;gap:9px;align-items:center;margin:4px 0 14px;color:#334155;font-size:13px}
+.tenant-edit-form h3 i{color:#3975d7}.tenant-edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:23px}
+.tenant-edit-grid label{display:flex;flex-direction:column;gap:7px;color:#475569;font-size:12px;font-weight:600}
+.tenant-edit-grid label b{color:#dc2626}.tenant-edit-grid input,.tenant-edit-grid textarea{box-sizing:border-box;width:100%;padding:11px 12px;border:1px solid #dbe2ec;border-radius:9px;background:#fbfcfe;color:#172033;font:inherit;font-size:13px;outline:none}
+.tenant-edit-grid input:focus,.tenant-edit-grid textarea:focus{border-color:#5287df;box-shadow:0 0 0 3px rgba(59,130,246,.12);background:#fff}
+.tenant-edit-wide{grid-column:1/-1}.tenant-edit-grid textarea{resize:vertical}
+.tenant-edit-error{margin-bottom:14px;padding:10px 12px;border-radius:8px;background:#fff1f0;color:#b42318;font-size:13px}
+.tenant-edit-footer{display:flex;justify-content:flex-end;gap:10px;padding-top:17px;border-top:1px solid #edf1f6}
+.tenant-edit-footer button{padding:10px 17px;border-radius:9px;font-size:13px;font-weight:650;cursor:pointer}
+.tenant-edit-cancel{border:1px solid #d8e0ea;background:#fff;color:#475569}.tenant-edit-save{border:1px solid #2563eb;background:#2563eb;color:#fff}
+.tenant-edit-footer button:disabled{opacity:.6;cursor:not-allowed}
+@media(max-width:600px){.tenant-edit-grid{grid-template-columns:1fr}.tenant-edit-wide{grid-column:auto}.tenant-edit-header,.tenant-edit-form{padding-left:18px;padding-right:18px}}

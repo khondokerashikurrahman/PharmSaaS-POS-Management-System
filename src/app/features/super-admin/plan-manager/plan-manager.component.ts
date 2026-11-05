@@ -11,6 +11,7 @@ interface Plan {
   price: number;
   currency: string;
   durationDays: number;
+  trial: boolean;
   active: boolean;
   activeTenants: number;
   maxBranches: number | null;
@@ -26,6 +27,7 @@ interface PlanRequest {
   price: number;
   currency: string;
   durationDays: number;
+  trial: boolean;
   maxBranches: number | null;
   maxTeamMembers: number | null;
   maxInventoryItems: number | null;
@@ -185,6 +187,10 @@ export class PlanManagerComponent implements OnInit {
       this.errorMessage = 'Plan name is required.';
       return false;
     }
+    if (plan.trial && Number(plan.price) !== 0) {
+      this.errorMessage = 'Trial plan price must be zero.';
+      return false;
+    }
     if (!Number.isFinite(Number(plan.price)) || Number(plan.price) < 0) {
       this.errorMessage = 'Enter a valid non-negative price.';
       return false;
@@ -216,6 +222,7 @@ export class PlanManagerComponent implements OnInit {
       price: Number(plan.price),
       currency: plan.currency.trim().toUpperCase(),
       durationDays: Number(plan.durationDays),
+      trial: plan.trial,
       maxBranches: this.quotaValue(plan.maxBranches),
       maxTeamMembers: this.quotaValue(plan.maxTeamMembers),
       maxInventoryItems: this.quotaValue(plan.maxInventoryItems),
@@ -235,6 +242,7 @@ export class PlanManagerComponent implements OnInit {
       price: 0,
       currency: 'BDT',
       durationDays: 30,
+      trial: false,
       maxBranches: null, maxTeamMembers: null, maxInventoryItems: null, maxInventoryBatches: null
     };
   }

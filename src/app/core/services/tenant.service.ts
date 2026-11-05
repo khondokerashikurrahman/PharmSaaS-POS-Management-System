@@ -91,14 +91,37 @@ export class TenantService {
   }
 
 
+loadSubscriptionPlans(): Observable<Array<{
+  id: number;
+  code: string;
+  name: string;
+  price: number;
+  currency: string;
+  durationDays: number;
+  active: boolean;
+}>> {
+  return this.api.get<Array<{
+    id: number;
+    code: string;
+    name: string;
+    price: number;
+    currency: string;
+    durationDays: number;
+    active: boolean;
+  }>>('/super-admin/subscription-plans');
+}
+
 createTenant(body: {
   tenantCode: string;
   name: string;
   ownerName: string;
   email: string;
+  password: string;
   phone: string;
   address: string;
-  status: string;
+  planId: number;
+  storeCode: string;
+  storeName: string;
 }): Observable<Tenant> {
   return this.api.post<BackendTenant>('/tenants', body).pipe(
     map(response => this.mapTenant(response)),

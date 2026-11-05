@@ -1,5 +1,15 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  OnChanges,
+  OnDestroy,
+  SimpleChanges
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { SaleApiService } from '../../../core/services/sale-api.service';
 
 export interface InvoiceReceiptItem {
   productName: string;
@@ -11,6 +21,7 @@ export interface InvoiceReceiptItem {
 }
 
 export interface InvoiceReceiptData {
+  saleId: number;
   invoiceNumber: string;
   date: string;
   customerName: string;
@@ -31,153 +42,155 @@ export interface InvoiceReceiptData {
   templateUrl: './invoice-receipt.component.html',
   styleUrl: './invoice-receipt.component.scss'
 })
-export class InvoiceReceiptComponent {
-
+export class InvoiceReceiptComponent implements OnChanges, OnDestroy {
   @Input() visible = false;
-
   @Input() receipt: InvoiceReceiptData | null = null;
+  @Input() tenantId = 0;
 
   @Output() closed = new EventEmitter<void>();
-
   @Output() printed = new EventEmitter<void>();
+
+  downloadingInvoice = false;
+  loadingInvoice = false;
+  invoiceError = '';
+  pdfPreviewUrl: SafeResourceUrl | null = null;
+
+  private pdfBlob: Blob | null = null;
+  private objectUrl: string | null = null;
+  private requestedSaleId: number | null = null;
+
+  constructor(
+    private saleApiService: SaleApiService,
+    private sanitizer: DomSanitizer
+  ) {}
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (
+      this.visible &&
+      this.receipt &&
+      (
+        changes['visible'] ||
+        changes['receipt'] ||
+        changes['tenantId']
+      )
+    ) {
+      this.loadInvoice();
+    }
+  }
+
+  private loadInvoice(): void {
+    if (!this.receipt || this.loadingInvoice) {
+      return;
+    }
+
+    if (!Number.isSafeInteger(this.tenantId) || this.tenantId <= 0) {
+      this.invoiceError = 'Tenant information is missing. Please log in again.';
+      return;
+    }
+
+    if (!Number.isSafeInteger(this.receipt.saleId) || this.receipt.saleId <= 0) {
+      this.invoiceError = 'Saved sale ID is missing. Cannot load Jasper invoice.';
+      return;
+    }
+
+    if (
+      this.requestedSaleId === this.receipt.saleId &&
+      this.pdfBlob
+    ) {
+      return;
+    }
+
+    this.clearPdf();
+    this.requestedSaleId = this.receipt.saleId;
+    this.loadingInvoice = true;
+    this.invoiceError = '';
+
+    this.saleApiService.downloadInvoice(
+      this.tenantId,
+      this.receipt.saleId
+    ).subscribe({
+      next: pdf => {
+        this.pdfBlob = pdf;
+        this.objectUrl = window.URL.createObjectURL(pdf);
+        this.pdfPreviewUrl =
+          this.sanitizer.bypassSecurityTrustResourceUrl(this.objectUrl);
+        this.loadingInvoice = false;
+      },
+      error: error => {
+        console.error('Jasper invoice loading failed:', error);
+        this.loadingInvoice = false;
+        this.invoiceError =
+          error?.error?.message ||
+          'Jasper invoice could not be loaded. Please try again.';
+      }
+    });
+  }
+
+  downloadInvoice(): void {
+    if (!this.pdfBlob || !this.receipt || this.downloadingInvoice) {
+      return;
+    }
+
+    this.downloadingInvoice = true;
+
+    const url = window.URL.createObjectURL(this.pdfBlob);
+    const link = document.createElement('a');
+
+    link.href = url;
+    link.download = `${this.receipt.invoiceNumber || `SALE-${this.receipt.saleId}`}.pdf`;
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    window.setTimeout(() => {
+      window.URL.revokeObjectURL(url);
+      this.downloadingInvoice = false;
+    }, 1000);
+  }
+
+  printInvoice(): void {
+    if (!this.pdfBlob) {
+      return;
+    }
+
+    const url = window.URL.createObjectURL(this.pdfBlob);
+    const printWindow = window.open(url, '_blank');
+
+    if (!printWindow) {
+      window.URL.revokeObjectURL(url);
+      alert('Please allow pop-ups to print the invoice.');
+      return;
+    }
+
+    printWindow.addEventListener('afterprint', () => {
+      window.URL.revokeObjectURL(url);
+    }, { once: true });
+
+    this.printed.emit();
+  }
+
+  loadInvoiceForRetry(): void {
+    this.requestedSaleId = null;
+    this.loadInvoice();
+  }
 
   close(): void {
     this.closed.emit();
   }
 
-  printReceipt(): void {
-    const original = document.querySelector(
-      '.receipt-overlay .receipt-content'
-    ) as HTMLElement | null;
-
-    if (!original || !this.receipt) {
-      console.error('Invoice content not found; printing was cancelled.');
-      return;
+  private clearPdf(): void {
+    if (this.objectUrl) {
+      window.URL.revokeObjectURL(this.objectUrl);
     }
 
-    document.getElementById('pharmsaas-print-root')?.remove();
+    this.objectUrl = null;
+    this.pdfBlob = null;
+    this.pdfPreviewUrl = null;
+    this.requestedSaleId = null;
+  }
 
-    const printRoot = document.createElement('div');
-    printRoot.id = 'pharmsaas-print-root';
-
-    const content = original.cloneNode(true) as HTMLElement;
-    printRoot.appendChild(content);
-
-    const printStyle = document.createElement('style');
-
-    printStyle.textContent = `
-      #pharmsaas-print-root {
-        position: fixed;
-        left: -100000px;
-        top: 0;
-        width: 194mm;
-        background: #ffffff;
-        box-sizing: border-box;
-      }
-
-      #pharmsaas-print-root,
-      #pharmsaas-print-root * {
-        box-sizing: border-box !important;
-      }
-
-      #pharmsaas-print-root .receipt-content {
-        width: 194mm !important;
-        max-height: none !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        overflow: visible !important;
-      }
-
-      @page {
-        size: A4 portrait;
-        margin: 0;
-      }
-
-      @media print {
-        html,
-        body {
-          width: 210mm !important;
-          margin: 0 !important;
-          padding: 0 !important;
-        }
-
-        body.receipt-printing > *:not(#pharmsaas-print-root) {
-          display: none !important;
-        }
-
-        body.receipt-printing #pharmsaas-print-root {
-          display: block !important;
-          position: absolute !important;
-          top: 8mm !important;
-          left: 8mm !important;
-          width: 194mm !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          background: #ffffff !important;
-          overflow: hidden !important;
-          box-shadow: none !important;
-        }
-
-        #pharmsaas-print-root .receipt-content {
-          width: 194mm !important;
-          max-height: none !important;
-          padding: 0 !important;
-          margin: 0 !important;
-          overflow: visible !important;
-        }
-
-        #pharmsaas-print-root .items-section,
-        #pharmsaas-print-root .item-row,
-        #pharmsaas-print-root .invoice-info,
-        #pharmsaas-print-root .receipt-summary,
-        #pharmsaas-print-root .payment-summary,
-        #pharmsaas-print-root .receipt-footer {
-          break-inside: avoid !important;
-          page-break-inside: avoid !important;
-        }
-      }
-    `;
-
-    printRoot.appendChild(printStyle);
-    document.body.appendChild(printRoot);
-    document.body.classList.add('receipt-printing');
-
-    // Fit the complete invoice inside one A4 printable page.
-    const availableHeight = (281 * 96) / 25.4;
-    const naturalHeight = Math.ceil(content.getBoundingClientRect().height);
-
-    const scale = naturalHeight > availableHeight
-      ? availableHeight / naturalHeight
-      : 1;
-
-    content.style.transform = `scale(${scale})`;
-    content.style.transformOrigin = 'top left';
-    printRoot.style.height = `${Math.ceil(naturalHeight * scale)}px`;
-
-    let fallbackTimer: number | undefined;
-
-    const cleanup = (): void => {
-      if (fallbackTimer !== undefined) {
-        window.clearTimeout(fallbackTimer);
-      }
-
-      window.removeEventListener('afterprint', cleanup);
-      printRoot.remove();
-      document.body.classList.remove('receipt-printing');
-    };
-
-    window.addEventListener('afterprint', cleanup, { once: true });
-    fallbackTimer = window.setTimeout(cleanup, 60000);
-
-    window.setTimeout(() => {
-      try {
-        window.print();
-      } catch (error) {
-        cleanup();
-        console.error('Invoice print failed:', error);
-      }
-    }, 250);
-
-    this.printed.emit();
+  ngOnDestroy(): void {
+    this.clearPdf();
   }
 }

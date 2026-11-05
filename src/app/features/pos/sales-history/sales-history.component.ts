@@ -358,6 +358,7 @@ export class SalesHistoryComponent implements OnInit {
   ): InvoiceReceiptData {
 
     return {
+      saleId: sale.id,
       invoiceNumber: sale.invoice,
       date: sale.date,
 

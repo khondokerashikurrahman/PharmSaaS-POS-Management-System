@@ -913,3 +913,62 @@
   pointer-events: auto;
   cursor: pointer;
 }
+
+
+/* Super Admin: Create Tenant */
+.create-tenant-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 18px;
+  border: 0;
+  border-radius: 9px;
+  background: #176b52;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+.create-tenant-btn:hover { background: #10543f; }
+
+.create-tenant-modal {
+  width: min(760px, calc(100vw - 32px));
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.create-tenant-form { display: grid; gap: 20px; }
+.create-form-section { display: grid; gap: 12px; }
+.create-form-section h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #176b52;
+}
+.create-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.create-form-grid .form-group { min-width: 0; }
+.create-form-grid .form-group input,
+.create-form-grid .form-group select {
+  width: 100%;
+  box-sizing: border-box;
+}
+.create-form-grid .full-width { grid-column: 1 / -1; }
+.create-tenant-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 13px;
+}
+.create-error { margin: 0; color: #b42318; font-size: 13px; }
+
+@media (max-width: 600px) {
+  .create-form-grid { grid-template-columns: 1fr; }
+  .create-form-grid .full-width { grid-column: auto; }
+}

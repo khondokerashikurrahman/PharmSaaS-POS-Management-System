@@ -1,12 +1,12 @@
-<div class="receipt-overlay" *ngIf="visible && receipt" (click)="close()">
-  <div class="receipt-modal" (click)="$event.stopPropagation()">
+<div class="receipt-overlay" *ngIf="visible && receipt">
+  <div class="receipt-modal jasper-invoice-modal">
 
     <div class="receipt-header">
       <div class="receipt-status">
         <span class="success-icon"><i class="bi bi-check-lg"></i></span>
         <div>
           <h2>Sale Completed</h2>
-          <p>Invoice generated successfully</p>
+          <p>JasperReports Invoice — {{ receipt.invoiceNumber }}</p>
         </div>
       </div>
 
@@ -15,214 +15,50 @@
       </button>
     </div>
 
-    <div class="receipt-content">
+    <div class="jasper-preview-container">
+      <div class="jasper-loading" *ngIf="loadingInvoice">
+        <i class="bi bi-arrow-repeat"></i>
+        <p>Loading Jasper invoice...</p>
+      </div>
 
-      <!-- PHARMACY BRANDING -->
-      <section class="brand-header">
-        <div class="brand-identity">
-          <div class="brand-symbol">
-            <i class="bi bi-capsule-pill"></i>
-            <span class="brand-leaf"></span>
-          </div>
-          <div class="brand-copy">
-            <h1>PharmSaaS</h1>
-            <h2>Pharmacy</h2>
-            <p>Your Trusted Healthcare Partner</p>
-          </div>
-        </div>
+      <div class="jasper-error" *ngIf="invoiceError && !loadingInvoice">
+        <i class="bi bi-exclamation-triangle"></i>
+        <p>{{ invoiceError }}</p>
+        <button type="button" class="primary-btn" (click)="loadInvoiceForRetry()">
+          Retry
+        </button>
+      </div>
 
-        <div class="brand-contact">
-          <div><i class="bi bi-geo-alt-fill"></i><span>Pharmacy Management System</span></div>
-          <div><i class="bi bi-heart-pulse-fill"></i><span>Better Health for a Better Life</span></div>
-        </div>
-        <div class="brand-decoration"><i class="bi bi-plus-lg"></i></div>
-      </section>
-
-      <!-- INVOICE BANNER -->
-      <section class="invoice-banner">
-        <div class="banner-title">
-          <i class="bi bi-receipt-cutoff"></i>
-          <span>SALES INVOICE</span>
-        </div>
-        <div class="banner-number">
-          <small>Invoice No:</small>
-          <strong>{{ receipt.invoiceNumber }}</strong>
-        </div>
-      </section>
-
-      <!-- CUSTOMER AND INVOICE DETAILS -->
-      <section class="information-grid">
-        <div class="info-card">
-          <div class="info-card-heading">
-            <i class="bi bi-person-fill"></i>
-            <h3>Customer Information</h3>
-          </div>
-          <div class="info-card-body">
-            <div class="info-line">
-              <strong>Name</strong><span>:</span>
-              <p>{{ receipt.customerName || 'Walk-in Customer' }}</p>
-            </div>
-            <div class="info-line">
-              <strong>Phone</strong><span>:</span><p>—</p>
-            </div>
-            <div class="info-line">
-              <strong>Address</strong><span>:</span><p>—</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="info-card">
-          <div class="info-card-heading">
-            <i class="bi bi-calendar2-week-fill"></i>
-            <h3>Invoice Details</h3>
-          </div>
-          <div class="info-card-body">
-            <div class="info-line">
-              <strong>Invoice Date</strong><span>:</span>
-              <p>{{ receipt.date }}</p>
-            </div>
-            <div class="info-line">
-              <strong>Payment Method</strong><span>:</span>
-              <p><span class="payment-badge"><i class="bi bi-wallet2"></i>{{ receipt.paymentMethod }}</span></p>
-            </div>
-            <div class="info-line">
-              <strong>Sales By</strong><span>:</span><p>—</p>
-            </div>
-            <div class="info-line">
-              <strong>Store / Branch</strong><span>:</span><p>—</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- MEDICINE TABLE -->
-      <section class="items-section">
-        <div class="section-heading">
-          <i class="bi bi-bag-check-fill"></i>
-          <h3>Medicine Details</h3>
-        </div>
-
-        <div class="table-scroll">
-          <table class="invoice-table">
-            <thead>
-              <tr>
-                <th class="serial-col">#</th>
-                <th class="product-col">Product / Medicine</th>
-                <th>SKU</th>
-                <th>Batch</th>
-                <th class="qty-col">Qty</th>
-                <th class="money-col">Unit Price (৳)</th>
-                <th class="money-col">Total (৳)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let item of receipt.items; let i = index">
-                <td class="serial-col">{{ i + 1 }}</td>
-                <td class="product-cell">
-                  <strong>{{ item.productName }}</strong>
-                </td>
-                <td>{{ item.sku || '—' }}</td>
-                <td>{{ item.batchNumber || '—' }}</td>
-                <td class="qty-col">{{ item.quantity }}</td>
-                <td class="money-col">{{ item.unitPrice | number:'1.2-2' }}</td>
-                <td class="money-col total-cell">{{ item.totalPrice | number:'1.2-2' }}</td>
-              </tr>
-              <tr *ngIf="!receipt.items?.length">
-                <td colspan="7" class="empty-row">No invoice items found.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- BRAND MESSAGE AND TOTALS -->
-      <section class="totals-layout">
-        <div class="health-message">
-          <div class="health-icon"><i class="bi bi-mortarboard-fill"></i></div>
-          <strong>Better Health<br>for a Better Life</strong>
-          <span>Care • Trust • Wellness</span>
-        </div>
-
-        <div class="totals-card">
-          <div class="total-line">
-            <span>Subtotal</span>
-            <strong>৳{{ receipt.subtotal | number:'1.2-2' }}</strong>
-          </div>
-          <div class="total-line discount-line" *ngIf="receipt.discount > 0">
-            <span>Discount</span>
-            <strong>(-) ৳{{ receipt.discount | number:'1.2-2' }}</strong>
-          </div>
-          <div class="total-line">
-            <span>Tax / VAT</span>
-            <strong>৳{{ receipt.tax | number:'1.2-2' }}</strong>
-          </div>
-          <div class="grand-total">
-            <span>Grand Total</span>
-            <strong>৳{{ receipt.totalAmount | number:'1.2-2' }}</strong>
-          </div>
-        </div>
-      </section>
-
-      <!-- PAYMENT SUMMARY -->
-      <section class="bottom-grid">
-        <div class="payment-card">
-          <div class="bottom-card-heading">
-            <i class="bi bi-wallet-fill"></i>
-            <h3>Payment Summary</h3>
-          </div>
-          <div class="payment-line">
-            <span>Amount Received</span>
-            <strong>৳{{ receipt.amountReceived | number:'1.2-2' }}</strong>
-          </div>
-          <div class="payment-line">
-            <span>Change</span>
-            <strong class="change-value">৳{{ receipt.change | number:'1.2-2' }}</strong>
-          </div>
-        </div>
-
-        <div class="verification-card">
-          <div class="verification-icon"><i class="bi bi-shield-check"></i></div>
-          <div>
-            <strong>Invoice Generated Successfully</strong>
-            <span>{{ receipt.invoiceNumber }}</span>
-            <small>Keep this invoice for future reference.</small>
-          </div>
-        </div>
-      </section>
-
-      <!-- THANK YOU -->
-      <section class="thank-you">
-        <span></span>
-        <strong>Thank You for Shopping with Us!</strong>
-        <span></span>
-      </section>
-
-      <!-- FOOTER -->
-      <footer class="invoice-footer">
-        <div class="footer-message">
-          <i class="bi bi-heart-pulse"></i>
-          <strong>Get Well Soon</strong>
-        </div>
-        <div class="footer-terms">
-          <strong><i class="bi bi-info-circle"></i> Terms &amp; Conditions</strong>
-          <p>• Please keep this invoice for future reference.</p>
-          <p>• Returns are subject to pharmacy policy.</p>
-        </div>
-        <div class="footer-powered">
-          <small>Powered by</small>
-          <strong>PharmSaaS</strong>
-          <span>Pharmacy Management System</span>
-        </div>
-      </footer>
+      <iframe
+        *ngIf="pdfPreviewUrl && !loadingInvoice"
+        class="jasper-pdf-frame"
+        [src]="pdfPreviewUrl"
+        title="JasperReports Invoice PDF">
+      </iframe>
     </div>
 
     <div class="receipt-actions">
       <button type="button" class="secondary-btn" (click)="close()">
         <i class="bi bi-x-circle"></i> Close
       </button>
-      <button type="button" class="primary-btn" (click)="printReceipt()">
-        <i class="bi bi-printer"></i> Print Invoice
+
+      <button
+        type="button"
+        class="secondary-btn"
+        (click)="printInvoice()"
+        [disabled]="!pdfPreviewUrl">
+        <i class="bi bi-printer"></i> Print PDF
+      </button>
+
+      <button
+        type="button"
+        class="primary-btn"
+        (click)="downloadInvoice()"
+        [disabled]="!pdfPreviewUrl || downloadingInvoice">
+        <i class="bi bi-download"></i>
+        {{ downloadingInvoice ? 'Downloading...' : 'Download PDF' }}
       </button>
     </div>
+
   </div>
 </div>

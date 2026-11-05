@@ -392,4 +392,50 @@
 
     </div>
     </ng-container>
+
+  <div class="tenant-edit-backdrop" *ngIf="showEditModal" (click)="closeEditModal()">
+    <section class="tenant-edit-modal" role="dialog" aria-modal="true"
+      aria-labelledby="edit-tenant-title" (click)="$event.stopPropagation()">
+      <header class="tenant-edit-header">
+        <div class="tenant-edit-icon"><i class="bi bi-building-gear"></i></div>
+        <div><h2 id="edit-tenant-title">Edit Tenant</h2><p>Update pharmacy and owner information</p></div>
+        <button type="button" class="tenant-edit-close" (click)="closeEditModal()" [disabled]="saving">×</button>
+      </header>
+
+      <form class="tenant-edit-form" (ngSubmit)="saveTenantChanges()">
+        <h3><i class="bi bi-hospital"></i> Pharmacy Information</h3>
+        <div class="tenant-edit-grid">
+          <label>Tenant Code <b>*</b>
+            <input name="tenantCode" [(ngModel)]="editForm.tenantCode" maxlength="30" required>
+          </label>
+          <label>Pharmacy / Business Name <b>*</b>
+            <input name="name" [(ngModel)]="editForm.name" maxlength="150" required>
+          </label>
+        </div>
+        <h3><i class="bi bi-person-badge"></i> Owner & Contact</h3>
+        <div class="tenant-edit-grid">
+          <label>Owner Name
+            <input name="ownerName" [(ngModel)]="editForm.ownerName" maxlength="150">
+          </label>
+          <label>Email Address
+            <input name="email" type="email" [(ngModel)]="editForm.email" maxlength="255">
+          </label>
+          <label>Phone Number
+            <input name="phone" [(ngModel)]="editForm.phone" maxlength="30">
+          </label>
+          <label class="tenant-edit-wide">Business Address
+            <textarea name="address" rows="3" [(ngModel)]="editForm.address"></textarea>
+          </label>
+        </div>
+        <div class="tenant-edit-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+        <footer class="tenant-edit-footer">
+          <button type="button" class="tenant-edit-cancel" (click)="closeEditModal()" [disabled]="saving">Cancel</button>
+          <button type="submit" class="tenant-edit-save" [disabled]="saving">
+            {{ saving ? 'Saving...' : 'Save Changes' }}
+          </button>
+        </footer>
+      </form>
+    </section>
+  </div>
+
 </div>

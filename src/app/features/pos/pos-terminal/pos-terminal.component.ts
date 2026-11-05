@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 
 import { StorageService } from '../../../core/services/storage.service';
 import { SaleApiService } from '../../../core/services/sale-api.service';
@@ -38,6 +39,7 @@ import { CartItem } from '../../../core/models/cart.model';
 
   imports: [
     CommonModule,
+    RouterLink,
     ProductSearchComponent,
     CartListComponent,
     CustomerSelectorComponent,
@@ -1501,6 +1503,7 @@ export class PosTerminalComponent implements OnInit {
       next: sale => {
         // The receipt is built from the saved backend response.
         this.invoiceReceiptData = {
+          saleId: sale.id,
           invoiceNumber: sale.invoiceNumber,
           date: sale.createdAt
             ? new Date(sale.createdAt).toLocaleString()

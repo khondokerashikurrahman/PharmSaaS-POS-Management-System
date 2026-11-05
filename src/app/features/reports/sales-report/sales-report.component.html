@@ -107,6 +107,26 @@
 
       </div>
 
+      <div class="jasper-downloads" aria-label="Download Jasper sales reports">
+        <span class="jasper-download-label">Jasper PDF Reports</span>
+        <button type="button" (click)="downloadPresetJasperReport('daily')" [disabled]="downloadingReport">
+          <i class="bi bi-file-earmark-pdf"></i> Daily
+        </button>
+        <button type="button" (click)="downloadPresetJasperReport('weekly')" [disabled]="downloadingReport">
+          <i class="bi bi-file-earmark-pdf"></i> Weekly
+        </button>
+        <button type="button" (click)="downloadPresetJasperReport('three-months')" [disabled]="downloadingReport">
+          <i class="bi bi-file-earmark-pdf"></i> 3 Months
+        </button>
+        <button type="button" (click)="downloadPresetJasperReport('six-months')" [disabled]="downloadingReport">
+          <i class="bi bi-file-earmark-pdf"></i> 6 Months
+        </button>
+        <button type="button" (click)="downloadPresetJasperReport('annual')" [disabled]="downloadingReport">
+          <i class="bi bi-file-earmark-pdf"></i> Annual
+        </button>
+        <span *ngIf="downloadingReport" class="jasper-download-progress">Preparing PDF...</span>
+      </div>
+
 
       <!-- CUSTOM DATE -->
 

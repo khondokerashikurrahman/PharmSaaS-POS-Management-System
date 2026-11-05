@@ -1056,3 +1056,58 @@ table {
     flex-wrap: wrap;
   }
 }
+
+
+/* Jasper PDF report downloads */
+.jasper-downloads {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 14px 20px 18px;
+  border-top: 1px solid #edf0f5;
+}
+
+.jasper-download-label {
+  margin-right: 4px;
+  color: #475467;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.jasper-downloads button {
+  min-height: 34px;
+  padding: 0 11px;
+  border: 1px solid #dce3ed;
+  border-radius: 7px;
+  background: #fff;
+  color: #3f72af;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.jasper-downloads button:hover:not(:disabled) {
+  border-color: #3f72af;
+  background: #f2f6fc;
+}
+
+.jasper-downloads button:disabled {
+  opacity: .55;
+  cursor: wait;
+}
+
+.jasper-download-progress {
+  color: #667085;
+  font-size: 12px;
+}
+
+@media (max-width: 600px) {
+  .jasper-downloads {
+    padding: 14px 15px;
+  }
+
+  .jasper-download-label {
+    width: 100%;
+  }
+}
